@@ -48,17 +48,17 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 
 
 
-data_path = "data/pirate_attacks.csv"
-df_points = pd.read_csv(data_path)
-geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
+# data_path = "data/pirate_attacks.csv"
+# df_points = pd.read_csv(data_path)
+# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+# gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
-data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
-df_points = pd.read_csv(data_path)
-geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
+# data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
+# df_points = pd.read_csv(data_path)
+# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+# gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
 
-mapper(gdf_points2)
+# mapper(gdf_points2)
