@@ -4,14 +4,15 @@ import geopandas as gpd
 from shapely.geometry import Point
 import seaborn as sns
 
+
 def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
     # arg geopoints: geo-referenced points to be drawn on top of map
     # arg include_bathymetry: whether or not to draw ocean depth levels
-    path_land = "/Users/tylerbagwell/Desktop/packages/Natural_Earth_quick_start/50m_cultural/ne_50m_admin_0_countries.shp"
-    path_maritime_0 = "/Users/tylerbagwell/Desktop/packages/ne_10m_bathymetry_all/ne_10m_bathymetry_L_0.shp"
-    path_maritime_200 = "/Users/tylerbagwell/Desktop/packages/ne_10m_bathymetry_all/ne_10m_bathymetry_K_200.shp"
-    path_maritime_1000 = "/Users/tylerbagwell/Desktop/packages/ne_10m_bathymetry_all/ne_10m_bathymetry_J_1000.shp"
-    path_rivers = "/Users/tylerbagwell/Desktop/packages/ne_50m_rivers_lake_centerlines.shx"
+    path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+    path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
+    path_maritime_200 = "data/map_packages/ne_10m_bathymetry_K_200.shx"
+    path_maritime_1000 = "data/map_packages/ne_10m_bathymetry_J_1000.shx"
+    path_rivers = "data/map_packages/ne_50m_rivers_lake_centerlines.shx"
 
     gdf1 = gpd.read_file(path_land)
     gdf2 = gpd.read_file(path_maritime_0)
@@ -20,7 +21,7 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
     gdf5 = gpd.read_file(path_rivers)
 
     # construct plotting figure
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(10, 6.6))
 
     ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='white', alpha=0.5, zorder=1)
 
@@ -47,7 +48,7 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 
 
 
-data_path = "/Users/tylerbagwell/Documents/github/CCCV/data/pirate_attacks.csv"
+data_path = "data/pirate_attacks.csv"
 df_points = pd.read_csv(data_path)
 geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
 gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
@@ -60,4 +61,4 @@ gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
 
-mapper(gdf_points1, gdf_points2)
+mapper(gdf_points2)
