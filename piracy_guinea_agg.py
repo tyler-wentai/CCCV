@@ -5,7 +5,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 from mapping import mapper
-import statsmodels.discrete.discrete_model as sm
+import statsmodels.api as sm
 
 guinea_center_point = np.array([3.01, 4.34])  # lat, long of center of gulf of guinea
 
@@ -36,15 +36,22 @@ cov_df = pd.read_csv(cov_path)
 
 #print(cov_df.columns)
 cov_df = cov_df[cov_df['Country Name']=='Nigeria']
-cov_df = cov_df[cov_df['Series Name']=='GDP per capita (current US$)']
+cov_df1 = cov_df[cov_df['Series Name']=='GDP per capita (current US$)']
+cov_df2 = cov_df[cov_df['Series Name']=='Population, total']
 # monthly_counts['GDP per capita, t'] = cov_df
 
-cov_t_df = cov_df.iloc[0,17:-3]
-cov_tm1_df = cov_df.iloc[0,16:-4]
+cov1_t_df = cov_df1.iloc[0,17:-3]
+cov1_tm1_df = cov_df1.iloc[0,16:-4]
+
+cov2_t_df = cov_df2.iloc[0,17:-3]
+cov2_tm1_df = cov_df2.iloc[0,16:-4]
 
 #print(cov_t_df)
-cov_t_df = cov_t_df.reset_index(drop=True)
-cov_tm1_df = cov_tm1_df.reset_index(drop=True)
+cov1_t_df = cov1_t_df.reset_index(drop=True)
+cov1_tm1_df = cov1_tm1_df.reset_index(drop=True)
+
+cov2_t_df = cov2_t_df.reset_index(drop=True)
+cov2_tm1_df = cov2_tm1_df.reset_index(drop=True)
 #print(cov_t_df.shape)
 
 #print(cov_t_df)
@@ -55,9 +62,35 @@ yearly_counts = yearly_counts.reset_index(drop=True)
 #print(yearly_counts.shape)
 
 
-df = pd.concat([yearly_counts, cov_t_df, cov_tm1_df], axis=1)
+df = pd.concat([yearly_counts, cov1_t_df, cov1_tm1_df, cov2_t_df, cov2_tm1_df], axis=1)
+df['const'] = 1
+
+#print(df)
+
+
+df.columns = ["y","gdp_t","gdp_tm1","pop_t","pop_tm1","const"]
+df = df.applymap(lambda x: pd.to_numeric(x, errors='coerce'))
+
+#print(type(df['x_t']))
+df['gdp_t'] = df['gdp_t'].transform(np.log)
+df['gdp_tm1'] = df['gdp_tm1'].transform(np.log)
+df['pop_t'] = df['pop_t'].transform(np.log)
+df['pop_tm1'] = df['pop_tm1'].transform(np.log)
+# print(df[['const','x_t']])
 
 print(df)
+
+model = sm.GLM(df['y'], df[['const','gdp_t','pop_t']], family=sm.families.NegativeBinomial())
+results = model.fit()
+
+print(results.summary())
+
+
+# Define the formula for the model
+# formula = 'y ~ x_t'
+
+# # Fit the model
+# model = smf.negativebinomial(formula, data=df).fit()
 
 #print(cov_df.iloc[0,14:-3])
 # plt.figure(figsize=(10, 5))
