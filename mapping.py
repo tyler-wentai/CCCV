@@ -34,13 +34,16 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 
     if (geopoints1 is not None):
         #sns.kdeplot(ax=ax, data=geopoints, x="longitude", y="latitude", bw_method=0.05, color='red', fill=True)
-        geopoints1.plot(ax=ax, color='purple', marker='o', markersize=0.2, label='Points', zorder=3)
+        geopoints1.plot(ax=ax, color='red', marker='o', markersize=0.1, label='Points', zorder=3)
     if (geopoints2 is not None):
         #sns.kdeplot(ax=ax, data=geopoints, x="longitude", y="latitude", bw_method=0.05, color='red', fill=True)
-        geopoints2.plot(ax=ax, color='red', marker='o', markersize=0.2, label='Points', zorder=3)
+        geopoints2.plot(ax=ax, color='red', marker='o', markersize=0.1, label='Points', zorder=3)
 
-    ax.set_xlim([-20.0, 160.0])
-    ax.set_ylim([-40.0, +40.0])
+    #ax.set_xlim([-20.0, 160.0])
+    #ax.set_ylim([-40.0, +40.0])
+
+    ax.set_xlim([-100.0, 160.0])
+    ax.set_ylim([-45.0, +45.0])
 
     plt.tight_layout()
     #plt.savefig('map.png', bbox_inches='tight', pad_inches=0.1)
