@@ -136,11 +136,31 @@ fit_fn_b = np.poly1d(fit_b)
 
 # scatter plot of anom. vs. piracy counts
 piracy_oni_p = piracy_oni[piracy_oni['ANOM']>=0.]
-piracy_oni_m = piracy_oni[piracy_oni['ANOM']<0.]
-# plt.figure(figsize=(10, 6))
-# plt.scatter(piracy_oni_p['ANOM'], piracy_oni_p['PIRACY_COUNTS'], color='red')
-# plt.show()
+piracy_oni_m = piracy_oni[piracy_oni['ANOM']<1.0]
+fit = np.polyfit(piracy_oni['ANOM'],  piracy_oni['PIRACY_COUNTS'], 1)
+fit_fn = np.poly1d(fit)
+fit_m = np.polyfit(piracy_oni_m['ANOM'],  piracy_oni_m['PIRACY_COUNTS'], 1)
+fit_fn_m = np.poly1d(fit_m)
+plt.figure(figsize=(10, 6))
+plt.scatter(piracy_oni['ANOM'], piracy_oni['PIRACY_COUNTS'], color='k')
+plt.plot(piracy_oni['ANOM'], fit_fn(piracy_oni['ANOM']), color='blue', linestyle='-')
+plt.plot(piracy_oni_m['ANOM'], fit_fn_m(piracy_oni_m['ANOM']), color='blue', linestyle='-.')
+plt.show()
 # print(piracy_oni)
+
+piracy_oni_p = piracy_oni[piracy_oni['ANOM']>=0.]
+piracy_oni_m = piracy_oni[piracy_oni['ANOM']<0.0]
+plt.figure(figsize=(10, 6))
+plt.hist(piracy_oni_p['PIRACY_COUNTS'], bins='scott', density=True, color='red', edgecolor="red",\
+         alpha=0.6, label=f'Temperature >= 0.0 (El Nino)')
+plt.hist(piracy_oni_m['PIRACY_COUNTS'], bins='scott', density=True, color='blue', edgecolor="blue",\
+         alpha=0.6, label=f'Temperature < 0.0 (La Nina)')
+plt.title('Global Piracy Data Histogram: El Nino vs La Nina')
+plt.xlabel('Monthly Piracy Count')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
+
 
 piracy_oni_cleaned = piracy_oni.dropna()
 piracy_oni_loc1_cleaned = piracy_oni_loc1.dropna()
@@ -185,8 +205,8 @@ for i in range(n_lag):
 # plt.plot(piracy_oni["PIRACY_COUNTS"], color='blue')
 # plt.show()
 
-Xmat = sm.add_constant(piracy_oni_loc3_cleaned["ANOM_lag2m"])
-model = sm.OLS(piracy_oni_loc3_cleaned["PIRACY_COUNTS"],Xmat).fit()
+Xmat = sm.add_constant(piracy_oni_m["ANOM"])
+model = sm.OLS(piracy_oni_m["PIRACY_COUNTS"],Xmat).fit()
 print(model.summary())
 
 # plt.scatter(piracy_oni_loc1_cleaned["ANOM_lag48m"], piracy_oni_loc1_cleaned["PIRACY_COUNTS"], color='blue')
