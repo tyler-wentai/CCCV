@@ -9,6 +9,7 @@ import statsmodels.api as sm
 # loc1 = Gulf of Guinea
 # loc2 = South East Asia
 # loc3 = Middle East/Gulf of Aden
+# loc4 = South America
 
 path1 = "data/NOAA_ONI_data.txt"
 path2 = "data/pirate_attacks.csv"
@@ -32,6 +33,11 @@ piracy_counts_loc2_qtr.name = 'PIRACY_COUNTS'
 df_piracy_loc3 = df_piracy[df_piracy['nearest_country'].isin(['SDN','EGY','YEM','DJI','SAU','SOM','DJI','OMN'])]
 piracy_counts_loc3_qtr = df_piracy_loc3.resample('QE').size()      # aggregate to quarter level
 piracy_counts_loc3_qtr.name = 'PIRACY_COUNTS'
+    # loc4: South America
+#df_piracy_loc4 = df_piracy[df_piracy['nearest_country'].isin(['BRA','PER','ECU','COL','GUY','VEN','SUR'])]
+df_piracy_loc4 = df_piracy[df_piracy['nearest_country'].isin(['BGD','IND','LKA'])]
+piracy_counts_loc4_qtr = df_piracy_loc4.resample('QE').size()      # aggregate to quarter level
+piracy_counts_loc4_qtr.name = 'PIRACY_COUNTS'
 
 # ONI data_frame setup
 season_to_months = {
@@ -68,20 +74,25 @@ piracy_oni_loc2 = piracy_oni_loc2.dropna()
     # loc3
 piracy_oni_loc3 = pd.concat([df_oni, piracy_counts_loc3_qtr], axis=1)
 piracy_oni_loc3 = piracy_oni_loc3.dropna()
+    # loc4
+piracy_oni_loc4 = pd.concat([df_oni, piracy_counts_loc4_qtr], axis=1)
+piracy_oni_loc4 = piracy_oni_loc4.dropna()
 
-# create lagged columns of ONI anom. up to 24 months
-n_lag = 4
+# create lagged columns of ONI anom.
+n_lag = 20
 for i in range(n_lag):
     lag_string = 'ANOM_lag' + str(i+1) + 'q'
     piracy_oni[lag_string]= piracy_oni['ANOM'].shift((i+1))
     piracy_oni_loc1[lag_string]= piracy_oni_loc1['ANOM'].shift((i+1))
     piracy_oni_loc2[lag_string]= piracy_oni_loc2['ANOM'].shift((i+1))
     piracy_oni_loc3[lag_string]= piracy_oni_loc3['ANOM'].shift((i+1))
+    piracy_oni_loc4[lag_string]= piracy_oni_loc4['ANOM'].shift((i+1))
 
 piracy_oni = piracy_oni.dropna()
 piracy_oni_loc1 = piracy_oni_loc1.dropna()
 piracy_oni_loc2 = piracy_oni_loc2.dropna()
 piracy_oni_loc3 = piracy_oni_loc3.dropna()
+piracy_oni_loc4 = piracy_oni_loc4.dropna()
 
 
 # plot
@@ -103,11 +114,11 @@ piracy_oni_loc3 = piracy_oni_loc3.dropna()
 # plt.plot(piracy_oni_loc2['ANOM'], fit_fn(piracy_oni_loc2['ANOM']), color='purple', linestyle='-')
 # plt.show()
 
-# fit = np.polyfit(piracy_oni_loc3['ANOM'],  piracy_oni_loc3['PIRACY_COUNTS'], 1)
-# fit_fn = np.poly1d(fit)
-# plt.scatter(piracy_oni_loc3['ANOM'], piracy_oni_loc3['PIRACY_COUNTS'], color='k', s=3)
-# plt.plot(piracy_oni_loc3['ANOM'], fit_fn(piracy_oni_loc3['ANOM']), color='red', linestyle='-')
-# plt.show()
+fit = np.polyfit(piracy_oni_loc4['ANOM'],  piracy_oni_loc4['PIRACY_COUNTS'], 1)
+fit_fn = np.poly1d(fit)
+plt.scatter(piracy_oni_loc4['ANOM'], piracy_oni_loc4['PIRACY_COUNTS'], color='k', s=3)
+plt.plot(piracy_oni_loc4['ANOM'], fit_fn(piracy_oni_loc4['ANOM']), color='red', linestyle='-')
+plt.show()
 
 # Xmat = sm.add_constant(piracy_oni_loc2['ANOM_lag6q'])
 # model = sm.OLS(piracy_oni_loc2["PIRACY_COUNTS"],Xmat).fit()
@@ -135,3 +146,12 @@ plt.plot(l, coefs_results['Est'], color='darkgreen', marker='o', markersize=3)
 plt.fill_between(l, coefs_results['CI_l'], coefs_results['CI_u'], interpolate=True, color='lightgreen', alpha=0.5)
 plt.hlines(0, color='k', xmin=min(l), xmax=max(l), linewidth=0.5)
 plt.show()
+
+# print(df_piracy.shape)
+# print(df_piracy_loc1.shape)
+# print(df_piracy_loc2.shape)
+# print(df_piracy_loc3.shape)
+# print(df_piracy_loc4.shape)
+
+# country_counts = df_piracy['nearest_country'].value_counts()
+# country_counts.to_csv('country_counts.txt', sep='\t', index=True)

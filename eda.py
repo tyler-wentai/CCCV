@@ -87,7 +87,7 @@ for i in range(n_lag):
     piracy_oni_loc3[lag_string]= piracy_oni_loc3['ANOM'].shift((i+1))
 
 # plot histograms of counts above/below temp. anom_val for comparison
-anom_val = 0
+anom_val = 0.5
 df_above = piracy_oni[piracy_oni['ANOM'] > (+anom_val)]
 df_below = piracy_oni[piracy_oni['ANOM'] < (-anom_val)]
 
@@ -119,17 +119,17 @@ fit_b = np.polyfit(temps, med_counts_below, 1)
 fit_fn_a = np.poly1d(fit_a)
 fit_fn_b = np.poly1d(fit_b)
 
-# plt.figure(figsize=(10, 6))
-# plt.plot(temps, med_counts_above, color='red', label=f'Months w/ ONI >  + Abs. temp. anom.')
-# plt.plot(temps, fit_fn_a(temps), color='red', linestyle='--')
-# plt.plot(temps, med_counts_below, color='blue', label=f'Months w/ ONI < - Abs. temp. anom.')
-# plt.plot(temps, fit_fn_b(temps), color='blue', linestyle='--')
-# plt.title('All global piracy data')
-# plt.xlabel('Abs. temp. anom.')
-# plt.ylabel('Mean piracy counts / month')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+plt.figure(figsize=(10, 6))
+plt.plot(temps, med_counts_above, color='red', label=f'Months w/ ONI >  + Abs. temp. anom.')
+plt.plot(temps, fit_fn_a(temps), color='red', linestyle='--')
+plt.plot(temps, med_counts_below, color='blue', label=f'Months w/ ONI < - Abs. temp. anom.')
+plt.plot(temps, fit_fn_b(temps), color='blue', linestyle='--')
+plt.title('All global piracy data')
+plt.xlabel('Abs. temp. anom.')
+plt.ylabel('Mean piracy counts / month')
+plt.legend()
+plt.grid(True)
+plt.show()
 
 
 
@@ -221,5 +221,5 @@ print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag4m']))
 print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag5m']))
 print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag6m']))
 
-plt.scatter(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag1m'], color='k', s=2)
-plt.show()
+# plt.scatter(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag1m'], color='k', s=2)
+# plt.show()
