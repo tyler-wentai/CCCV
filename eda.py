@@ -135,20 +135,20 @@ fit_fn_b = np.poly1d(fit_b)
 
 
 # scatter plot of anom. vs. piracy counts
-# piracy_oni_p = piracy_oni[piracy_oni['ANOM']>=0.]
-# piracy_oni_m = piracy_oni[piracy_oni['ANOM']<1.0]
-# fit = np.polyfit(piracy_oni['ANOM'],  piracy_oni['PIRACY_COUNTS'], 1)
-# fit_fn = np.poly1d(fit)
-# fit_m = np.polyfit(piracy_oni_m['ANOM'],  piracy_oni_m['PIRACY_COUNTS'], 1)
-# fit_fn_m = np.poly1d(fit_m)
-# plt.figure(figsize=(10, 6))
-# plt.scatter(piracy_oni['ANOM'], piracy_oni['PIRACY_COUNTS'], color='k')
-# plt.plot(piracy_oni['ANOM'], fit_fn(piracy_oni['ANOM']), color='blue', linestyle='-')
-# plt.plot(piracy_oni_m['ANOM'], fit_fn_m(piracy_oni_m['ANOM']), color='blue', linestyle='-.')
-# plt.title('Global Piracy Data: Monthly Piracy Count vs. ONI')
-# plt.xlabel('ONI')
-# plt.ylabel('Monthly Piracy Count')
-# plt.show()
+piracy_oni_p = piracy_oni[piracy_oni['ANOM']>=0.]
+piracy_oni_m = piracy_oni[piracy_oni['ANOM']<1.0]
+fit = np.polyfit(piracy_oni['ANOM'],  piracy_oni['PIRACY_COUNTS'], 1)
+fit_fn = np.poly1d(fit)
+fit_m = np.polyfit(piracy_oni_m['ANOM'],  piracy_oni_m['PIRACY_COUNTS'], 1)
+fit_fn_m = np.poly1d(fit_m)
+plt.figure(figsize=(10, 6))
+plt.scatter(piracy_oni['ANOM'], piracy_oni['PIRACY_COUNTS'], color='k')
+plt.plot(piracy_oni['ANOM'], fit_fn(piracy_oni['ANOM']), color='blue', linestyle='-')
+plt.plot(piracy_oni_m['ANOM'], fit_fn_m(piracy_oni_m['ANOM']), color='blue', linestyle='-.')
+plt.title('Global Piracy Data: Monthly Piracy Count vs. ONI')
+plt.xlabel('ONI')
+plt.ylabel('Monthly Piracy Count')
+plt.show()
 
 
 # piracy_oni_p = piracy_oni[piracy_oni['ANOM']>=0.]
@@ -208,18 +208,18 @@ for i in range(n_lag):
 # plt.plot(piracy_oni["PIRACY_COUNTS"], color='blue')
 # plt.show()
 
-piracy_oni_m = piracy_oni_loc2_cleaned[piracy_oni_cleaned['ANOM']<4.5]
-Xmat = sm.add_constant(piracy_oni_m["ANOM_lag12m"])
-model = sm.OLS(piracy_oni_m["PIRACY_COUNTS"],Xmat).fit()
-print(model.summary())
+# piracy_oni_m = piracy_oni_loc2_cleaned[piracy_oni_cleaned['ANOM']<4.5]
+# Xmat = sm.add_constant(piracy_oni_m["ANOM_lag12m"])
+# model = sm.OLS(piracy_oni_m["PIRACY_COUNTS"],Xmat).fit()
+# print(model.summary())
 
 #print(piracy_oni_cleaned)
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag1m']))
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag2m']))
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag3m']))
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag4m']))
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag5m']))
-# print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag6m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag1m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag2m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag3m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag4m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag5m']))
+print(pearsonr(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag6m']))
 
-# plt.scatter(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag6m'], color='k')
-# plt.show()
+plt.scatter(piracy_oni_cleaned['ANOM'],piracy_oni_cleaned['ANOM_lag1m'], color='k', s=2)
+plt.show()
