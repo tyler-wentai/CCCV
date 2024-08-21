@@ -39,11 +39,11 @@ print(dataset1.variables.keys())
 #     # Show the plot
 #     plt.show()
 
-# Read the coordinate variables
+# # Read the coordinate variables
 # latitudes = dataset1.variables['lat'][:]
 # longitudes = dataset1.variables['lon'][:]
 
-# Print the metadata
+# # Print the metadata
 # print("NetCDF Metadata:")
 # print("Latitudes:", latitudes)
 # print("Longitudes:", longitudes)
@@ -83,10 +83,35 @@ print(dataset1.variables.keys())
 #     # print("Pixel size:", transform[0], transform[4])
 
 
-
-
 ##### MODIFY
-# Open the original NetCDF file in read-only mode
+
+# dat = nc.Dataset(file_path1)
+
+# VAR1=dat.variables['air']
+
+# lat = dat.variables['lat'][:]
+# lon = dat.variables['lon'][:]
+# time = dat.variables['time'][:]
+
+# #print(VAR1) # this line will print the dimensions of the array, VAR1, which we've saved.
+
+# lat_90_index = np.where(lat == -90)[0]
+
+# # latitude lower and upper index
+# latbounds = [ -89.75 , +90.00]
+# latli = min(np.argmin( np.abs(lat - latbounds[0]) ), np.argmin( np.abs(lat - latbounds[1]) ))
+# latui = max(np.argmin( np.abs(lat - latbounds[0]) ), np.argmin( np.abs(lat - latbounds[1]) ))
+
+# print(latli, latui)
+# dat_mod = dat.variables['air'][: , latli:latui , :]
+# print(dat_mod.shape)
+# print(dat_mod.variables['lat'][:])
+
+# dat_mod_np = np.array(dat_mod) # often we have to change NetCDF variables to Numpy Arrays before we can save them.
+# np.save('/Users/tylerbagwell/Desktop/air.2m.mon.mean_modified.npy', dat_mod_np)
+
+##### MODIFY first attempt GPT
+## Open the original NetCDF file in read-only mode
 # ds = nc.Dataset(file_path1, 'r')
 
 # # Read the latitude and temperature data
@@ -95,6 +120,7 @@ print(dataset1.variables.keys())
 
 # # Identify the index where lat=90
 # lat_90_index = np.where(latitudes == -90)[0]
+# print(lat_90_index)
 
 # # Remove the lat=90 data
 # if len(lat_90_index) > 0:
@@ -145,24 +171,120 @@ print(dataset1.variables.keys())
 
 
 #######
-print('NEW --------')
-file_path1 = '/Users/tylerbagwell/Desktop/air.2m.mon.mean_modified.nc'
+# print('NEW --------')
+# file_path1 = '/Users/tylerbagwell/Desktop/air.2m.mon.mean_modified.nc'
 
-# Open the NetCDF file
-dataset1 = nc.Dataset(file_path1, mode='r')
+# # Open the NetCDF file
+# dataset1 = nc.Dataset(file_path1, mode='r')
 
-# Print the dataset to see its structure
-print(dataset1.variables.keys())
+# # Print the dataset to see its structure
+# print(dataset1.variables.keys())
 
-# Read the coordinate variables
-latitudes = dataset1.variables['lat'][:]
-longitudes = dataset1.variables['lon'][:]
+# # Read the coordinate variables
+# latitudes = dataset1.variables['lat'][:]
+# longitudes = dataset1.variables['lon'][:]
 
-# Print the metadata
-print("NetCDF Metadata:")
-print("Latitudes:", latitudes)
-print("Longitudes:", longitudes)
-print("Latitude range:", latitudes.min(), "-", latitudes.max())
-print("Longitude range:", longitudes.min(), "-", longitudes.max())
-print("Latitude step:", latitudes[1] - latitudes[0])
-print("Longitude step:", longitudes[1] - longitudes[0])
+# # Print the metadata
+# print("NetCDF Metadata:")
+# print("Latitudes:", latitudes)
+# print("Longitudes:", longitudes)
+# print("Latitude range:", latitudes.min(), "-", latitudes.max())
+# print("Longitude range:", longitudes.min(), "-", longitudes.max())
+# print("Latitude step:", latitudes[1] - latitudes[0])
+# print("Longitude step:", longitudes[1] - longitudes[0])
+
+
+#######
+
+
+#======================================================================
+# from mpl_toolkits.basemap import Basemap, shiftgrid
+
+# plt.style.use('ggplot')
+# fig = plt.figure()
+
+# parallels = np.arange(-40,40,20)
+# meridians = np.arange(-40,80,20)
+
+# ax1 = fig.add_subplot(1,1,1)
+
+# m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=360) # USA
+
+# # labels = [left,right,top,bottom]
+# m.drawparallels(parallels,labels=[False,True,True,False])
+# m.drawmeridians(meridians,labels=[True,False,False,True])
+# # draw costlines and coutries
+# m.drawcoastlines(linewidth=1.5)
+# m.drawcountries(linewidth=0.5)
+
+# #m.fillcontinents(color='grey',lake_color='aqua')
+# # compute the lons and lats to fit the projection
+# x, y = m(*np.meshgrid(lon,lat))
+
+# # draw filled contours.
+# levels=np.arange(200,320,10) # this sets the colorbar levels
+# vmin=200  # this sets the colorbar min
+# vmax=320 # this sets the colorbar max
+# ax1 = m.contourf(x,y,VAR1[1000,:,:],cmap=plt.cm.RdBu_r, levels=levels, vmin=vmin, vmax=vmax)
+
+# # add colorbar.
+# cbar = m.colorbar(ax1,location='bottom',pad="10%")
+# font_size = 8 # Adjust as appropriate.
+# cbar.ax.tick_params(labelsize=font_size)
+# cbar.set_label('Air Temperature, (K)') # Python will respond to LaTeX syntax commands.
+
+# #plt.title(r'Air Temperature, (K)')
+# plt.show()
+
+
+
+
+
+
+##### STEP 1: Detrend and Standardize
+from scipy.signal import detrend
+dat = nc.Dataset(file_path1)
+
+VAR1=dat.variables['air']
+
+lat = dat.variables['lat'][:]
+lon = dat.variables['lon'][:]
+time = dat.variables['time'][:]
+
+from datetime import datetime, timedelta
+
+# Define the reference date: 1800-01-01 00:00:00
+reference_date = datetime(1800, 1, 1, 0, 0, 0)
+target_date = datetime(1985, 1, 1, 0, 0, 0)
+
+dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
+start_time_ind = int(np.where(dates == target_date)[0])
+print(np.where(dates == target_date)[0])
+print(start_time_ind)
+VAR1 = VAR1[start_time_ind:len(time), :, :]
+
+# Initialize a new array to store the detrended data
+VAR1_detrended = np.empty_like(VAR1)
+
+# Get the shape of the data array
+n_lat, n_long, n_time = VAR1.shape
+print(n_lat, n_long, n_time)
+
+# # Loop through each (lat, long) point and detrend the time series
+# for i in range(n_lat):
+#     for j in range(n_long):
+#         print(i,j)
+#         # Extract the time series at (lat, long) point
+#         time_series = VAR1[:, i, j]
+        
+#         # Detrend the time series
+#         detrended_series = detrend(time_series)
+        
+#         # Store the detrended time series back into the array
+#         VAR1_detrended[:, i, j] = detrended_series
+
+
+# xx = np.arange(start_time_ind, len(time), 1)
+# plt.plot(xx, VAR1[:, 50, 50])
+# plt.plot(xx, VAR1_detrended[:, 50, 50])
+# plt.show()
