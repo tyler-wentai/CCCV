@@ -69,11 +69,12 @@ VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
 VAR1_standard = np.empty_like(VAR1)
 
 # Get the shape of the data array
-n_lat, n_long, n_time = VAR1.shape
-print(n_lat, n_long, n_time)
+n_time, n_lat, n_long = VAR1.shape
+print(n_time, n_lat, n_long)
 
 # Loop through each (lat, long) point and standardize the time series at each grid point
 for i in range(n_lat):
+    print(i)
     for j in range(n_long):
         time_series = VAR1[:, i, j]
         mean = np.mean(time_series)
@@ -126,7 +127,10 @@ rho_tilde = np.empty((12,\
 
 # print(psi_array)
 
-# sys.exit()
+
+print(n_lat, n_long)
+
+sys.exit()
 
 
 
@@ -148,8 +152,7 @@ for m in range(12):
             df_help = df_help.dropna()
             df_help = df_help[df_help['month'] == m_num]
             pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
-            #if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
-            if (pearsonr_result[1]<alpha_lvl):
+            if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
                  rho_tilde[m,i,j] = 1
             else:
                  rho_tilde[m,i,j] = 0

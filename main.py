@@ -31,8 +31,8 @@ ax1 = fig.add_subplot(1,1,1)
 m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=360) # USA
 
 # labels = [left,right,top,bottom]
-m.drawparallels(parallels,labels=[False,True,True,False])
-m.drawmeridians(meridians,labels=[True,False,False,True])
+#m.drawparallels(parallels,labels=[False,True,True,False])
+#m.drawmeridians(meridians,labels=[True,False,False,True])
 # draw costlines and coutries
 m.drawcoastlines(linewidth=1.5)
 m.drawcountries(linewidth=0.5)
