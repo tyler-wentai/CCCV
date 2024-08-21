@@ -8,8 +8,9 @@ from scipy.stats import pearsonr
 import pandas as pd
 import sys
 from datetime import datetime, timedelta
+import xarray as xr
 
-print('\n\nSTART ---------------------')
+print('\n\nSTART ---------------------\n')
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc'
 file_path_POP = '/Users/tylerbagwell/Desktop/GriddedPopulationoftheWorld_data/gpw_v4_population_count_rev11_2005_15_min.asc'
@@ -39,7 +40,7 @@ df_oni.set_index('date', inplace=True)
 df_oni = df_oni.sort_index()
 df_oni = df_oni.drop(columns=['SEAS','YR','MN'])
 
-target_date = datetime(2016, 1, 1, 0, 0, 0)
+target_date = datetime(1985, 1, 1, 0, 0, 0)
 end_date = datetime(2021, 1, 1, 0, 0, 0)    # end date will be one month AFTER actual desired end date
 start_time_ind = int(np.where(df_oni.index == target_date)[0])
 end_time_ind = int(np.where(df_oni.index == end_date)[0])
@@ -73,7 +74,6 @@ print(n_lat, n_long, n_time)
 
 # Loop through each (lat, long) point and standardize the time series at each grid point
 for i in range(n_lat):
-    print(i)
     for j in range(n_long):
         time_series = VAR1[:, i, j]
         mean = np.mean(time_series)
@@ -104,11 +104,38 @@ rho_tilde = np.empty((12,\
                       VAR1_standard.shape[1],\
                       VAR1_standard.shape[2]))
 
+
+# psi = np.zeros((VAR1_standard.shape[1],
+#                 VAR1_standard.shape[2]))
+# lag = 2
+# Rval = 3
+# psi_array = xr.DataArray(data = psi,
+#                          coords={
+#                               "lat": lat,
+#                               "lon": lon
+#                          },
+#                          dims = ["lat", "lon"],
+#                          attrs=dict(
+#                             description="Psi, teleconnection strength via Hsiang 2011 method.",
+#                             cor_calc_start_date = str(target_date),
+#                             cor_calc_end_date = str(end_date),
+#                             L_lag = lag,
+#                             R_val = Rval)
+#                         )
+# psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011_dataset.nc")
+
+# print(psi_array)
+
+# sys.exit()
+
+
+
 lag = 2
+Rval = 3
 alpha_lvl = 0.1
 for m in range(12):
     m_num = m+1
-    print(m_num)
+    print('month: ', m_num)
     for i in range(n_lat):
         print('...', i)
         for j in range(n_long):
@@ -121,7 +148,29 @@ for m in range(12):
             df_help = df_help.dropna()
             df_help = df_help[df_help['month'] == m_num]
             pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
-            if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
+            #if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
+            if (pearsonr_result[1]<alpha_lvl):
                  rho_tilde[m,i,j] = 1
             else:
                  rho_tilde[m,i,j] = 0
+
+Mxl = np.sum(rho_tilde, axis=0)
+psi = np.where(Mxl >= Rval, 1, 0)
+psi_array = xr.DataArray(data = psi,
+                         coords={
+                              "lat": lat,
+                              "lon": lon
+                         },
+                         dims = ["lat", "lon"],
+                         attrs=dict(
+                            description="Psi, teleconnection strength via Hsiang 2011 method.",
+                            cor_calc_start_date = str(target_date),
+                            cor_calc_end_date = str(end_date),
+                            L_lag = lag,
+                            R_val = Rval)
+                        )
+
+print(psi_array)
+print("\n", psi_array.values)
+
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011_pm.nc")
