@@ -28,7 +28,7 @@ meridians = np.arange(-40,80,20)
 
 ax1 = fig.add_subplot(1,1,1)
 
-m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=360) # USA
+m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=360)
 
 # labels = [left,right,top,bottom]
 #m.drawparallels(parallels,labels=[False,True,True,False])
@@ -42,7 +42,7 @@ m.drawcountries(linewidth=0.5)
 x, y = m(*np.meshgrid(lon,lat))
 
 # draw filled contours.
-levels=np.arange(-2,2,1) # this sets the colorbar levels
+levels=np.arange(-2,2,0.5) # this sets the colorbar levels
 vmin=-2  # this sets the colorbar min
 vmax=2 # this sets the colorbar max
 ax1 = m.contourf(x,y,psi.values[:,:],cmap=plt.cm.RdBu_r, levels=levels, vmin=vmin, vmax=vmax)

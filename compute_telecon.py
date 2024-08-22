@@ -13,7 +13,7 @@ import xarray as xr
 print('\n\nSTART ---------------------\n')
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc'
-file_path_POP = '/Users/tylerbagwell/Desktop/GriddedPopulationoftheWorld_data/gpw_v4_population_count_rev11_2005_15_min.asc'
+#file_path_POP = '/Users/tylerbagwell/Desktop/GriddedPopulationoftheWorld_data/gpw_v4_population_count_rev11_2005_15_min.asc'
 file_path_ONI = 'data/NOAA_ONI_data.txt'
 
 
@@ -130,10 +130,6 @@ rho_tilde = np.empty((12,\
 
 print(n_lat, n_long)
 
-sys.exit()
-
-
-
 lag = 2
 Rval = 3
 alpha_lvl = 0.1
@@ -176,4 +172,4 @@ psi_array = xr.DataArray(data = psi,
 print(psi_array)
 print("\n", psi_array.values)
 
-psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011_pm.nc")
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
