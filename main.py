@@ -6,17 +6,20 @@ import matplotlib.pyplot as plt
 print('\n\nSTART ---------------------\n')
 
 psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
 
+print(psi)
 
 lat = psi['lat']
 lon = psi['lon']
 
 print(np.max(psi.values))
-print(psi)
+print(lon[0])
 
 print(np.unique(psi.values, return_counts=True))
 
-# sys.exit()
+sys.exit()
 
 from mpl_toolkits.basemap import Basemap, shiftgrid
 
@@ -28,13 +31,13 @@ meridians = np.arange(-40,80,20)
 
 ax1 = fig.add_subplot(1,1,1)
 
-m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=360)
+m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=-180,urcrnrlon=180)
 
 # labels = [left,right,top,bottom]
 #m.drawparallels(parallels,labels=[False,True,True,False])
 #m.drawmeridians(meridians,labels=[True,False,False,True])
 # draw costlines and coutries
-m.drawcoastlines(linewidth=1.5)
+m.drawcoastlines(linewidth=0.75)
 m.drawcountries(linewidth=0.5)
 
 m.fillcontinents(color='yellow',lake_color='aqua')

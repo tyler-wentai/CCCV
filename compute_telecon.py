@@ -105,29 +105,6 @@ rho_tilde = np.empty((12,\
                       VAR1_standard.shape[1],\
                       VAR1_standard.shape[2]))
 
-
-# psi = np.zeros((VAR1_standard.shape[1],
-#                 VAR1_standard.shape[2]))
-# lag = 2
-# Rval = 3
-# psi_array = xr.DataArray(data = psi,
-#                          coords={
-#                               "lat": lat,
-#                               "lon": lon
-#                          },
-#                          dims = ["lat", "lon"],
-#                          attrs=dict(
-#                             description="Psi, teleconnection strength via Hsiang 2011 method.",
-#                             cor_calc_start_date = str(target_date),
-#                             cor_calc_end_date = str(end_date),
-#                             L_lag = lag,
-#                             R_val = Rval)
-#                         )
-# psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011_dataset.nc")
-
-# print(psi_array)
-
-
 print(n_lat, n_long)
 
 lag = 2
@@ -173,3 +150,5 @@ print(psi_array)
 print("\n", psi_array.values)
 
 psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
+
+
