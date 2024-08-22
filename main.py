@@ -37,7 +37,7 @@ m = Basemap(projection='cyl', llcrnrlat=-90,urcrnrlat=90,llcrnrlon=0,urcrnrlon=3
 m.drawcoastlines(linewidth=1.5)
 m.drawcountries(linewidth=0.5)
 
-#m.fillcontinents(color='grey',lake_color='aqua')
+m.fillcontinents(color='yellow',lake_color='aqua')
 # compute the lons and lats to fit the projection
 x, y = m(*np.meshgrid(lon,lat))
 
