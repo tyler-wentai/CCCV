@@ -3,6 +3,8 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 import seaborn as sns
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 
 def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
@@ -51,17 +53,52 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 
 
 
-data_path = "data/pirate_attacks.csv"
-df_points = pd.read_csv(data_path)
-geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
+# data_path = "data/pirate_attacks.csv"
+# df_points = pd.read_csv(data_path)
+# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+# gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
-data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
-df_points = pd.read_csv(data_path)
-geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
+# data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
+# df_points = pd.read_csv(data_path)
+# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+# gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
+# mapper(gdf_points2)
 
-mapper(gdf_points2)
+def gridded_mapper(include_ocean_values=False):
+    import xarray as xr
+    from matplotlib.colors import ListedColormap
+    
+    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
+    psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+    psi = psi.sortby('lon')
+    lat = psi['lat'].values
+    lon = psi['lon'].values
+    variable = psi.values
+
+    path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+    path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
+    gdf1 = gpd.read_file(path_land)
+    gdf2 = gpd.read_file(path_maritime_0)
+
+    fig, ax = plt.subplots(figsize=(10, 6.6))
+
+    custom_cmap = ListedColormap(['white', 'red'])
+
+
+    ax.pcolormesh(lon, lat, variable, cmap=custom_cmap)
+    if (include_ocean_values==False):
+        gdf2.plot(ax=ax, edgecolor=None, color='white')
+    gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+
+    plt.title('$\Psi_{ENSO}$, Hsiang (2011) method')    # Replace with a relevant title
+
+    ax.set_xlim([-180.0, 180.0])
+    ax.set_ylim([-90.0, +90.0])
+
+    # Show the plot
+    plt.show()
+
+gridded_mapper(include_ocean_values=False)

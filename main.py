@@ -19,7 +19,7 @@ print(lon[0])
 
 print(np.unique(psi.values, return_counts=True))
 
-sys.exit()
+# sys.exit()
 
 from mpl_toolkits.basemap import Basemap, shiftgrid
 
