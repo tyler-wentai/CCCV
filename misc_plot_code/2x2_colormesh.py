@@ -1,0 +1,97 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Point
+import seaborn as sns
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import xarray as xr
+from matplotlib.colors import ListedColormap
+import numpy as np
+
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag0.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat = psi['lat'].values
+lon = psi['lon'].values
+variable0 = psi.values[0,:,:]
+
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag1.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat = psi['lat'].values
+lon = psi['lon'].values
+variable1 = psi.values[0,:,:]
+
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat = psi['lat'].values
+lon = psi['lon'].values
+variable2 = psi.values[0,:,:]
+
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag3.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat = psi['lat'].values
+lon = psi['lon'].values
+variable3 = psi.values[0,:,:]
+
+path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
+gdf1 = gpd.read_file(path_land)
+gdf2 = gpd.read_file(path_maritime_0)
+
+
+
+
+#### PLOTTING
+vmin = np.max([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
+vmax = np.min([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])
+maxval = np.max([np.abs(vmin), np.abs(vmax)])
+levels=np.arange(-0.3,+0.75,0.15) # this sets the colorbar levels
+colors = ['#ccdbfd', '#e2eafc', '#fff0f3','#ff8fa3', '#ff4d6d', '#a4133c', '#800f2f']
+
+fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+
+fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
+
+ax = axs[0, 0]
+c = ax.contourf(lon, lat, variable0, colors=colors, levels=levels)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+ax.set_title('airtemp_month_lag=0')
+ax.set_xlim([-180.0, 180.0])
+ax.set_ylim([-90.0, +90.0])
+fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+
+ax = axs[0, 1]
+c = ax.contourf(lon, lat, variable1, colors=colors, levels=levels)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+ax.set_title('airtemp_month_lag=1')
+ax.set_xlim([-180.0, 180.0])
+ax.set_ylim([-90.0, +90.0])
+fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+
+ax = axs[1, 0]
+c = ax.contourf(lon, lat, variable2, colors=colors, levels=levels)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+ax.set_title('airtemp_month_lag=2')
+ax.set_xlim([-180.0, 180.0])
+ax.set_ylim([-90.0, +90.0])
+fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+
+ax = axs[1, 1]
+c = ax.contourf(lon, lat, variable3, colors=colors, levels=levels)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+ax.set_title('airtemp_month_lag=3')
+ax.set_xlim([-180.0, 180.0])
+ax.set_ylim([-90.0, +90.0])
+fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+
+fig.tight_layout()
+plt.savefig('plots/rho_ONI_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()

@@ -93,12 +93,14 @@ def gridded_mapper(include_ocean_values=False):
         gdf2.plot(ax=ax, edgecolor=None, color='white')
     gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 
-    plt.title('$\Psi_{ENSO}$, Hsiang (2011) method')    # Replace with a relevant title
+    plt.title('$\Psi_{L2, R3}^{ONI}$, Hsiang (2011) method w/o pop. weighting')    # Replace with a relevant title
 
     ax.set_xlim([-180.0, 180.0])
     ax.set_ylim([-90.0, +90.0])
 
     # Show the plot
+    plt.tight_layout()
+    plt.savefig('plots/psi_ONI_L2R3_Hsiang2011.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
-gridded_mapper(include_ocean_values=False)
+#gridded_mapper(include_ocean_values=False)
