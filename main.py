@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 print('\n\nSTART ---------------------\n')
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 
@@ -45,16 +45,17 @@ m.fillcontinents(color='yellow',lake_color='aqua')
 x, y = m(*np.meshgrid(lon,lat))
 
 # draw filled contours.
-levels=np.arange(-2,2,0.5) # this sets the colorbar levels
-vmin=-2  # this sets the colorbar min
-vmax=2 # this sets the colorbar max
-ax1 = m.contourf(x,y,psi.values[:,:],cmap=plt.cm.RdBu_r, levels=levels, vmin=vmin, vmax=vmax)
+vmin=np.min(psi.values[0,:,:])  # this sets the colorbar min
+vmax=np.max(psi.values[0,:,:]) # this sets the colorbar max
+maxval = np.max([np.abs(vmin), np.abs(vmax)])
 
+levels=np.arange(-0.75,+0.75,0.125) # this sets the colorbar levels
+ax1 = m.contourf(x,y,psi.values[0,:,:],cmap='coolwarm', vmin=-maxval, vmax=+maxval)
 # add colorbar.
 cbar = m.colorbar(ax1,location='bottom',pad="10%")
 font_size = 8 # Adjust as appropriate.
 cbar.ax.tick_params(labelsize=font_size)
-cbar.set_label('Air Temperature, (K)') # Python will respond to LaTeX syntax commands.
+cbar.set_label(r'$\rho$ of ONI and Air Temp.') # Python will respond to LaTeX syntax commands.
 
 #plt.title(r'Air Temperature, (K)')
 plt.show()

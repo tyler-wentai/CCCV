@@ -6,9 +6,6 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from shapely.geometry import Point
-import sys
-import rioxarray
-import rasterio
 
 print('\n\nSTART ---------------------\n')
 
