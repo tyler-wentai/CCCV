@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 print('\n\nSTART ---------------------\n')
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag1.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 

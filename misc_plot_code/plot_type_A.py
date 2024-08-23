@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timedelta
 import xarray as xr
 import seaborn as sns
+import matplotlib.image as mpimg
 
 print('\n\nSTART ---------------------\n')
 
@@ -97,99 +98,69 @@ else:
      print("---The two time arrays are identical.---")
 month_start = int(df_oni.index[0].month)
 
-# compute cor(T,ONI)
-print(VAR1_standard.shape)
-print(VAR1_standard.shape[1])
-print(VAR1_standard.shape[2])
-rho_tilde = np.empty((12,\
-                      VAR1_standard.shape[1],\
-                      VAR1_standard.shape[2]))
 
-print(n_lat, n_long)
-
-lag = 2
-Rval = 3
-alpha_lvl = 0.1
-for m in range(12):
-    m_num = m+1
-    print('month: ', m_num)
-    for i in range(n_lat):
-        print('...', i)
-        for j in range(n_long):
-            df_help = pd.DataFrame({
+i = 80
+j = 120
+df_help1 = pd.DataFrame({
                 'month': df_oni.index.month,
                 'oni_ts': df_oni['ANOM'],
                 'air_ts': VAR1_standard[:, i, j]})
-            lag_string = 'oni_ts_lag' + str(lag) + 'm'
-            df_help[lag_string] = df_help['oni_ts'].shift((lag))
-            df_help = df_help.dropna()
-            df_help = df_help[df_help['month'] == m_num]
-            pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
-            if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
-                 rho_tilde[m,i,j] = 1
-            else:
-                 rho_tilde[m,i,j] = 0
 
-Mxl = np.sum(rho_tilde, axis=0)
-psi = np.where(Mxl >= Rval, 1, 0)
-psi_array = xr.DataArray(data = psi,
-                         coords={
-                              "lat": lat,
-                              "lon": lon
-                         },
-                         dims = ["lat", "lon"],
-                         attrs=dict(
-                            description="Psi, teleconnection strength via Hsiang 2011 method.",
-                            cor_calc_start_date = str(target_date),
-                            cor_calc_end_date = str(end_date),
-                            L_lag = lag,
-                            R_val = Rval)
-                        )
+i = 354
+j = 891
+df_help2 = pd.DataFrame({
+                'month': df_oni.index.month,
+                'oni_ts': df_oni['ANOM'],
+                'air_ts': VAR1_standard[:, i, j]})
 
-print(psi_array)
-print("\n", psi_array.values)
+i = 639
+j = 974
+df_help3 = pd.DataFrame({
+                'month': df_oni.index.month,
+                'oni_ts': df_oni['ANOM'],
+                'air_ts': VAR1_standard[:, i, j]})
 
-psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
+i = 431
+j = 752
+df_help4 = pd.DataFrame({
+                'month': df_oni.index.month,
+                'oni_ts': df_oni['ANOM'],
+                'air_ts': VAR1_standard[:, i, j]})
 
 
+############### Note: This is a work around since sns.jointplot does not cooperate with plt.subplots
 
-###
-# rho_all_months = np.empty((2, # index1: corr value; index2 = p-value
-#                       VAR1_standard.shape[1],
-#                       VAR1_standard.shape[2]))
+############### 1. CREATE PLOTS
+g1 = sns.jointplot(data=df_help1, x='oni_ts', y='air_ts', kind="reg")
+g2 = sns.jointplot(data=df_help2, x='oni_ts', y='air_ts', kind="reg")
+g3 = sns.jointplot(data=df_help3, x='oni_ts', y='air_ts', kind="reg")
+g4 = sns.jointplot(data=df_help4, x='oni_ts', y='air_ts', kind="reg")
 
-# print(n_lat, n_long)
+############### 2. SAVE PLOTS IN MEMORY TEMPORALLY
+g1.savefig('g1.png')
+plt.close(g1.fig)
 
-# lag = 2
-# for i in range(n_lat):
-#     print('...', i)
-#     for j in range(n_long):
-#         df_help = pd.DataFrame({
-#             'month': df_oni.index.month,
-#             'oni_ts': df_oni['ANOM'],
-#             'air_ts': VAR1_standard[:, i, j]})
-#         lag_string = 'oni_ts_lag' + str(lag) + 'm'
-#         df_help[lag_string] = df_help['oni_ts'].shift((lag))
-#         df_help = df_help.dropna()
-#         pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
-#         rho_all_months[0,i,j] = pearsonr_result[0]
-#         rho_all_months[1,i,j] = pearsonr_result[1]
+g2.savefig('g2.png')
+plt.close(g2.fig)
 
-# rho_array = xr.DataArray(data = rho_all_months,
-#                          coords={
-#                               "lat": lat,
-#                               "lon": lon
-#                          },
-#                          dims = ["value", "lat", "lon"],
-#                          attrs=dict(
-#                             description="Rho, correlation between air temp and ONI.",
-#                             cor_calc_start_date = str(target_date),
-#                             cor_calc_end_date = str(end_date),
-#                             L_lag = lag)
-#                         )
+g3.savefig('g3.png')
+plt.close(g3.fig)
 
-# print(rho_array)
-# print("\n", rho_array.values)
+g4.savefig('g4.png')
+plt.close(g4.fig)
 
-# rho_array.to_netcdf("/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc")
+############### 3. CREATE YOUR SUBPLOTS FROM TEMPORAL IMAGES
+f, axarr = plt.subplots(2, 2, figsize=(10, 10))
+
+axarr[0,0].imshow(mpimg.imread('g1.png'))
+axarr[0,1].imshow(mpimg.imread('g2.png'))
+axarr[1,0].imshow(mpimg.imread('g3.png'))
+axarr[1,1].imshow(mpimg.imread('g4.png'))
+
+# turn off x and y axis
+[ax.set_axis_off() for ax in axarr.ravel()]
+
+plt.tight_layout()
+plt.show()
+
 
