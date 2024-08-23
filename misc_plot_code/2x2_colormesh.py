@@ -49,8 +49,9 @@ gdf2 = gpd.read_file(path_maritime_0)
 vmin = np.max([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
 vmax = np.min([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])
 maxval = np.max([np.abs(vmin), np.abs(vmax)])
-levels=np.arange(-0.3,+0.75,0.15) # this sets the colorbar levels
-colors = ['#ccdbfd', '#e2eafc', '#fff0f3','#ff8fa3', '#ff4d6d', '#a4133c', '#800f2f']
+levels=np.arange(-0.3,+0.80,0.10) # this sets the colorbar levels
+# colors = ['#ccdbfd', '#e2eafc', '#fff0f3','#ff8fa3', '#ff4d6d', '#a4133c', '#800f2f']
+colors = ['#00b4d8', '#90e0ef', '#caf0f8','#ffba08', '#e85d04', "#d00000", "#9d0208", '#6a040f', '#370617', '#03071e']
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
