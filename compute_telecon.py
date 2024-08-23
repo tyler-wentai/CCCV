@@ -41,7 +41,7 @@ df_oni.set_index('date', inplace=True)
 df_oni = df_oni.sort_index()
 df_oni = df_oni.drop(columns=['SEAS','YR','MN'])
 
-target_date = datetime(1960, 1, 1, 0, 0, 0)
+target_date = datetime(1980, 1, 1, 0, 0, 0)
 end_date = datetime(2021, 1, 1, 0, 0, 0)    # end date will be one month AFTER actual desired end date
 start_time_ind = int(np.where(df_oni.index == target_date)[0])
 end_time_ind = int(np.where(df_oni.index == end_date)[0])
@@ -130,64 +130,11 @@ month_start = int(df_oni.index[0].month)
 
 
 # compute cor(T,ONI)
-# print(VAR1_standard.shape)
-# print(VAR1_standard.shape[1])
-# print(VAR1_standard.shape[2])
-# rho_tilde = np.empty((12,\
-#                       VAR1_standard.shape[1],\
-#                       VAR1_standard.shape[2]))
-
-# print(n_lat, n_long)
-
-# lag = 2
-# Rval = 3
-# alpha_lvl = 0.1
-# for m in range(12):
-#     m_num = m+1
-#     print('month: ', m_num)
-#     for i in range(n_lat):
-#         print('...', i)
-#         for j in range(n_long):
-#             df_help = pd.DataFrame({
-#                 'month': df_oni.index.month,
-#                 'oni_ts': df_oni['ANOM'],
-#                 'air_ts': VAR1_standard[:, i, j]})
-#             lag_string = 'oni_ts_lag' + str(lag) + 'm'
-#             df_help[lag_string] = df_help['oni_ts'].shift((lag))
-#             df_help = df_help.dropna()
-#             df_help = df_help[df_help['month'] == m_num]
-#             pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
-#             if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
-#                  rho_tilde[m,i,j] = 1
-#             else:
-#                  rho_tilde[m,i,j] = 0
-
-# Mxl = np.sum(rho_tilde, axis=0)
-# psi = np.where(Mxl >= Rval, 1, 0)
-# psi_array = xr.DataArray(data = psi,
-#                          coords={
-#                               "lat": lat,
-#                               "lon": lon
-#                          },
-#                          dims = ["lat", "lon"],
-#                          attrs=dict(
-#                             description="Psi, teleconnection strength via Hsiang 2011 method.",
-#                             cor_calc_start_date = str(target_date),
-#                             cor_calc_end_date = str(end_date),
-#                             L_lag = lag,
-#                             R_val = Rval)
-#                         )
-
-# print(psi_array)
-# print("\n", psi_array.values)
-
-# psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
-
-
-
-###
-rho_all_months = np.empty((2, # index1: corr value; index2 = p-value
-                      VAR1_standard.shape[1],
+print(VAR1_standard.shape)
+print(VAR1_standard.shape[1])
+print(VAR1_standard.shape[2])
+rho_tilde = np.empty((12,\
+                      VAR1_standard.shape[1],\
                       VAR1_standard.shape[2]))
 
 print(n_lat, n_long)
@@ -195,35 +142,86 @@ print(n_lat, n_long)
 lag = 2
 Rval = 3
 alpha_lvl = 0.1
-for i in range(n_lat):
-    print('...', i)
-    for j in range(n_long):
-        df_help = pd.DataFrame({
-            'month': df_oni.index.month,
-            'oni_ts': df_oni['ANOM'],
-            'air_ts': VAR1_standard[:, i, j]})
-        lag_string = 'oni_ts_lag' + str(lag) + 'm'
-        df_help[lag_string] = df_help['oni_ts'].shift((lag))
-        df_help = df_help.dropna()
-        pearsonr_result = pearsonr(df_help['oni_ts'], df_help['air_ts'])
-        rho_all_months[0,i,j] = pearsonr_result[0]
-        rho_all_months[1,i,j] = pearsonr_result[1]
+for m in range(12):
+    m_num = m+1
+    print('month: ', m_num)
+    for i in range(n_lat):
+        print('...', i)
+        for j in range(n_long):
+            df_help = pd.DataFrame({
+                'month': df_oni.index.month,
+                'oni_ts': df_oni['ANOM'],
+                'air_ts': VAR1_standard[:, i, j]})
+            lag_string = 'oni_ts_lag' + str(lag) + 'm'
+            df_help[lag_string] = df_help['oni_ts'].shift((lag))
+            df_help = df_help.dropna()
+            df_help = df_help[df_help['month'] == m_num]
+            pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
+            if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl):
+                 rho_tilde[m,i,j] = 1
+            else:
+                 rho_tilde[m,i,j] = 0
 
-rho_array = xr.DataArray(data = rho_all_months,
+Mxl = np.sum(rho_tilde, axis=0)
+psi = np.where(Mxl >= Rval, 1, 0)
+psi_array = xr.DataArray(data = psi,
                          coords={
                               "lat": lat,
                               "lon": lon
                          },
-                         dims = ["value", "lat", "lon"],
+                         dims = ["lat", "lon"],
                          attrs=dict(
-                            description="Rho, correlation between air temp and ONI.",
+                            description="Psi, teleconnection strength via Hsiang 2011 method.",
                             cor_calc_start_date = str(target_date),
                             cor_calc_end_date = str(end_date),
-                            L_lag = lag)
+                            L_lag = lag,
+                            R_val = Rval)
                         )
 
-print(rho_array)
-print("\n", rho_array.values)
+print(psi_array)
+print("\n", psi_array.values)
 
-rho_array.to_netcdf("/Users/tylerbagwell/Desktop/rho_airVSoni_lag0.nc")
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
+
+
+
+###
+# rho_all_months = np.empty((2, # index1: corr value; index2 = p-value
+#                       VAR1_standard.shape[1],
+#                       VAR1_standard.shape[2]))
+
+# print(n_lat, n_long)
+
+# lag = 2
+# for i in range(n_lat):
+#     print('...', i)
+#     for j in range(n_long):
+#         df_help = pd.DataFrame({
+#             'month': df_oni.index.month,
+#             'oni_ts': df_oni['ANOM'],
+#             'air_ts': VAR1_standard[:, i, j]})
+#         lag_string = 'oni_ts_lag' + str(lag) + 'm'
+#         df_help[lag_string] = df_help['oni_ts'].shift((lag))
+#         df_help = df_help.dropna()
+#         pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
+#         rho_all_months[0,i,j] = pearsonr_result[0]
+#         rho_all_months[1,i,j] = pearsonr_result[1]
+
+# rho_array = xr.DataArray(data = rho_all_months,
+#                          coords={
+#                               "lat": lat,
+#                               "lon": lon
+#                          },
+#                          dims = ["value", "lat", "lon"],
+#                          attrs=dict(
+#                             description="Rho, correlation between air temp and ONI.",
+#                             cor_calc_start_date = str(target_date),
+#                             cor_calc_end_date = str(end_date),
+#                             L_lag = lag)
+#                         )
+
+# print(rho_array)
+# print("\n", rho_array.values)
+
+# rho_array.to_netcdf("/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc")
 
