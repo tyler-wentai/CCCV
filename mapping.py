@@ -77,7 +77,7 @@ def gridded_mapper(include_ocean_values=False):
     import xarray as xr
     from matplotlib.colors import ListedColormap
     
-    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc')
+    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_amm.nc')
     psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
     psi = psi.sortby('lon')
     lat = psi['lat'].values
@@ -99,14 +99,14 @@ def gridded_mapper(include_ocean_values=False):
         gdf2.plot(ax=ax, edgecolor=None, color='white')
     gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 
-    plt.title('$\Psi_{L2, R3}^{ONI}$, Hsiang (2011) method w/o pop. weighting')    # Replace with a relevant title
+    plt.title('$\Psi_{L2, R3}^{AMM}$, Hsiang (2011) method w/o pop. weighting')    # Replace with a relevant title
 
     ax.set_xlim([-180.0, 180.0])
     ax.set_ylim([-90.0, +90.0])
 
     # Show the plot
     plt.tight_layout()
-    # plt.savefig('plots/psi_DMI_L2R3_Hsiang2011.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+    # plt.savefig('plots/psi_AMM_L2R3_Hsiang2011.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 gridded_mapper(include_ocean_values=False)
