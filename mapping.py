@@ -3,8 +3,6 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 import seaborn as sns
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 
 
 def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
@@ -71,7 +69,7 @@ def gridded_mapper(include_ocean_values=False):
     import xarray as xr
     from matplotlib.colors import ListedColormap
     
-    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
+    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc')
     psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
     psi = psi.sortby('lon')
     lat = psi['lat'].values
@@ -103,4 +101,4 @@ def gridded_mapper(include_ocean_values=False):
     plt.savefig('plots/psi_ONI_L2R3_Hsiang2011.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
-#gridded_mapper(include_ocean_values=False)
+gridded_mapper(include_ocean_values=False)

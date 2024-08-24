@@ -3,34 +3,32 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 import seaborn as sns
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag0.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSdmi_lag0.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable0 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag1.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSdmi_lag1.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSdmi_lag2.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag3.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSdmi_lag3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -55,7 +53,7 @@ colors = ['#00b4d8', '#90e0ef', '#caf0f8','#ffba08', '#e85d04', "#d00000", "#9d0
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
-fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
+fig.suptitle(r'Correlation $\rho$ of DMI and Air Temp.', fontsize=16)
 
 ax = axs[0, 0]
 c = ax.contourf(lon, lat, variable0, colors=colors, levels=levels)
@@ -94,5 +92,5 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 fig.tight_layout()
-plt.savefig('plots/rho_ONI_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('plots/rho_DMI_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
