@@ -344,7 +344,7 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
     reference_date = datetime(1800, 1, 1, 0, 0, 0)
 
     dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
-    start_time_ind = int(np.where(dates == target_date)[0][0])
+    start_time_ind = int(np.where(dates == start_date)[0][0])
     end_time_ind = int(np.where(dates == end_date)[0][0])
     VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
 
