@@ -320,7 +320,7 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
     file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
 
     start_date = datetime(start_year, 1, 1, 0, 0, 0)
-    end_date = datetime(int(end_year+1), 1, 1, 0, 0, 0)  # Actual end date applied will be one month BEFORE specified end date here, so will be "end_year"-12-01
+    end_date = datetime(end_year, 12, 1, 0, 0, 0)
 
     # Read in climate index data file specified by climate_index
     if climate_index=="oni" or climate_index=="ONI":
@@ -345,7 +345,7 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
 
     dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
     start_time_ind = int(np.where(dates == start_date)[0][0])
-    end_time_ind = int(np.where(dates == end_date)[0][0])
+    end_time_ind = int(int(np.where(dates == end_date)[0][0]) + 1)
     VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
 
     VAR1_standard = np.empty_like(VAR1) # Initialize a new array to store the standardized data
@@ -364,7 +364,6 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
             if std != 0:
                 VAR1_standard[:, i, j] = (time_series - mean) / std
             else:
-                VAR1_standard[:, i, j] = time_series  # No standardization if std is zero
                 raise ValueError("std=0 at grid point: (", i, ",", j,")!")
             
     # Check if df_climate_index's and VAR1_standard's ts indicies are idential.
@@ -431,7 +430,7 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
 
 
 compute_psi_Hsiang2011(climate_index="oni",
-                       start_year=1960, end_year=2020, 
+                       start_year=1980, end_year=2020, 
                        num_lag=2, 
                        num_R=3, 
-                       save_path="/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc")
+                       save_path="/Users/tylerbagwell/Desktop/psi_Hsiang2011_NEW.nc")

@@ -72,15 +72,18 @@ def gridded_mapper(include_ocean_values=False):
     args:
     include_ocean_values: boolean whether or not to plot values for grid points over ocean and non-land values.
     """
+    print("\n\n START -----")
+
     import xarray as xr
     from matplotlib.colors import ListedColormap
     
-    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc')
+    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
     psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
     psi = psi.sortby('lon')
     lat = psi['lat'].values
     lon = psi['lon'].values
     variable = psi.values
+    print(psi.attrs)
 
     path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
     path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
@@ -96,7 +99,7 @@ def gridded_mapper(include_ocean_values=False):
         gdf2.plot(ax=ax, edgecolor=None, color='white')
     gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 
-    plt.title('$\Psi_{L2, R3}^{DMI}$, Hsiang (2011) method w/o pop. weighting')    # Replace with a relevant title
+    plt.title('$\Psi_{L2, R3}^{ONI}$, Hsiang (2011) method w/o pop. weighting')    # Replace with a relevant title
 
     ax.set_xlim([-180.0, 180.0])
     ax.set_ylim([-90.0, +90.0])
