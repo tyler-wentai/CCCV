@@ -15,8 +15,14 @@ print('\n\nSTART ---------------------\n')
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc'
 #file_path_POP = '/Users/tylerbagwell/Desktop/GriddedPopulationoftheWorld_data/gpw_v4_population_count_rev11_2005_15_min.asc'
-file_path_ONI = 'data/NOAA_ONI_data.txt'
+file_path_ONI = 'data/NOAA_ONI_data.txt' # ONI: Oceanic Nino Index
+file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
 
+
+######
+
+target_date = datetime(1980, 1, 1, 0, 0, 0)
+end_date = datetime(2021, 1, 1, 0, 0, 0)    # end date will be one month AFTER actual desired end date
 
 # ONI data_frame setup
 df_oni = pd.read_csv(file_path_ONI, sep='\s+')
@@ -41,13 +47,26 @@ df_oni.set_index('date', inplace=True)
 df_oni = df_oni.sort_index()
 df_oni = df_oni.drop(columns=['SEAS','YR','MN'])
 
-target_date = datetime(1980, 1, 1, 0, 0, 0)
-end_date = datetime(2021, 1, 1, 0, 0, 0)    # end date will be one month AFTER actual desired end date
-start_time_ind = int(np.where(df_oni.index == target_date)[0])
-end_time_ind = int(np.where(df_oni.index == end_date)[0])
+start_time_ind = int(np.where(df_oni.index == target_date)[0][0])
+end_time_ind = int(np.where(df_oni.index == end_date)[0][0])
 
 df_oni = df_oni.iloc[start_time_ind:end_time_ind]
 
+# DMI data_frame setup
+
+dmi = pd.read_csv('data/NOAA_DMI_data.txt', sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+year_start = int(dmi.iloc[0,0])
+dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
+df_dmi = pd.DataFrame(dmi)
+date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='MS')
+df_dmi.index = date_range
+df_dmi.rename_axis('date', inplace=True)
+df_dmi.columns = ['ANOM']
+
+start_time_ind = int(np.where(df_dmi.index == target_date)[0][0])
+end_time_ind = int(np.where(df_dmi.index == end_date)[0][0])
+
+df_dmi = df_dmi.iloc[start_time_ind:end_time_ind]
 
 # Initialize the air data
 dat = nc.Dataset(file_path_AIR)
@@ -62,8 +81,8 @@ time = dat.variables['time'][:]
 reference_date = datetime(1800, 1, 1, 0, 0, 0)
 
 dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
-start_time_ind = int(np.where(dates == target_date)[0])
-end_time_ind = int(np.where(dates == end_date)[0])
+start_time_ind = int(np.where(dates == target_date)[0][0])
+end_time_ind = int(np.where(dates == end_date)[0][0])
 VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
 
 # Initialize a new array to store the standardized data
@@ -88,16 +107,22 @@ for i in range(n_lat):
             print("std=0!")
 
 # CHECK IF TIME AXIS FOR ONI and VAR1 ARE IDENTICAL
-oni_time = df_oni.index.strftime('%Y-%m-%d').to_numpy()
+
+df_climate_index = df_dmi
+climate_index_name = 'dmi'
+
+
+ind_time = df_climate_index.index.strftime('%Y-%m-%d').to_numpy()
 vectorized_format = np.vectorize(lambda x: x.strftime('%Y-%m-%d'))
 VAR1_time  = vectorized_format(dates[start_time_ind:end_time_ind])
-if not np.array_equal(oni_time, VAR1_time):
-        raise ValueError("The two arrays are not identical.")
+if not np.array_equal(ind_time, VAR1_time):
+        raise ValueError("The two date arrays are NOT identical.")
 else:
-     print("---The two time arrays are identical.---")
-month_start = int(df_oni.index[0].month)
+     print("---The two date arrays are identical.---")
+month_start = int(df_climate_index.index[0].month)
 
-# compute cor(T,ONI)
+
+# compute cor(T, Climate_Index)
 print(VAR1_standard.shape)
 print(VAR1_standard.shape[1])
 print(VAR1_standard.shape[2])
@@ -117,11 +142,11 @@ for m in range(12):
         print('...', i)
         for j in range(n_long):
             df_help = pd.DataFrame({
-                'month': df_oni.index.month,
-                'oni_ts': df_oni['ANOM'],
+                'month': df_climate_index.index.month,
+                'ind_ts': df_climate_index['ANOM'],
                 'air_ts': VAR1_standard[:, i, j]})
-            lag_string = 'oni_ts_lag' + str(lag) + 'm'
-            df_help[lag_string] = df_help['oni_ts'].shift((lag))
+            lag_string = 'ind_ts_lag' + str(lag) + 'm'
+            df_help[lag_string] = df_help['ind_ts'].shift((lag))
             df_help = df_help.dropna()
             df_help = df_help[df_help['month'] == m_num]
             pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
@@ -142,6 +167,7 @@ psi_array = xr.DataArray(data = psi,
                             description="Psi, teleconnection strength via Hsiang 2011 method.",
                             cor_calc_start_date = str(target_date),
                             cor_calc_end_date = str(end_date),
+                            climate_index_used = climate_index_name,
                             L_lag = lag,
                             R_val = Rval)
                         )
@@ -149,7 +175,7 @@ psi_array = xr.DataArray(data = psi,
 print(psi_array)
 print("\n", psi_array.values)
 
-psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc")
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc")
 
 
 
