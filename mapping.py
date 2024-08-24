@@ -77,7 +77,7 @@ def gridded_mapper(include_ocean_values=False):
     import xarray as xr
     from matplotlib.colors import ListedColormap
     
-    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011.nc')
+    psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_dmi.nc')
     psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
     psi = psi.sortby('lon')
     lat = psi['lat'].values
