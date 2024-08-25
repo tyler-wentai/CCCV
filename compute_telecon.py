@@ -388,5 +388,5 @@ def compute_gridded_correlation(climate_index, start_year, end_year, num_lag, sa
 
 compute_gridded_correlation(climate_index="amm", 
                             start_year=1980, end_year=2020, 
-                            num_lag=0, 
-                            save_path="/Users/tylerbagwell/Desktop/rho_airVSamm_lag0.nc")
+                            num_lag=3, 
+                            save_path="/Users/tylerbagwell/Desktop/rho_airVSamm_lag3.nc")

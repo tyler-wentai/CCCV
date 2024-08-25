@@ -7,28 +7,28 @@ import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag0.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag0.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable0 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag1.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag1.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag2.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag2.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSoni_lag3.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -44,16 +44,16 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 
 #### PLOTTING
-vmin = np.max([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
-vmax = np.min([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])
-maxval = np.max([np.abs(vmin), np.abs(vmax)])
-levels=np.arange(-0.3,+0.80,0.10) # this sets the colorbar levels
+vmin = np.min([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
+vmax = np.max([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])
+print(vmin, vmax)
+levels=np.arange(-0.4,+0.70,0.10) # this sets the colorbar levels
 # colors = ['#ccdbfd', '#e2eafc', '#fff0f3','#ff8fa3', '#ff4d6d', '#a4133c', '#800f2f']
-colors = ['#00b4d8', '#90e0ef', '#caf0f8','#ffba08', '#e85d04', "#d00000", "#9d0208", '#6a040f', '#370617', '#03071e']
+colors = ['#023e8a', '#0096c7', '#48cae4', '#caf0f8','#ffba08', '#e85d04', "#d00000", "#9d0208", '#6a040f', '#370617', '#03071e']
 
-fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+fig, axs = plt.subplots(2, 2, figsize=(9, 7))
 
-fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
+fig.suptitle(r'Correlation $\rho$ of AMM and Air Temp.', fontsize=16)
 
 ax = axs[0, 0]
 c = ax.contourf(lon, lat, variable0, colors=colors, levels=levels)
@@ -92,5 +92,5 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 fig.tight_layout()
-# plt.savefig('plots/rho_DMI_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('plots/rho_AMM_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
