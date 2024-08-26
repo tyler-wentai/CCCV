@@ -2,7 +2,6 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
-import rasterio
 from scipy.signal import detrend
 from scipy.stats import pearsonr
 import pandas as pd
@@ -11,10 +10,11 @@ from datetime import datetime, timedelta
 import xarray as xr
 import seaborn as sns
 import matplotlib.image as mpimg
+import geopandas as gpd
 
 print('\n\nSTART ---------------------\n')
 
-file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc'
+file_path_AIR = '/Users/tylerbagwell/Desktop/cccv_data_local/air.2m.mon.mean.nc'
 #file_path_POP = '/Users/tylerbagwell/Desktop/GriddedPopulationoftheWorld_data/gpw_v4_population_count_rev11_2005_15_min.asc'
 file_path_ONI = 'data/NOAA_ONI_data.txt'
 
@@ -99,29 +99,30 @@ else:
 month_start = int(df_oni.index[0].month)
 
 
-i = 80
-j = 120
+
+i = int(np.where(lat == 0.0)[0]) #80
+j = int(np.where(lon == 210.0)[0]) #120
 df_help1 = pd.DataFrame({
                 'month': df_oni.index.month,
                 'oni_ts': df_oni['ANOM'],
                 'air_ts': VAR1_standard[:, i, j]})
 
-i = 354
-j = 891
+i = int(np.where(lat == 60.0)[0]) #354
+j = int(np.where(lon == 100.0)[0]) #891
 df_help2 = pd.DataFrame({
                 'month': df_oni.index.month,
                 'oni_ts': df_oni['ANOM'],
                 'air_ts': VAR1_standard[:, i, j]})
 
-i = 639
-j = 974
+i = int(np.where(lat == -3.0)[0]) #639
+j = int(np.where(lon == 115.0)[0]) #974
 df_help3 = pd.DataFrame({
                 'month': df_oni.index.month,
                 'oni_ts': df_oni['ANOM'],
                 'air_ts': VAR1_standard[:, i, j]})
 
-i = 431
-j = 752
+i = int(np.where(lat == -30.0)[0]) #431
+j = int(np.where(lon == 25.0)[0]) #752
 df_help4 = pd.DataFrame({
                 'month': df_oni.index.month,
                 'oni_ts': df_oni['ANOM'],
@@ -131,10 +132,18 @@ df_help4 = pd.DataFrame({
 ############### Note: This is a work around since sns.jointplot does not cooperate with plt.subplots
 
 ############### 1. CREATE PLOTS
+#
 g1 = sns.jointplot(data=df_help1, x='oni_ts', y='air_ts', kind="reg")
+g1.fig.suptitle("Grid point: (-150.0, 0.0)", y=1.02)
+#
 g2 = sns.jointplot(data=df_help2, x='oni_ts', y='air_ts', kind="reg")
+g2.fig.suptitle("Grid point: (100.0, 60.0)", y=1.02)
+#
 g3 = sns.jointplot(data=df_help3, x='oni_ts', y='air_ts', kind="reg")
+g3.fig.suptitle("Grid point: (115.0, -3.0)", y=1.02)
+#
 g4 = sns.jointplot(data=df_help4, x='oni_ts', y='air_ts', kind="reg")
+g4.fig.suptitle("Grid point: (25.0, -30.0)", y=1.02)
 
 ############### 2. SAVE PLOTS IN MEMORY TEMPORALLY
 g1.savefig('g1.png')
@@ -161,6 +170,52 @@ axarr[1,1].imshow(mpimg.imread('g4.png'))
 [ax.set_axis_off() for ax in axarr.ravel()]
 
 plt.tight_layout()
+# plt.savefig('plots/scatterplots_rho_ONI_airtemp_withpoints', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
+
+
+
+##############################
+##############################
+
+# psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data_local/rho_airVSoni_lag0.nc')
+# psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+# psi = psi.sortby('lon')
+# lat = psi['lat'].values
+# lon = psi['lon'].values
+# variable0 = psi.values[0,:,:]
+
+# path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+# path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
+# gdf1 = gpd.read_file(path_land)
+# gdf2 = gpd.read_file(path_maritime_0)
+
+# #### PLOTTING
+# vmin = np.min(variable0)
+# vmax = np.max(variable0)
+# print(vmin, vmax)
+# levels=np.arange(-0.4,+0.80,0.10) # this sets the colorbar levels
+# # colors = ['#ccdbfd', '#e2eafc', '#fff0f3','#ff8fa3', '#ff4d6d', '#a4133c', '#800f2f']
+# colors = ['#023e8a', '#0096c7', '#48cae4', '#caf0f8','#ffba08', '#e85d04', "#d00000", "#9d0208", '#6a040f', '#370617', '#03071e', 'k']
+
+# fig, ax = plt.subplots(1, 1, figsize=(9, 7))
+
+# fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
+
+# lat_points = [0.0, 60.0, -3.0, -30.0]
+# lon_points = [-150.0, 100.0, 115.0, 25.0]
+
+# c = ax.contourf(lon, lat, variable0, colors=colors, levels=levels)
+# # gdf2.plot(ax=ax, edgecolor=None, color='white')
+# gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+# ax.scatter(lon_points, lat_points, color='lime', marker='X', s=75, edgecolors='k')
+# ax.set_title('airtemp_month_lag=0')
+# ax.set_xlim([-180.0, 180.0])
+# ax.set_ylim([-90.0, +90.0])
+# fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+
+# fig.tight_layout()
+# plt.savefig('plots/rho_ONI_airtemp_withpoints', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
 

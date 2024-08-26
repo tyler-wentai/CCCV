@@ -53,7 +53,7 @@ def compute_country_aggregate(nc_file_path, aggregate):
 
 
 
-df = compute_country_aggregate(nc_file_path='/Users/tylerbagwell/Desktop/psi_Hsiang2011_oni.nc',
+df = compute_country_aggregate(nc_file_path='/Users/tylerbagwell/Desktop/cccv_data_local/psi_Hsiang2011_oni.nc',
                                aggregate = 'mean')
 
 ax = sns.histplot(data=df, x='value', stat='density', bins=13)

@@ -7,28 +7,28 @@ import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag0.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data_local/rho_airVSoni_lag0.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable0 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag1.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data_local/rho_airVSoni_lag1.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag2.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data_local/rho_airVSoni_lag2.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[0,:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/rho_airVSamm_lag3.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data_local/rho_airVSoni_lag3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -41,8 +41,6 @@ gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
 
-
-
 #### PLOTTING
 vmin = np.min([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
 vmax = np.max([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])
@@ -53,7 +51,7 @@ colors = ['#023e8a', '#0096c7', '#48cae4', '#caf0f8','#ffba08', '#e85d04', "#d00
 
 fig, axs = plt.subplots(2, 2, figsize=(9, 7))
 
-fig.suptitle(r'Correlation $\rho$ of AMM and Air Temp.', fontsize=16)
+fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
 
 ax = axs[0, 0]
 c = ax.contourf(lon, lat, variable0, colors=colors, levels=levels)
