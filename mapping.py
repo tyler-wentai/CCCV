@@ -42,19 +42,19 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
     #ax.set_xlim([-20.0, 160.0])
     #ax.set_ylim([-40.0, +40.0])
 
-    ax.set_xlim([-100.0, 160.0])
-    ax.set_ylim([-45.0, +45.0])
+    ax.set_xlim([-130.0, 180.0])
+    ax.set_ylim([-75.0, +75.0])
 
     plt.tight_layout()
-    #plt.savefig('map.png', bbox_inches='tight', pad_inches=0.1)
+    # plt.savefig('piracy_map.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 
 
-# data_path = "data/pirate_attacks.csv"
-# df_points = pd.read_csv(data_path)
-# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-# gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
+data_path = "data/pirate_attacks.csv"
+df_points = pd.read_csv(data_path)
+geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
 # data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
@@ -63,7 +63,7 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 # gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
-# mapper(gdf_points2)
+mapper(gdf_points2)
 
 def gridded_mapper(include_ocean_values=False):
     """
@@ -109,4 +109,4 @@ def gridded_mapper(include_ocean_values=False):
     # plt.savefig('plots/psi_AMM_L2R3_Hsiang2011.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
-gridded_mapper(include_ocean_values=False)
+# gridded_mapper(include_ocean_values=False)
