@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 from shapely.geometry import Point
 import seaborn as sns
+import pandas as pd
+from pyproj import CRS
 
 print('\n\nSTART ---------------------\n')
 
@@ -53,14 +55,14 @@ def compute_country_aggregate(nc_file_path, aggregate):
 
 
 
-df = compute_country_aggregate(nc_file_path='/Users/tylerbagwell/Desktop/cccv_data_local/psi_Hsiang2011_oni.nc',
-                               aggregate = 'mean')
+# df = compute_country_aggregate(nc_file_path='/Users/tylerbagwell/Desktop/cccv_data_local/psi_Hsiang2011_oni.nc',
+#                                aggregate = 'mean')
 
-ax = sns.histplot(data=df, x='value', stat='density', bins=13)
-ax.set_title(r'Country-level teleconnection strength, $\Psi_i^{ONI}$')
-ax.set_xlabel(r'$\Psi_i^{ONI}$')
-# plt.savefig('plots/hist_psi_amm.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-plt.show()
+# ax = sns.histplot(data=df, x='value', stat='density', bins=13)
+# ax.set_title(r'Country-level teleconnection strength, $\Psi_i^{ONI}$')
+# ax.set_xlabel(r'$\Psi_i^{ONI}$')
+# # plt.savefig('plots/hist_psi_amm.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
 
 
 
@@ -94,3 +96,84 @@ plt.show()
 # print(gdf_pop)
 # gdf_psi['pop_average_value'] = gdf_psi.apply(lambda row: compute_average_value(row.geometry, gdf_pop, 'value', radius), axis=1)
 # print("\n", gdf_psi)
+
+
+#
+
+
+
+
+def compute_min_dist_from_coast(pirate_data_path, draw_hist=False):
+    """
+    Computes and returns the minimum distance a given geo-located pirate event
+    occurs from the nearst coastline.
+    """
+    # Load country POLYGONs
+    file_path_COUNTRIES = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+    gdf_countries = gpd.read_file(file_path_COUNTRIES)
+
+    # Load piracy data
+    if not pirate_data_path.lower().endswith('.csv'):
+        raise ValueError(f"File '{pirate_data_path}' is not a .csv file")
+    
+    df_piracy = pd.read_csv(pirate_data_path)
+    df_piracy = df_piracy.loc[:,"longitude":"latitude"]
+
+    gdf_piracy = gpd.GeoDataFrame(df_piracy,
+        geometry=gpd.points_from_xy(df_piracy.longitude, df_piracy.latitude)
+        )
+    gdf_piracy = gdf_piracy.set_crs("EPSG:4326", allow_override=True)
+
+
+    print(gdf_countries.crs)
+    # gdf_countries = gdf_countries.to_crs(crs="EPSG:32616")
+    # gdf_piracy = gdf_piracy.to_crs(crs="EPSG:32616")
+
+    hki_lon = -75.0
+    hki_lat = 0.0   
+    aeqd = CRS(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=hki_lat, lon_0=hki_lon).srs
+
+    gdf_piracy_aeqd = gdf_piracy.to_crs(crs=aeqd)
+    print(gdf_piracy_aeqd.crs)
+    gdf_countries_aeqd = gdf_countries.to_crs(crs=aeqd)
+
+    # Compute minimum distance
+    # gdf_piracy_aeqd['min_distance'] = gdf_piracy_aeqd.geometry.apply(
+    #     lambda point: gdf_countries_aeqd.geometry.distance(point).min()
+    #     )
+    
+    help = np.empty(shape=gdf_piracy.shape[0])
+    for i in range(gdf_piracy.shape[0]):
+        print(i)
+        cur_lon = gdf_piracy['longitude'][i]
+        cur_lat = gdf_piracy['latitude'][i]   
+        aeqd = CRS(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=cur_lat, lon_0=cur_lon).srs
+
+        gdf_piracy_aeqd = gdf_piracy.to_crs(crs=aeqd)
+        gdf_countries_aeqd = gdf_countries.to_crs(crs=aeqd)
+        min_dist = gdf_countries_aeqd.geometry.distance(gdf_piracy_aeqd.iloc[i].geometry).min()
+        print("...", np.round(min_dist,3))
+        help[i] = min_dist
+
+    gdf_piracy_aeqd['min_distance'] = help
+
+    # convert to km
+    gdf_piracy_aeqd['min_distance'] = gdf_piracy_aeqd['min_distance']/1000
+
+    # compute proportion of events that occur within an EEZ distance
+    proportion = (gdf_piracy_aeqd['min_distance'] < 370).mean()
+    print("proportion within 370km: ", np.round(proportion,4))
+
+    if draw_hist==True:
+        ax = sns.histplot(data=gdf_piracy_aeqd, x='min_distance', stat='proportion', bins=20)
+        ymin, ymax = ax.get_ylim()
+        ax.vlines(370, linestyles="--", colors="grey", ymin=ymin, ymax=ymax)
+        ax.set_title(f'Piracy: distance from nearest coastline, N={gdf_piracy_aeqd.shape[0]}')
+        ax.set_xlabel(r'Distance (km)')
+        # plt.savefig('plots/hist_distance_from_coast.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
+
+
+
+
+compute_min_dist_from_coast(pirate_data_path="data/pirate_attacks.csv", draw_hist=True)
