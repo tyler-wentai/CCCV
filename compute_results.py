@@ -9,6 +9,7 @@ from shapely.geometry import Point
 import seaborn as sns
 import pandas as pd
 from pyproj import CRS
+from geopy.distance import geodesic
 
 print('\n\nSTART ---------------------\n')
 
@@ -108,9 +109,11 @@ def compute_min_dist_from_coast(pirate_data_path, draw_hist=False):
     Computes and returns the minimum distance a given geo-located pirate event
     occurs from the nearst coastline.
     """
+    from shapely.ops import nearest_points
+
     # Load country POLYGONs
-    file_path_COUNTRIES = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
-    gdf_countries = gpd.read_file(file_path_COUNTRIES)
+    file_path_COASTLINES = "data/map_packages/ne_50m_coastline.shx"
+    gdf_coastlines = gpd.read_file(file_path_COASTLINES)
 
     # Load piracy data
     if not pirate_data_path.lower().endswith('.csv'):
@@ -125,50 +128,90 @@ def compute_min_dist_from_coast(pirate_data_path, draw_hist=False):
     gdf_piracy = gdf_piracy.set_crs("EPSG:4326", allow_override=True)
 
 
-    print(gdf_countries.crs)
+    print(gdf_coastlines.crs)
     # gdf_countries = gdf_countries.to_crs(crs="EPSG:32616")
     # gdf_piracy = gdf_piracy.to_crs(crs="EPSG:32616")
-
-    hki_lon = -75.0
-    hki_lat = 0.0   
-    aeqd = CRS(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=hki_lat, lon_0=hki_lon).srs
-
-    gdf_piracy_aeqd = gdf_piracy.to_crs(crs=aeqd)
-    print(gdf_piracy_aeqd.crs)
-    gdf_countries_aeqd = gdf_countries.to_crs(crs=aeqd)
 
     # Compute minimum distance
     # gdf_piracy_aeqd['min_distance'] = gdf_piracy_aeqd.geometry.apply(
     #     lambda point: gdf_countries_aeqd.geometry.distance(point).min()
     #     )
     
+    # Function to compute the minimum geodesic distance
+    def min_geodesic_distance(polygon, target_point):
+        from shapely.ops import nearest_points
+        # Find the nearest point on the polygon to the target point
+        nearest_point = nearest_points(polygon, Point(target_point[1], target_point[0]))[0]
+        print("... nearest point: ", nearest_point)
+        # Calculate the geodesic distance
+        return geodesic((nearest_point.y, nearest_point.x), target_point).kilometers
+    
+
+    gdf_piracy_aeqd = gdf_piracy
+    gdf_coastlines_aeqd = gdf_coastlines
+
     help = np.empty(shape=gdf_piracy.shape[0])
-    for i in range(gdf_piracy.shape[0]):
-        print(i)
-        cur_lon = gdf_piracy['longitude'][i]
-        cur_lat = gdf_piracy['latitude'][i]   
-        aeqd = CRS(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=cur_lat, lon_0=cur_lon).srs
+    # for i in range(gdf_piracy.shape[0]):
+    # for i in range(2):
+    #     print(i)
+    #     cur_lon = gdf_piracy['longitude'][i]
+    #     cur_lat = gdf_piracy['latitude'][i]   
+    #     aeqd = CRS(proj='aeqd', ellps='WGS84', datum='WGS84', lat_0=cur_lat, lon_0=cur_lon).srs
 
-        gdf_piracy_aeqd = gdf_piracy.to_crs(crs=aeqd)
-        gdf_countries_aeqd = gdf_countries.to_crs(crs=aeqd)
-        min_dist = gdf_countries_aeqd.geometry.distance(gdf_piracy_aeqd.iloc[i].geometry).min()
-        print("...", np.round(min_dist,3))
-        help[i] = min_dist
+    #     # gdf_piracy_aeqd = gdf_piracy.to_crs(crs=aeqd)
+    #     # gdf_countries_aeqd = gdf_countries.to_crs(crs=aeqd)
+    #     # min_dist = gdf_countries_aeqd.geometry.distance(gdf_piracy_aeqd.iloc[i].geometry).min()
+    #     # print("...", np.round(min_dist,3))
+    #     # help[i] = min_dist
 
-    gdf_piracy_aeqd['min_distance'] = help
+    #     # gdf_piracy_aeqd = gdf_piracy
+    #     # gdf_countries_aeqd = gdf_countries
+    #     # min_dist = geodesic((cur_lat,cur_lon), gdf_countries_aeqd) # (lat, lon)!!
+    #     # print(min_dist)
 
-    # convert to km
-    gdf_piracy_aeqd['min_distance'] = gdf_piracy_aeqd['min_distance']/1000
+    #     print(cur_lon, cur_lat)
+    #     print(gdf_countries_aeqd['geometry'])
+    #     piracy_point = (cur_lon, cur_lat)
+    #     min_dist = gdf_countries_aeqd['geometry'].apply(lambda polygon: min_geodesic_distance(polygon, piracy_point))
+    #     print(min_dist)
+
+    help = np.empty(shape=gdf_piracy.shape[0])
+    for j in range(gdf_piracy.shape[0]):
+        print("...", j)
+        cur_lon = gdf_piracy['longitude'][j]
+        cur_lat = gdf_piracy['latitude'][j]
+        target_point = (cur_lon, cur_lat)
+
+        store_help = []
+        for i in range(gdf_coastlines_aeqd.shape[0]):
+            nearest_point = nearest_points(gdf_coastlines_aeqd['geometry'].iloc[i], Point(target_point[0], target_point[1]))[0]
+            store_help.append((nearest_point.x, nearest_point.y))
+
+        min_help = []
+        for i in range(gdf_coastlines_aeqd.shape[0]):
+            nearest_point_x = store_help[i][0]
+            nearest_point_y = store_help[i][1]
+            dist = geodesic((nearest_point_y, nearest_point_x), (target_point[1], target_point[0])).kilometers # geodesic needs order of (lat,lon), output in km
+            min_help.append(dist)
+        
+        help[i] = np.min(min_help)
+        print("......", round(np.min(min_help),3))
+
+    gdf_piracy['min_distance'] = help
+
+    data = {'min. dist': help}
+    df = pd.DataFrame(data)
+    df.to_csv('/Users/tylerbagwell/Desktop/min_dist.txt', sep='\t', index=False)
 
     # compute proportion of events that occur within an EEZ distance
-    proportion = (gdf_piracy_aeqd['min_distance'] < 370).mean()
+    proportion = (gdf_piracy['min_distance'] < 370).mean()
     print("proportion within 370km: ", np.round(proportion,4))
 
     if draw_hist==True:
-        ax = sns.histplot(data=gdf_piracy_aeqd, x='min_distance', stat='proportion', bins=20)
+        ax = sns.histplot(data=gdf_piracy, x='min_distance', stat='proportion', bins=20)
         ymin, ymax = ax.get_ylim()
         ax.vlines(370, linestyles="--", colors="grey", ymin=ymin, ymax=ymax)
-        ax.set_title(f'Piracy: distance from nearest coastline, N={gdf_piracy_aeqd.shape[0]}')
+        ax.set_title(f'Piracy: distance from nearest coastline, N={gdf_piracy.shape[0]}')
         ax.set_xlabel(r'Distance (km)')
         # plt.savefig('plots/hist_distance_from_coast.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
