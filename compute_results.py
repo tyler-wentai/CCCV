@@ -194,7 +194,7 @@ def compute_min_dist_from_coast(pirate_data_path, draw_hist=False):
             dist = geodesic((nearest_point_y, nearest_point_x), (target_point[1], target_point[0])).kilometers # geodesic needs order of (lat,lon), output in km
             min_help.append(dist)
         
-        help[i] = np.min(min_help)
+        help[j] = np.min(min_help)
         print("......", round(np.min(min_help),3))
 
     gdf_piracy['min_distance'] = help
