@@ -207,6 +207,9 @@ def compute_min_dist_from_coast(pirate_data_path, draw_hist=False):
     proportion = (gdf_piracy['min_distance'] < 370).mean()
     print("proportion within 370km: ", np.round(proportion,4))
 
+    proportion99quant = np.quantile(gdf_piracy['min_distance'], 0.99)
+    print("...99th quantile distance: ", np.round(proportion99quant,4))
+
     if draw_hist==True:
         ax = sns.histplot(data=gdf_piracy, x='min_distance', stat='proportion', bins=20)
         ymin, ymax = ax.get_ylim()
