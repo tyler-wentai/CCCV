@@ -39,6 +39,7 @@ df_piracy_loc4 = df_piracy[df_piracy['nearest_country'].isin(['BGD','IND','LKA']
 piracy_counts_loc4_qtr = df_piracy_loc4.resample('QE').size()      # aggregate to quarter level
 piracy_counts_loc4_qtr.name = 'PIRACY_COUNTS'
 
+
 # ONI data_frame setup
 season_to_months = {
     'NDJ': '01',
@@ -60,6 +61,7 @@ df_oni['date'] = pd.to_datetime(df_oni['date'])
 df_oni.set_index('date', inplace=True)
 df_oni = df_oni.sort_index()
 df_oni = df_oni['ANOM'].resample('QE').mean() # aggregate to quarter level
+
 
 # combine the two data sets
     # global
@@ -114,11 +116,11 @@ piracy_oni_loc4 = piracy_oni_loc4.dropna()
 # plt.plot(piracy_oni_loc2['ANOM'], fit_fn(piracy_oni_loc2['ANOM']), color='purple', linestyle='-')
 # plt.show()
 
-fit = np.polyfit(piracy_oni_loc4['ANOM'],  piracy_oni_loc4['PIRACY_COUNTS'], 1)
-fit_fn = np.poly1d(fit)
-plt.scatter(piracy_oni_loc4['ANOM'], piracy_oni_loc4['PIRACY_COUNTS'], color='k', s=3)
-plt.plot(piracy_oni_loc4['ANOM'], fit_fn(piracy_oni_loc4['ANOM']), color='red', linestyle='-')
-plt.show()
+# fit = np.polyfit(piracy_oni_loc4['ANOM'],  piracy_oni_loc4['PIRACY_COUNTS'], 1)
+# fit_fn = np.poly1d(fit)
+# plt.scatter(piracy_oni_loc4['ANOM'], piracy_oni_loc4['PIRACY_COUNTS'], color='k', s=3)
+# plt.plot(piracy_oni_loc4['ANOM'], fit_fn(piracy_oni_loc4['ANOM']), color='red', linestyle='-')
+# plt.show()
 
 # Xmat = sm.add_constant(piracy_oni_loc2['ANOM_lag6q'])
 # model = sm.OLS(piracy_oni_loc2["PIRACY_COUNTS"],Xmat).fit()
@@ -128,24 +130,24 @@ plt.show()
 # print(model.conf_int().loc['ANOM_lag6q'])
 
 
-coefs_results = pd.DataFrame(columns=['Est', 'CI_l', 'CI_u'])
-for i in range(n_lag+1):
-    lag_string = 'ANOM'
-    if i!=0:
-        lag_string = 'ANOM_lag' + str(i) + 'q'
+# coefs_results = pd.DataFrame(columns=['Est', 'CI_l', 'CI_u'])
+# for i in range(n_lag+1):
+#     lag_string = 'ANOM'
+#     if i!=0:
+#         lag_string = 'ANOM_lag' + str(i) + 'q'
     
-    Xmat = sm.add_constant(piracy_oni[lag_string])
-    model = sm.OLS(piracy_oni["PIRACY_COUNTS"],Xmat).fit()
-    coef_est = model.params[lag_string]
-    coef_CI  = model.conf_int().loc[lag_string]
+#     Xmat = sm.add_constant(piracy_oni[lag_string])
+#     model = sm.OLS(piracy_oni["PIRACY_COUNTS"],Xmat).fit()
+#     coef_est = model.params[lag_string]
+#     coef_CI  = model.conf_int().loc[lag_string]
 
-    coefs_results.loc[len(coefs_results)] = [coef_est, coef_CI[0], coef_CI[1]]
+#     coefs_results.loc[len(coefs_results)] = [coef_est, coef_CI[0], coef_CI[1]]
 
-l= np.arange(0, n_lag+1)
-plt.plot(l, coefs_results['Est'], color='darkgreen', marker='o', markersize=3)
-plt.fill_between(l, coefs_results['CI_l'], coefs_results['CI_u'], interpolate=True, color='lightgreen', alpha=0.5)
-plt.hlines(0, color='k', xmin=min(l), xmax=max(l), linewidth=0.5)
-plt.show()
+# l= np.arange(0, n_lag+1)
+# plt.plot(l, coefs_results['Est'], color='darkgreen', marker='o', markersize=3)
+# plt.fill_between(l, coefs_results['CI_l'], coefs_results['CI_u'], interpolate=True, color='lightgreen', alpha=0.5)
+# plt.hlines(0, color='k', xmin=min(l), xmax=max(l), linewidth=0.5)
+# plt.show()
 
 # print(df_piracy.shape)
 # print(df_piracy_loc1.shape)
@@ -155,3 +157,100 @@ plt.show()
 
 # country_counts = df_piracy['nearest_country'].value_counts()
 # country_counts.to_csv('country_counts.txt', sep='\t', index=True)
+
+
+
+
+
+
+
+
+
+###### DMI
+from datetime import datetime
+
+
+file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
+start_date = datetime(1950, 1, 1, 0, 0, 0)
+end_date = datetime(2023, 12, 1, 0, 0, 0)
+
+# Read in data files
+dmi = pd.read_csv(file_path_DMI, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+year_start = int(dmi.iloc[0,0])
+dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
+df_dmi = pd.DataFrame(dmi)
+date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='ME')
+df_dmi.index = date_range
+df_dmi.rename_axis('date', inplace=True)
+df_dmi.columns = ['ANOM']
+
+df_dmi = df_dmi.resample('QE').mean() # Aggregate to QUEARTERLY level
+
+
+# combine the two data sets
+    # global
+piracy_dmi = pd.concat([df_dmi, piracy_counts_qtr], axis=1)
+piracy_dmi = piracy_dmi.dropna()
+    # loc1
+piracy_dmi_loc1 = pd.concat([df_dmi, piracy_counts_loc1_qtr], axis=1)
+piracy_dmi_loc1 = piracy_dmi_loc1.dropna()
+    # loc1
+piracy_dmi_loc2 = pd.concat([df_dmi, piracy_counts_loc2_qtr], axis=1)
+piracy_dmi_loc2 = piracy_dmi_loc2.dropna()
+    # loc3
+piracy_dmi_loc3 = pd.concat([df_dmi, piracy_counts_loc3_qtr], axis=1)
+piracy_dmi_loc3 = piracy_dmi_loc3.dropna()
+    # loc4
+piracy_dmi_loc4 = pd.concat([df_dmi, piracy_counts_loc4_qtr], axis=1)
+piracy_dmi_loc4 = piracy_dmi_loc4.dropna()
+
+# create lagged columns of ONI anom.
+n_lag = 10
+for i in range(n_lag):
+    lag_string = 'ANOM_lag' + str(i+1) + 'q'
+    piracy_dmi[lag_string]= piracy_dmi['ANOM'].shift((i+1))
+    piracy_dmi_loc1[lag_string]= piracy_dmi_loc1['ANOM'].shift((i+1))
+    piracy_dmi_loc2[lag_string]= piracy_dmi_loc2['ANOM'].shift((i+1))
+    piracy_dmi_loc3[lag_string]= piracy_dmi_loc3['ANOM'].shift((i+1))
+    piracy_dmi_loc4[lag_string]= piracy_dmi_loc4['ANOM'].shift((i+1))
+
+piracy_dmi = piracy_dmi.dropna()
+piracy_dmi_loc1 = piracy_dmi_loc1.dropna()
+piracy_dmi_loc2 = piracy_dmi_loc2.dropna()
+piracy_dmi_loc3 = piracy_dmi_loc3.dropna()
+piracy_dmi_loc4 = piracy_dmi_loc4.dropna()
+
+
+# fit = np.polyfit(piracy_dmi['ANOM'],  piracy_dmi['PIRACY_COUNTS'], 1)
+# fit_fn = np.poly1d(fit)
+# plt.scatter(piracy_dmi['ANOM'], piracy_dmi['PIRACY_COUNTS'], color='k', s=3)
+# plt.plot(piracy_dmi['ANOM'], fit_fn(piracy_dmi['ANOM']), color='red', linestyle='-')
+# plt.show()
+
+
+
+
+coefs_results = pd.DataFrame(columns=['Est', 'CI_l', 'CI_u'])
+for i in range(n_lag+1):
+    lag_string = 'ANOM'
+    if i!=0:
+        lag_string = 'ANOM_lag' + str(i) + 'q'
+    
+    Xmat = sm.add_constant(piracy_dmi_loc4[lag_string])
+    model = sm.OLS(piracy_dmi_loc4["PIRACY_COUNTS"],Xmat).fit()
+    coef_est = model.params[lag_string]
+    coef_CI  = model.conf_int().loc[lag_string]
+
+    coefs_results.loc[len(coefs_results)] = [coef_est, coef_CI[0], coef_CI[1]]
+
+l= np.arange(0, n_lag+1)
+plt.plot(l, coefs_results['Est'], color='darkgreen', marker='o', markersize=3)
+plt.fill_between(l, coefs_results['CI_l'], coefs_results['CI_u'], interpolate=True, color='lightgreen', alpha=0.5)
+plt.hlines(0, color='k', xmin=min(l), xmax=max(l), linewidth=0.5)
+plt.xlabel("L-lagged quarter")
+plt.ylabel(r"$\beta$", rotation="horizontal")
+plt.suptitle(r"Estimated marginal effect of quarterly lagged DMI via")
+plt.text(0,5, "South America data")
+plt.title(r" $ \text{piracy_count}_t = \alpha + \beta \text{DMI}_{t-L} + \epsilon_t$  (VERY NAIVE MODEL!!!)")
+# plt.savefig('/Users/tylerbagwell/Desktop/DMI_effect_LOC4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
