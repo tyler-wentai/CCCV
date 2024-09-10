@@ -82,7 +82,7 @@ piracy_oni_loc4 = pd.concat([df_oni, piracy_counts_loc4_qtr], axis=1)
 piracy_oni_loc4 = piracy_oni_loc4.dropna()
 
 # create lagged columns of ONI anom.
-n_lag = 2
+n_lag = 4
 for i in range(n_lag):
     lag_string = 'ANOM_lag' + str(i+1) + 'y'
     piracy_oni[lag_string]= piracy_oni['ANOM'].shift((i+1))
@@ -123,22 +123,53 @@ cols = list(data_oni.columns)
 cols[0], cols[1] = cols[1], cols[0]
 data_oni = data_oni[cols]  # Reorder the DataFrame columns
 
-
+# data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
 
 from linearmodels.panel import PanelOLS
 
+
+df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
+
+print(df_dummies)
+
+# Add the dummy variables to the main DataFrame
+df = pd.concat([data_oni, df_dummies], axis=1)
+
+
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','ANOM_lag2y','ANOM_lag3y','ANOM_lag4y','YEAR','loc2','loc3','loc4']])
+y = df['PIRACY_COUNTS']
+
+# sys.exit()
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+sys.exit()
+
+
+
+
+
+
+YEARS = data_oni['YEAR'] - np.min(data_oni['YEAR'])
 data_oni = data_oni.set_index(['LOC','YEAR'])
 print(data_oni)
 
-y = data_oni['PIRACY_COUNTS']
-X = data_oni[['ANOM', 'YEAR']]
-X = sm.add_constant(X)
+data_oni['YEAR'] = data_oni.index.get_level_values('YEAR')
 
-print(X)
+y = data_oni['PIRACY_COUNTS']
+X = data_oni[['ANOM','ANOM_lag1y','ANOM_lag2y','ANOM_lag3y','YEAR']]
+X = sm.add_constant(X)
 
 model = PanelOLS(y, X, entity_effects=True)  # entity_effects=True applies unit fixed effects
 result = model.fit()
 print(result.summary)
+print(result.estimated_effects)
+
+
+
+
+
+
 
 sys.exit()
 
