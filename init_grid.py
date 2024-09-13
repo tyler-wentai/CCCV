@@ -28,6 +28,10 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
     # made of multipolygons into individual polygons
     if (regions=='Africa' or regions=='africa'):
         regions = africa_countries
+    elif (regions=='Global' or regions=='global'):
+        regions = set(gdf1['SOVEREIGNT'])
+    else:
+        regions = regions
 
     gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
     gdf1 = gdf1.explode(index_parts=True)
@@ -74,10 +78,11 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
         df = df.to_crs(4326)
         df2 = df2.to_crs(4326)
         ax = df.plot(color="violet", markersize=200, figsize=(6.5, 6.5), zorder=3)
-        df2.boundary.plot(ax=ax, zorder=2, color='red')
-        gdf1.plot(ax=ax, color='gray', zorder=0)
+        df2.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
+        gdf1.plot(ax=ax, color='tomato', zorder=0, edgecolor='k', linewidth=0.75)
         plt.show()
 
     return df2
 
-my_grid = create_grid(regions='Africa', stepsize=1.0, show_fig=True)
+my_grid = create_grid(regions='Africa', stepsize=1.0, show_fig=False)
+print(my_grid.shape)
