@@ -4,8 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import pandas as pd
+import warnings
 
 print('\n\nSTART ---------------------\n')
+
 
 #
 def create_grid(regions, stepsize=1.0, show_fig=False):
@@ -19,7 +21,7 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
                         'Somaliland','Seychelles','Djibouti','Eritrea','Zimbabwe','Gambia','South Africa','Sudan','São Tomé and Principe','Zambia','Egypt',
                         'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara)
 
-    print(len(africa_countries))
+    # print(len(africa_countries))
 
     # read in shp file data
     path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
@@ -90,85 +92,146 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
     return df2
 
 
+#
+def create_gridded_panel_data(regions, stepsize=1.0, show_fig=False):
+    """
+    Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
+    via the create_grid() function.
+    """
+    # Create the grid/mesh
+    grid_gdf = create_grid(regions=regions, stepsize=stepsize, show_fig=show_fig)
 
+    # load in conflict event data
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
+    conflict_data = pd.read_csv(conflictdata_path)
 
-import warnings
+    years_df = pd.DataFrame({'year': list(set(conflict_data['year']))})
 
-grid_gdf = create_grid(regions='Africa', stepsize=1.0, show_fig=False)
-
-conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
-
-conflict_data = pd.read_csv(conflictdata_path)
-
-years_df = pd.DataFrame({'year': list(set(conflict_data['year']))})
-
-# Add a temporary key for cross join
-grid_gdf['key'] = 1
-years_df['key'] = 1
-# Perform the merge (cross join)
-dataset = grid_gdf.merge(years_df, on='key')
-dataset.drop('key', axis=1, inplace=True)
-grid_gdf.drop('key', axis=1, inplace=True)
-
-events_gdf = gpd.GeoDataFrame(
-    conflict_data,
-    geometry=gpd.points_from_xy(conflict_data.longitude, conflict_data.latitude),
-    crs="EPSG:4326"  # Assuming WGS84 Latitude/Longitude
-)
-
-if events_gdf.crs != grid_gdf.crs:
-    warnings.warn("Warning: events_gdf and grid_gdf did not have the same crs!")
-    grid_gdf = grid_gdf.to_crs(events_gdf.crs)
+    # Add a temporary key for cross join
+    grid_gdf['key'] = 1
+    years_df['key'] = 1
+    # Perform the merge (cross join)
+    dataset = grid_gdf.merge(years_df, on='key')
+    dataset.drop('key', axis=1, inplace=True)
+    grid_gdf.drop('key', axis=1, inplace=True)
 
 
 
-# Perform spatial join: Find which polygon each event falls into
-# 'inner' join returns only matching records
-events_with_polygons = gpd.sjoin(events_gdf, grid_gdf, how='inner', predicate='within')
+    # turn conflict event data into a GeoDataFrame
+    events_gdf = gpd.GeoDataFrame(
+        conflict_data,
+        geometry=gpd.points_from_xy(conflict_data.longitude, conflict_data.latitude),
+        crs="EPSG:4326"  # Assuming WGS84 Latitude/Longitude
+    )
+
+    # Check if crs matches
+    if events_gdf.crs != grid_gdf.crs:
+        warnings.warn("Warning: events_gdf and grid_gdf did not have the same crs!")
+        grid_gdf = grid_gdf.to_crs(events_gdf.crs)
+
+    # Perform spatial join: Find which polygon each event falls into
+    # 'inner' join returns only matching records
+    events_with_polygons = gpd.sjoin(events_gdf, dataset, how='inner', predicate='within')
+    events_with_polygons = events_with_polygons.rename(columns={'year_left': 'event_year', 'year_right': 'polygon_year'})
+
+    events_with_matching_year = events_with_polygons[events_with_polygons['event_year'] == events_with_polygons['polygon_year']]
+    event_counts = events_with_matching_year.groupby(['loc_id', 'polygon_year']).size().reset_index(name='event_count')
 
 
-# 'sjoin' adds columns from polygons_gdf, including 'polygon_id' and 'year_right'
-# To avoid confusion, rename columns appropriately
+    print(event_counts[event_counts['loc_id']=='loc_999'])
 
-# Rename columns to differentiate between event year and polygon year
-events_with_polygons = events_with_polygons.rename(columns={'year_left': 'event_year', 'year_right': 'polygon_year'})
+    # # count number of events grouped by location and year
+    # event_counts = events_with_polygons.groupby(['loc_id', 'year']).size().reset_index(name='event_count')
+    # # merge the event counts with its gridbox polygon geometry
+    # event_counts = grid_gdf.merge(event_counts, left_on=['loc_id'], right_on=['loc_id'])
 
-# print(events_with_polygons)
+    # return event_counts
+
+    #total_counts = event_counts.groupby(['loc_id'])['event_count'].sum().reset_index()
+    #total_counts = grid_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
+    #print(total_counts)
+
+    # Create a plot with a specified size
+    # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+    # total_counts.plot(
+    #     column='event_count',    # Column to color by
+    #     cmap='OrRd',                   # Color map (e.g., OrRd, Viridis)
+    #     legend=True,                   # Show color legend
+    #     legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
+    #     ax=ax
+    # )
+    # ax.set_title('Total Event Counts per Polygon', fontsize=16)
+    # ax.set_axis_off()
+    # plt.show()
 
 
-# Now, filter rows where event_year matches polygon_year
-# events_with_matching_year = events_with_polygons[events_with_polygons['event_year'] == events_with_polygons['polygon_year']]
 
-event_counts = events_with_polygons.groupby(['loc_id', 'year']).size().reset_index(name='event_count')
+# pandel_data = create_gridded_panel_data(regions='Africa', stepsize=1.0, show_fig=False)
+# print(pandel_data[pandel_data['loc_id']=='loc_11'])
 
-# print(event_counts)
 
-event_counts = grid_gdf.merge(event_counts, left_on=['loc_id'], right_on=['loc_id'])
+#
+def create_gridded_panel_data(regions, stepsize, show_fig=False, show_tot_counts=False):
+    """
+    Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
+    via the create_grid() function.
+    """
+    # create polygon grid
+    polygons_gdf = create_grid(regions=regions, stepsize=stepsize, show_fig=show_fig)
 
-# print(grid_gdf.merge(event_counts, left_on=['loc_id'], right_on=['loc_id']))
+    # ensure CRS is WGS84
+    if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
+        polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
-total_counts = event_counts.groupby(['loc_id'])['event_count'].sum().reset_index()
-total_counts = grid_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
+    # load conflict events dataset and convert to GeoDataFrame
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
+    conflict_df = pd.read_csv(conflictdata_path)
+    conflict_gdf = gpd.GeoDataFrame(
+        conflict_df,
+        geometry=gpd.points_from_xy(conflict_df.longitude, conflict_df.latitude),
+        crs='EPSG:4326'
+        )
 
-print(total_counts)
+    # spatial join conflict events and polygon grid
+    joined_gdf = gpd.sjoin(conflict_gdf, polygons_gdf, how='inner', predicate='within')
 
-# Create a plot with a specified size
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+    # filter desired years! WILL CHANGE LETTER TO ALLOW FOR USER SPECIFIED YEARS
+    desired_years = list(set(conflict_df['year']))
+    filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
-# Plot polygons colored by 'total_event_count'
-total_counts.plot(
-    column='event_count',    # Column to color by
-    cmap='OrRd',                   # Color map (e.g., OrRd, Viridis)
-    legend=True,                   # Show color legend
-    legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
-    ax=ax
-)
+    # group by polygon (loc_id) and year and then count number of conflicts for each grouping
+    count_df = filtered_gdf.groupby(['loc_id', 'year']).size().reset_index(name='conflict_count')
 
-# Add a title
-ax.set_title('Total Event Counts per Polygon', fontsize=16)
+    # create complete grid, necessary to also get 0 counts for polygon,year pairs with no conflicts
+    polygon_ids = polygons_gdf['loc_id'].unique()
+    years = desired_years
+    complete_index = pd.MultiIndex.from_product([polygon_ids, years], names=['loc_id', 'year'])
+    count_complete_df = count_df.set_index(['loc_id', 'year']).reindex(complete_index, fill_value=0).reset_index()
 
-# Remove axis for better aesthetics
-ax.set_axis_off()
+    # merge conflict counts back to polygons to retain geometry
+    final_gdf = polygons_gdf[['loc_id', 'geometry']].merge(count_complete_df, on='loc_id', how='right')
+    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'geometry']]
 
-# Display the plot
-plt.show()
+    if (show_tot_counts==True):
+        total_counts = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
+        total_counts = polygons_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
+        print(total_counts)
+
+        #Create a plot with a specified size
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        total_counts.plot(
+            column='conflict_count',    # Column to color by
+            cmap='turbo',                   # Color map (e.g., OrRd, Viridis)
+            legend=True,                   # Show color legend
+            legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
+            ax=ax,
+            vmax=500
+        )
+        ax.set_title('Total Event Counts per Polygon', fontsize=16)
+        ax.set_axis_off()
+        plt.show()
+
+    return final_gdf
+
+create_gridded_panel_data(regions='Global', stepsize=1.0, show_fig=False, show_tot_counts=True)
