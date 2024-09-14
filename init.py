@@ -165,7 +165,7 @@ total_counts.plot(
 )
 
 # Add a title
-ax.set_title('Total Event Counts per Polygon', fontsize=15)
+ax.set_title('Total Event Counts per Polygon', fontsize=16)
 
 # Remove axis for better aesthetics
 ax.set_axis_off()
