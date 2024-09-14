@@ -3,6 +3,7 @@ import shapely
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import pandas as pd
 
 print('\n\nSTART ---------------------\n')
 
@@ -31,6 +32,8 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
     elif (regions=='Global' or regions=='global'):
         regions = set(gdf1['SOVEREIGNT'])
     else:
+        if not isinstance(regions, list):
+            raise TypeError(f"'regions' argument should be a list if not a pre-specified region.")
         regions = regions
 
     gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
@@ -73,16 +76,99 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
     # remove all grid boxes that do not contain a land regions
     df2 = df2[df2.intersects(gdf.geometry.iloc[0])]
     df2.reset_index(inplace=True)
+    df2.drop('index', axis=1, inplace=True)
+    df2['loc_id'] = ['loc_'+str(i) for i in range(df2.shape[0])]
 
     if (show_fig==True):
         df = df.to_crs(4326)
         df2 = df2.to_crs(4326)
-        ax = df.plot(color="violet", markersize=200, figsize=(6.5, 6.5), zorder=3)
+        ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3)
         df2.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
-        gdf1.plot(ax=ax, color='tomato', zorder=0, edgecolor='k', linewidth=0.75)
+        gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
         plt.show()
 
     return df2
 
-my_grid = create_grid(regions='Africa', stepsize=1.0, show_fig=False)
-print(my_grid.shape)
+
+
+
+import warnings
+
+grid_gdf = create_grid(regions='Africa', stepsize=1.0, show_fig=False)
+
+conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
+
+conflict_data = pd.read_csv(conflictdata_path)
+
+years_df = pd.DataFrame({'year': list(set(conflict_data['year']))})
+
+# Add a temporary key for cross join
+grid_gdf['key'] = 1
+years_df['key'] = 1
+# Perform the merge (cross join)
+dataset = grid_gdf.merge(years_df, on='key')
+dataset.drop('key', axis=1, inplace=True)
+grid_gdf.drop('key', axis=1, inplace=True)
+
+events_gdf = gpd.GeoDataFrame(
+    conflict_data,
+    geometry=gpd.points_from_xy(conflict_data.longitude, conflict_data.latitude),
+    crs="EPSG:4326"  # Assuming WGS84 Latitude/Longitude
+)
+
+if events_gdf.crs != grid_gdf.crs:
+    warnings.warn("Warning: events_gdf and grid_gdf did not have the same crs!")
+    grid_gdf = grid_gdf.to_crs(events_gdf.crs)
+
+
+
+# Perform spatial join: Find which polygon each event falls into
+# 'inner' join returns only matching records
+events_with_polygons = gpd.sjoin(events_gdf, grid_gdf, how='inner', predicate='within')
+
+
+# 'sjoin' adds columns from polygons_gdf, including 'polygon_id' and 'year_right'
+# To avoid confusion, rename columns appropriately
+
+# Rename columns to differentiate between event year and polygon year
+events_with_polygons = events_with_polygons.rename(columns={'year_left': 'event_year', 'year_right': 'polygon_year'})
+
+# print(events_with_polygons)
+
+
+# Now, filter rows where event_year matches polygon_year
+# events_with_matching_year = events_with_polygons[events_with_polygons['event_year'] == events_with_polygons['polygon_year']]
+
+event_counts = events_with_polygons.groupby(['loc_id', 'year']).size().reset_index(name='event_count')
+
+# print(event_counts)
+
+event_counts = grid_gdf.merge(event_counts, left_on=['loc_id'], right_on=['loc_id'])
+
+# print(grid_gdf.merge(event_counts, left_on=['loc_id'], right_on=['loc_id']))
+
+total_counts = event_counts.groupby(['loc_id'])['event_count'].sum().reset_index()
+total_counts = grid_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
+
+print(total_counts)
+
+# Create a plot with a specified size
+fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+# Plot polygons colored by 'total_event_count'
+total_counts.plot(
+    column='event_count',    # Column to color by
+    cmap='OrRd',                   # Color map (e.g., OrRd, Viridis)
+    legend=True,                   # Show color legend
+    legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
+    ax=ax
+)
+
+# Add a title
+ax.set_title('Total Event Counts per Polygon', fontsize=15)
+
+# Remove axis for better aesthetics
+ax.set_axis_off()
+
+# Display the plot
+plt.show()

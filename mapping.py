@@ -34,7 +34,7 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
 
     if (geopoints1 is not None):
         #sns.kdeplot(ax=ax, data=geopoints, x="longitude", y="latitude", bw_method=0.05, color='red', fill=True)
-        geopoints1.plot(ax=ax, color='red', marker='o', markersize=0.1, label='Points', zorder=3)
+        geopoints1.plot(ax=ax, color='purple', marker='o', markersize=0.1, label='Points', zorder=3)
     if (geopoints2 is not None):
         #sns.kdeplot(ax=ax, data=geopoints, x="longitude", y="latitude", bw_method=0.05, color='red', fill=True)
         geopoints2.plot(ax=ax, color='red', marker='o', markersize=0.1, label='Points', zorder=3)
@@ -46,7 +46,7 @@ def mapper(geopoints1=None, geopoints2=None, include_bathymetry=True):
     ax.set_ylim([-75.0, +75.0])
 
     plt.tight_layout()
-    # plt.savefig('piracy_map.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig('plots/conflict_&_piracy_map.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 
@@ -57,13 +57,13 @@ geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'
 gdf_points2 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
-# data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
-# df_points = pd.read_csv(data_path)
-# geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
-# gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
+data_path = "/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv"
+df_points = pd.read_csv(data_path)
+geometry = [Point(xy) for xy in zip(df_points['longitude'], df_points['latitude'])]
+gdf_points1 = gpd.GeoDataFrame(df_points, geometry=geometry)
 
 
-mapper(gdf_points2)
+mapper(gdf_points1, gdf_points2)
 
 def gridded_mapper(include_ocean_values=False):
     """
