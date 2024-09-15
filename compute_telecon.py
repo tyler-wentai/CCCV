@@ -601,7 +601,7 @@ for i in range(n_lat):
         print("...", i)
     for j in range(n_long):
         VAR1_standard[:, i, j] = standardize_monthly(VAR1[:, i, j])
-        # STILL NEED TO DE-TREND EACH MONTH'S TIME SERIES EVENTUALLY....!!
+        VAR1_standard[:, i, j] = detrend_monthly(VAR1_standard[:, i, j])
 
 # # Check if df_climate_index's and VAR1_standard's ts indicies are idential.
 # ind_time = df_climate_index.index.strftime('%Y-%m-%d').to_numpy()
@@ -690,4 +690,4 @@ psi_array = xr.DataArray(data = psi,
                         )
 
 # Save psi_array as NetCDF file
-psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_callahan_test_NOCENTER.nc")
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_callahan_test_NOCENTER_detrended.nc")
