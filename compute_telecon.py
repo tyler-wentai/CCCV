@@ -2,7 +2,7 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import detrend
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, spearmanr, linregress
 import pandas as pd
 import sys
 from datetime import datetime, timedelta
@@ -390,3 +390,304 @@ def compute_gridded_correlation(climate_index, start_year, end_year, num_lag, sa
 #                             start_year=1980, end_year=2020, 
 #                             num_lag=3, 
 #                             save_path="/Users/tylerbagwell/Desktop/rho_airVSamm_lag3.nc")
+
+
+
+def compute_psi_Callahan2023(climate_index, start_year, end_year, num_lag, num_R, save_path):
+    """
+    Computes teleconnection strength (psi) between specified climate_index and air temperature 
+    anomaly at all global grid points based on the method of Callahan 2023 (w/o population weighting).
+    Output is a NetCDF file with description.
+    """
+
+    # Check if arguments have appropriate type:
+    if not isinstance(start_year, int):
+        raise TypeError(f"Expected an integer for start_year, but got {type(start_year).__name__}.")
+    if not isinstance(end_year, int):
+        raise TypeError(f"Expected an integer for end_year, but got {type(end_year).__name__}.")
+    if not isinstance(num_lag, int):
+        raise TypeError(f"Expected an integer for num_lag, but got {type(num_lag).__name__}.")
+    if not isinstance(num_R, int):
+        raise TypeError(f"Expected an integer for num_R, but got {type(num_R).__name__}.")
+
+    # Read in data files
+    file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
+    file_path_ONI = 'data/NOAA_ONI_data.txt' # ONI: Oceanic Nino Index
+    file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
+    file_path_AMM = 'data/NOAA_AMM_data.txt' # AMM: Atlantic Meridional Mode Index
+
+    start_date = datetime(start_year, 1, 1, 0, 0, 0)
+    end_date = datetime(end_year, 12, 1, 0, 0, 0)
+
+    # Read in climate index data file specified by climate_index
+    if climate_index=="oni" or climate_index=="ONI":
+        df_climate_index = prepare_ONI(file_path_ONI, start_date, end_date)
+        climate_index_name = 'oni'
+    elif climate_index=="dmi" or climate_index=="DMI":
+        df_climate_index = prepare_DMI(file_path_DMI, start_date, end_date)
+        climate_index_name = 'dmi'
+    elif climate_index=="amm" or climate_index=="AMM":
+        df_climate_index = prepare_AMM(file_path_AMM, start_date, end_date)
+        climate_index_name = 'amm'
+    else:
+        raise ValueError("Specified climate_index is not a valid climate index name.")
+    
+    # Read in and initialize the air temperature anomaly data
+    dat = nc.Dataset(file_path_AIR)
+
+    VAR1=dat.variables['air']
+    lat = dat.variables['lat'][:]
+    lon = dat.variables['lon'][:]
+    time = dat.variables['time'][:]
+
+    # Define the reference date: 1800-01-01 00:00:00. This is reference specified by NOAA's air.2m.mon.mean.nc file. 
+    reference_date = datetime(1800, 1, 1, 0, 0, 0)
+
+    dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
+    start_time_ind = int(np.where(dates == start_date)[0][0])
+    end_time_ind = int(int(np.where(dates == end_date)[0][0]) + 1)
+    VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
+
+    VAR1_standard = np.empty_like(VAR1) # Initialize a new array to store the standardized data
+    n_time, n_lat, n_long = VAR1.shape
+    print("Original shape of air temp. data: ", n_time, n_lat, n_long)
+
+    # Loop through each (lat, long) point and standardize the time series at each grid point
+    print("Standardizing air temp. data...")
+    for i in range(n_lat):
+        if (i%100==0): 
+            print("...", i)
+        for j in range(n_long):
+            time_series = VAR1[:, i, j]
+            mean = np.mean(time_series)
+            std = np.std(time_series)
+            # Standardize the time series (avoid division by zero)
+            if std != 0:
+                VAR1_standard[:, i, j] = (time_series - mean) / std
+            else:
+                raise ValueError("std=0 at grid point: (", i, ",", j,")!")
+            
+    # Check if df_climate_index's and VAR1_standard's ts indicies are idential.
+    ind_time = df_climate_index.index.strftime('%Y-%m-%d').to_numpy()
+    vectorized_format = np.vectorize(lambda x: x.strftime('%Y-%m-%d'))
+    VAR1_time  = vectorized_format(dates[start_time_ind:end_time_ind])
+    if not np.array_equal(ind_time, VAR1_time):
+        raise ValueError("---The two date arrays of ind_time and VAR1_time (air temp.) are NOT identical.---")
+    else:
+        print("---The two date arrays of ind_time and VAR1_time (air temp.) are identical.---")
+    month_start = int(df_climate_index.index[0].month)
+
+    # Compute correlation(air temp, climate index) at each grid point
+    rho_tilde = np.empty((12,\
+                          VAR1_standard.shape[1],\
+                          VAR1_standard.shape[2]))
+    alpha_lvl = 0.1
+    for m in range(12):
+        m_num = m+1
+        print('month: ', m_num)
+        for i in range(n_lat):
+            if (i%100==0): 
+                print("...", i)
+            for j in range(n_long):
+                df_help = pd.DataFrame({
+                    'month': df_climate_index.index.month,
+                    'ind_ts': df_climate_index['ANOM'],
+                    'air_ts': VAR1_standard[:, i, j]})
+                lag_string = 'ind_ts_lag' + str(num_lag) + 'm'
+                df_help[lag_string] = df_help['ind_ts'].shift((num_lag)) # created a shifted column shifted by num_lag monthly lags
+                df_help = df_help.dropna()
+                df_help = df_help[df_help['month'] == m_num]
+                pearsonr_result = pearsonr(df_help[lag_string], df_help['air_ts'])
+                if (pearsonr_result[0]>0 and pearsonr_result[1]<alpha_lvl): # 1 if correlation is positive and significant at alpha_lvl
+                    rho_tilde[m,i,j] = 1
+                else:
+                    rho_tilde[m,i,j] = 0
+
+    # Sum number of months have rho_tilde=1 for each grid point
+    Mxl = np.sum(rho_tilde, axis=0)
+
+    # Define binary "teleconnection strength" of grid point: 
+    #   teleconnect when Mxl >= num_R
+    #   weakly-affected when Mxl < num_R
+    psi = np.where(Mxl >= num_R, 1, 0)
+
+    # Store as xarray.DataArray with informational attributes
+    psi_array = xr.DataArray(data = psi,
+                             coords={
+                              "lat": lat,
+                              "lon": lon
+                            },
+                            dims = ["lat", "lon"],
+                            attrs=dict(
+                                description="Psi, teleconnection strength via Hsiang 2011 method.",
+                                cor_calc_start_date = str(start_date),
+                                cor_calc_end_date = str(end_date),
+                                climate_index_used = climate_index_name,
+                                L_lag = num_lag,
+                                R_val = num_R)
+                            )
+
+    # Save psi_array as NetCDF file
+    psi_array.to_netcdf(save_path)
+
+
+
+
+start_year  = 1960
+end_year    = 2023
+
+# Read in data files
+file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
+file_path_ONI = 'data/NOAA_ONI_data.txt' # ONI: Oceanic Nino Index
+
+start_date = datetime(start_year, 1, 1, 0, 0, 0)
+end_date = datetime(end_year, 12, 1, 0, 0, 0)
+
+df_climate_index = prepare_ONI(file_path_ONI, start_date, end_date)
+climate_index_name = 'oni'
+
+# Read in and initialize the air temperature anomaly data
+dat = nc.Dataset(file_path_AIR)
+
+VAR1=dat.variables['air']
+lat = dat.variables['lat'][:]
+lon = dat.variables['lon'][:]
+time = dat.variables['time'][:]
+
+# Define the reference date: 1800-01-01 00:00:00. This is reference specified by NOAA's air.2m.mon.mean.nc file. 
+reference_date = datetime(1800, 1, 1, 0, 0, 0)
+
+dates = np.array([reference_date + timedelta(hours=int(h)) for h in time])
+start_time_ind = int(np.where(dates == start_date)[0][0])
+end_time_ind = int(int(np.where(dates == end_date)[0][0]) + 1)
+VAR1 = VAR1[start_time_ind:end_time_ind, :, :]
+
+VAR1_standard = np.empty_like(VAR1) # Initialize a new array to store the standardized data
+n_time, n_lat, n_long = VAR1.shape
+print("Original shape of air temp. data: ", n_time, n_lat, n_long)
+
+# Loop through each (lat, long) point and standardize the time series at each grid point
+def standardize_monthly(data):
+    data = np.array(data)
+    n = len(data)
+    months = np.arange(n) % 12  # Assign month indices 0-11
+    means = np.array([data[months == m].mean() for m in range(12)])
+    stds = np.array([data[months == m].std() for m in range(12)])
+    standardized = (data - means[months]) / stds[months]
+    return standardized.tolist()
+
+def detrend_monthly(data):
+    n = len(data)
+    df = pd.DataFrame({
+        'value': data,
+        'month': np.arange(n) % 12,  # Assign months 0-11
+        'time': np.arange(n)         # Time index
+    })
+    
+    def remove_trend(group):
+        if len(group) < 2:
+            return group['value']
+        slope, intercept, _, _, _ = linregress(group['time'], group['value'])
+        return group['value'] - (slope * group['time'] + intercept)
+    
+    # Apply detrending per month
+    df['detrended'] = df.groupby('month').apply(remove_trend, include_groups=False).reset_index(level=0, drop=True)
+    return df['detrended'].tolist()
+
+print("Standardizing air temp. data...")
+#VAR1_standard[:,:,:] = VAR1[:,:,:]
+for i in range(n_lat):
+    if (i%100==0): 
+        print("...", i)
+    for j in range(n_long):
+        VAR1_standard[:, i, j] = standardize_monthly(VAR1[:, i, j])
+        # STILL NEED TO DE-TREND EACH MONTH'S TIME SERIES EVENTUALLY....!!
+
+# # Check if df_climate_index's and VAR1_standard's ts indicies are idential.
+# ind_time = df_climate_index.index.strftime('%Y-%m-%d').to_numpy()
+# vectorized_format = np.vectorize(lambda x: x.strftime('%Y-%m-%d'))
+# VAR1_time  = vectorized_format(dates[start_time_ind:end_time_ind])
+# if not np.array_equal(ind_time, VAR1_time):
+#     raise ValueError("---The two date arrays of ind_time and VAR1_time (air temp.) are NOT identical.---")
+# else:
+#     print("---The two date arrays of ind_time and VAR1_time (air temp.) are identical.---")
+# month_start = int(df_climate_index.index[0].month)
+
+
+# Ensure 'date' to datetime and extract year & month
+df_climate_index.index = pd.to_datetime(df_climate_index.index)
+df_climate_index['year'] = df_climate_index.index.year
+df_climate_index['month'] = df_climate_index.index.month
+
+# prepare December data from previous year
+dec_df = df_climate_index[df_climate_index['month'] == 12].copy()
+dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+
+# prepare January and February data for current year
+jan_feb_df = df_climate_index[df_climate_index['month'].isin([1, 2])].copy()
+jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+
+# merge December, January, and February data
+yearly = pd.merge(dec_df, jan, on='year', how='inner')
+yearly = pd.merge(yearly, feb, on='year', how='inner')
+
+# Calculate the average DJF ANOM value
+yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1)
+index_DJF = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
+######
+corrs_array = np.empty((15,n_lat,n_long))
+psi = np.empty((n_lat,n_long))
+
+# iterate through all lat and long values
+
+print("\nComputing psi array...")
+for i in range(n_lat):
+    if (i%10==0): 
+        print("...", i)
+    for j in range(n_long):
+        current_VAR = pd.DataFrame(data=VAR1_standard[:,i,j],
+                                    index=dates[start_time_ind:end_time_ind],
+                                    columns=['air'])
+        current_VAR.index = pd.to_datetime(current_VAR.index)
+        current_VAR['year'] = current_VAR.index.year
+        current_VAR['month'] = current_VAR.index.month
+        # iterate through the months
+        for k in range(1,16,1):
+            # jun-dec of year t-1
+            if (k<=7):
+                var_ts = current_VAR[current_VAR['month'] == int(k+6-1)].copy()
+                var_ts['year'] = var_ts['year'] + 1  # Shift to next year
+            # jan-aug of year t
+            else:
+                var_ts = current_VAR[current_VAR['month'] == int(k-7)].copy()
+
+            # compute correlations of yearly month, k, air anomaly with index 
+            var_ts = pd.merge(var_ts, index_DJF, how='inner', on='year')
+            corrs_array[int(k-1),i,j] = pearsonr(var_ts['air'], var_ts['avg_ANOM'])[0]
+
+        corrs = pd.Series(corrs_array[:,i,j])
+        rolling_avg = corrs.rolling(window=3, center=False).mean() ### BE AWARE OF CENTERING OF WINDOW!!!
+        rolling_avg = np.abs(rolling_avg)
+        max_corr = np.nanmax(rolling_avg)
+        psi[i,j] = max_corr
+
+print(psi)
+
+psi_array = xr.DataArray(data = psi,
+                            coords={
+                            "lat": lat,
+                            "lon": lon
+                        },
+                        dims = ["lat", "lon"],
+                        attrs=dict(
+                            description="Psi, teleconnection strength via Hsiang 2011 method.",
+                            cor_calc_start_date = str(start_date),
+                            cor_calc_end_date = str(end_date),
+                            climate_index_used = climate_index_name)
+                        )
+
+# Save psi_array as NetCDF file
+psi_array.to_netcdf("/Users/tylerbagwell/Desktop/psi_callahan_test_NOCENTER.nc")

@@ -93,7 +93,7 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
 
 
 #
-def create_gridded_panel_data(regions, stepsize, show_fig=False, show_tot_counts=False):
+def create_gridded_panel_data(regions, stepsize, show_fig=False, show_tot_counts_fig=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -134,26 +134,25 @@ def create_gridded_panel_data(regions, stepsize, show_fig=False, show_tot_counts
     final_gdf = polygons_gdf[['loc_id', 'geometry']].merge(count_complete_df, on='loc_id', how='right')
     final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'geometry']]
 
-    if (show_tot_counts==True):
+    if (show_tot_counts_fig==True):
         total_counts = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
         total_counts = polygons_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
-        print(total_counts)
 
-        #Create a plot with a specified size
-
+        # plotting
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         total_counts.plot(
-            column='conflict_count',    # Column to color by
-            cmap='turbo',                   # Color map (e.g., OrRd, Viridis)
-            legend=True,                   # Show color legend
+            column='conflict_count',    
+            cmap='turbo',                  
+            legend=True,                   
             legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
             ax=ax,
             vmax=500
         )
-        ax.set_title('Total Event Counts per Polygon', fontsize=16)
+        ax.set_title('Total Event Counts per Polygon', fontsize=15)
         ax.set_axis_off()
         plt.show()
 
     return final_gdf
 
-create_gridded_panel_data(regions='Global', stepsize=1.0, show_fig=False, show_tot_counts=True)
+data = create_gridded_panel_data(regions='Africa', stepsize=1.0, show_fig=False, show_tot_counts_fig=False)
+print(data)
