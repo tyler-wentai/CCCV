@@ -87,6 +87,7 @@ def create_grid(regions, stepsize=1.0, show_fig=False):
         ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3)
         df2.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
         gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return df2
@@ -150,9 +151,10 @@ def create_gridded_panel_data(regions, stepsize, show_fig=False, show_tot_counts
         )
         ax.set_title('Total Event Counts per Polygon', fontsize=15)
         ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3_counts.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
 
-data = create_gridded_panel_data(regions='Africa', stepsize=1.0, show_fig=False, show_tot_counts_fig=False)
+data = create_gridded_panel_data(regions='Africa', stepsize=1.0, show_fig=True, show_tot_counts_fig=True)
 print(data)

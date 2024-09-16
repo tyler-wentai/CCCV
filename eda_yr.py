@@ -5,6 +5,7 @@ from scipy.stats import pearsonr
 from statsmodels.tsa.stattools import acf
 import statsmodels.api as sm
 import sys
+from datetime import datetime
 
 # ONI: Oceanic Nino Index (from NOAA, https://www.ncei.noaa.gov/access/monitoring/enso/sst#oni)
 # loc1 = Gulf of Guinea
@@ -64,6 +65,25 @@ df_oni = df_oni.sort_index()
 df_oni = df_oni['ANOM'].resample('YE').mean() # aggregate to quarter level
 
 
+####
+file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
+start_date = datetime(1950, 1, 1, 0, 0, 0)
+end_date = datetime(2023, 12, 1, 0, 0, 0)
+
+# Read in data files
+dmi = pd.read_csv(file_path_DMI, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+year_start = int(dmi.iloc[0,0])
+dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
+df_dmi = pd.DataFrame(dmi)
+date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='ME')
+df_dmi.index = date_range
+df_dmi.rename_axis('date', inplace=True)
+df_dmi.columns = ['ANOM']
+
+df_dmi = df_dmi.resample('YE').mean() # Aggregate to QUEARTERLY level
+df_oni = df_dmi
+####
+
 # combine the two data sets
     # global
 piracy_oni = pd.concat([df_oni, piracy_counts_qtr], axis=1)
@@ -82,7 +102,7 @@ piracy_oni_loc4 = pd.concat([df_oni, piracy_counts_loc4_qtr], axis=1)
 piracy_oni_loc4 = piracy_oni_loc4.dropna()
 
 # create lagged columns of ONI anom.
-n_lag = 4
+n_lag = 3
 for i in range(n_lag):
     lag_string = 'ANOM_lag' + str(i+1) + 'y'
     piracy_oni[lag_string]= piracy_oni['ANOM'].shift((i+1))
@@ -116,6 +136,12 @@ piracy_oni_loc2['LOC'] = 'loc2'
 piracy_oni_loc3['LOC'] = 'loc3'
 piracy_oni_loc4['LOC'] = 'loc4'
 
+piracy_oni_loc1['PIRACY_COUNTS'] = (piracy_oni_loc1['PIRACY_COUNTS']-np.mean(piracy_oni_loc1['PIRACY_COUNTS']))/np.std(piracy_oni_loc1['PIRACY_COUNTS'])
+piracy_oni_loc2['PIRACY_COUNTS'] = (piracy_oni_loc2['PIRACY_COUNTS']-np.mean(piracy_oni_loc2['PIRACY_COUNTS']))/np.std(piracy_oni_loc2['PIRACY_COUNTS'])
+piracy_oni_loc3['PIRACY_COUNTS'] = (piracy_oni_loc3['PIRACY_COUNTS']-np.mean(piracy_oni_loc3['PIRACY_COUNTS']))/np.std(piracy_oni_loc3['PIRACY_COUNTS'])
+piracy_oni_loc4['PIRACY_COUNTS'] = (piracy_oni_loc4['PIRACY_COUNTS']-np.mean(piracy_oni_loc4['PIRACY_COUNTS']))/np.std(piracy_oni_loc4['PIRACY_COUNTS'])
+
+# loc_ALL
 dfs = [piracy_oni_loc1, piracy_oni_loc2, piracy_oni_loc3, piracy_oni_loc4]
 data_oni = pd.concat(dfs, axis=0, ignore_index=True)
 
@@ -126,44 +152,174 @@ data_oni = data_oni[cols]  # Reorder the DataFrame columns
 # data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
 
 from linearmodels.panel import PanelOLS
-
-
 df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
+# Add the dummy variables to the main DataFrame
+df = pd.concat([data_oni, df_dummies], axis=1)
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','YEAR','loc2','loc3','loc4']])
+y = df['PIRACY_COUNTS']
+model = sm.OLS(y, X).fit()
+print(model.summary())
 
-print(df_dummies)
+ANOM_locALL = model.params.loc['ANOM']
+ANOM_lag1y_locALL = model.params.loc['ANOM_lag1y']
 
+CI_locALL = model.conf_int().loc['ANOM']
+CI_lag1y_locALL = model.conf_int().loc['ANOM_lag1y']
+
+
+
+# loc_1
+dfs = [piracy_oni_loc2, piracy_oni_loc3, piracy_oni_loc4]
+data_oni = pd.concat(dfs, axis=0, ignore_index=True)
+
+cols = list(data_oni.columns) 
+cols[0], cols[1] = cols[1], cols[0]
+data_oni = data_oni[cols]  # Reorder the DataFrame columns
+
+# data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
+
+from linearmodels.panel import PanelOLS
+df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
 # Add the dummy variables to the main DataFrame
 df = pd.concat([data_oni, df_dummies], axis=1)
 
-
-X = sm.add_constant(df[['ANOM','ANOM_lag1y','ANOM_lag2y','ANOM_lag3y','ANOM_lag4y','YEAR','loc2','loc3','loc4']])
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','YEAR','loc3','loc4']])
 y = df['PIRACY_COUNTS']
-
-# sys.exit()
 model = sm.OLS(y, X).fit()
 print(model.summary())
+
+ANOM_loc1 = model.params.loc['ANOM']
+ANOM_lag1y_loc1 = model.params.loc['ANOM_lag1y']
+
+CI_loc1 = model.conf_int().loc['ANOM']
+CI_lag1y_loc1 = model.conf_int().loc['ANOM_lag1y']
+
+# loc_2
+dfs = [piracy_oni_loc1, piracy_oni_loc3, piracy_oni_loc4]
+data_oni = pd.concat(dfs, axis=0, ignore_index=True)
+
+cols = list(data_oni.columns) 
+cols[0], cols[1] = cols[1], cols[0]
+data_oni = data_oni[cols]  # Reorder the DataFrame columns
+
+# data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
+
+from linearmodels.panel import PanelOLS
+df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
+# Add the dummy variables to the main DataFrame
+df = pd.concat([data_oni, df_dummies], axis=1)
+
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','YEAR','loc3','loc4']])
+y = df['PIRACY_COUNTS']
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+ANOM_loc2 = model.params.loc['ANOM']
+ANOM_lag1y_loc2 = model.params.loc['ANOM_lag1y']
+
+CI_loc2 = model.conf_int().loc['ANOM']
+CI_lag1y_loc2 = model.conf_int().loc['ANOM_lag1y']
+
+# loc_3
+dfs = [piracy_oni_loc1, piracy_oni_loc2, piracy_oni_loc4]
+data_oni = pd.concat(dfs, axis=0, ignore_index=True)
+
+cols = list(data_oni.columns) 
+cols[0], cols[1] = cols[1], cols[0]
+data_oni = data_oni[cols]  # Reorder the DataFrame columns
+
+# data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
+
+from linearmodels.panel import PanelOLS
+df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
+# Add the dummy variables to the main DataFrame
+df = pd.concat([data_oni, df_dummies], axis=1)
+
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','YEAR','loc2','loc4']])
+y = df['PIRACY_COUNTS']
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+ANOM_loc3 = model.params.loc['ANOM']
+ANOM_lag1y_loc3 = model.params.loc['ANOM_lag1y']
+
+CI_loc3 = model.conf_int().loc['ANOM']
+CI_lag1y_loc3 = model.conf_int().loc['ANOM_lag1y']
+
+# loc_4
+dfs = [piracy_oni_loc1, piracy_oni_loc2, piracy_oni_loc3]
+data_oni = pd.concat(dfs, axis=0, ignore_index=True)
+
+cols = list(data_oni.columns) 
+cols[0], cols[1] = cols[1], cols[0]
+data_oni = data_oni[cols]  # Reorder the DataFrame columns
+
+# data_oni.to_csv('/Users/tylerbagwell/Desktop/data_oni.csv', index=False)
+
+from linearmodels.panel import PanelOLS
+df_dummies = pd.get_dummies(data_oni['LOC'], drop_first=True).astype(int)
+# Add the dummy variables to the main DataFrame
+df = pd.concat([data_oni, df_dummies], axis=1)
+
+X = sm.add_constant(df[['ANOM','ANOM_lag1y','YEAR','loc2','loc3']])
+y = df['PIRACY_COUNTS']
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+ANOM_loc4 = model.params.loc['ANOM']
+ANOM_lag1y_loc4 = model.params.loc['ANOM_lag1y']
+
+CI_loc4 = model.conf_int().loc['ANOM']
+CI_lag1y_loc4 = model.conf_int().loc['ANOM_lag1y']
+
+
+
+xxx  = [0,1,3,4,5,6,8,9,10,11]
+yyy  = [ANOM_locALL, ANOM_lag1y_locALL,
+        ANOM_loc1, ANOM_loc2, ANOM_loc3, ANOM_loc4,
+        ANOM_lag1y_loc1, ANOM_lag1y_loc2, ANOM_lag1y_loc3, ANOM_lag1y_loc4]
+labels = ['All','All','G.o.Guinea', 'S.E.A', 'M.E./G.o.Aden', 'S.A.',
+          'G.o.Guinea', 'S.E.A', 'M.E./G.o.Aden', 'S.A.']
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+
+ax.plot([0,0],CI_locALL, color='blue')
+ax.plot([1,1],CI_lag1y_locALL, color='orange')
+ax.plot([3,3],CI_loc1, color='blue')
+ax.plot([8,8],CI_lag1y_loc1, color='orange')
+ax.plot([4,4],CI_loc2, color='blue')
+ax.plot([9,9],CI_lag1y_loc2, color='orange')
+ax.plot([5,5],CI_loc3, color='blue')
+ax.plot([10,10],CI_lag1y_loc3, color='orange')
+ax.plot([6,6],CI_loc4, color='blue')
+ax.plot([11,11],CI_lag1y_loc4, color='orange')
+
+ax.scatter(xxx,yyy, color='k', zorder=3)
+ax.hlines(0, xmin=-0.5, xmax=11.5, color='black', linestyles='--')
+
+ax.set_xlim(-0.3,11.3)
+ax.set_xticks(ticks=xxx, labels=labels, rotation=90)
+
+from matplotlib.lines import Line2D
+custom_lines = [
+    Line2D([0], [0], color='blue', lw=2, label=r'$DMI_{t}$'),
+    Line2D([0], [0], color='orange', lw=2, label=r'$DMI_{t-1}$')
+]
+ax.legend(handles=custom_lines)
+
+ax.set_title('Effect of DMI on Piracy Counts, all locations, and single locations removed')
+ax.set_ylabel(r'$\beta_{DMI}$')
+
+plt.savefig('plots/piracy_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
+
+
+
 
 sys.exit()
 
 
 
-
-
-
-YEARS = data_oni['YEAR'] - np.min(data_oni['YEAR'])
-data_oni = data_oni.set_index(['LOC','YEAR'])
-print(data_oni)
-
-data_oni['YEAR'] = data_oni.index.get_level_values('YEAR')
-
-y = data_oni['PIRACY_COUNTS']
-X = data_oni[['ANOM','ANOM_lag1y','ANOM_lag2y','ANOM_lag3y','YEAR']]
-X = sm.add_constant(X)
-
-model = PanelOLS(y, X, entity_effects=True)  # entity_effects=True applies unit fixed effects
-result = model.fit()
-print(result.summary)
-print(result.estimated_effects)
 
 
 
