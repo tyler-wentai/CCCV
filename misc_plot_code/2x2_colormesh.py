@@ -7,14 +7,14 @@ import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_test.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
-lat = psi['lat'].values
-lon = psi['lon'].values
+lat0 = psi['lat'].values
+lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_test.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
