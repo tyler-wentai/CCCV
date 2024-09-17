@@ -636,8 +636,13 @@ def compute_psi_Callahan2023(climate_index, start_year, end_year, save_path):
 
 
 
+# sys.exit()
+
+###################################
+
+
 start_year  = 1960
-end_year    = 2019
+end_year    = 2020
 
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
@@ -747,20 +752,20 @@ def standardize_and_detrend_monthly(data):
 var1_std = np.empty_like(var1_common) # Initialize a new array to store the standardized data
 var2_std = np.empty_like(var2_common) # Initialize a new array to store the standardized data
 
-# var1_std = var1_common # DELETE LATER!!!!!!!!!
-# var2_std = var2_common # DELETE LATER!!!!!!!!!
+var1_std = var1_common # DELETE LATER!!!!!!!!!
+var2_std = var2_common # DELETE LATER!!!!!!!!!
 
-print("Standardizing air temp. data...")
-for i in range(n_lat):
-    if (i%25==0): 
-        print("...", i)
-    for j in range(n_long):
-        var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
-        has_nan = np.isnan(var2_common[:, i, j]).any()
-        if (has_nan==False):
-            var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j])
-        else: 
-            var2_std[:, i, j] = var2_common[:, i, j]
+# print("Standardizing air temp. data...")
+# for i in range(n_lat):
+#     if (i%25==0): 
+#         print("...", i)
+#     for j in range(n_long):
+#         var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
+#         has_nan = np.isnan(var2_common[:, i, j]).any()
+#         if (has_nan==False):
+#             var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j])
+#         else: 
+#             var2_std[:, i, j] = var2_common[:, i, j]
 
 # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
 clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
