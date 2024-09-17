@@ -20,7 +20,7 @@ lon1 = psi1['lon'].values
 variable1 = psi1.values[:,:]
 vals1 = variable1.flatten()
 
-psi2 = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc')
+psi2 = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc')
 lat2 = psi2['lat'].values
 lon2 = psi2['lon'].values
 variable2 = psi2.values[:,:]
@@ -42,31 +42,43 @@ ax = axs[0,0]
 c = ax.contourf(lon1, lat1, variable1, cmap='YlOrRd', levels=levels)
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
-ax.set_title('airtemp_month_lag=0')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
-ax.set_title('0.5°x0.5° gridded dataset')
+ax.set_title(r'$\Psi$ based on air_temp + precip')
 
 ax = axs[1,0]
-sns.histplot(vals1, bins=int(len(vals1)/750/prop), stat='density', kde=True, ax=ax, color='r')
+sns.histplot(vals1, bins=int(len(vals1)/2000), stat='density', kde=True, ax=ax, color='r')
 ax.set_xlabel(r'$\Psi^{NINO3}$')
-ax.set_title('0.5°x0.5° gridded dataset')
+ax.set_title(r'$\Psi$ based on air_temp + precip')
 
 ax = axs[0,1]
 c = ax.contourf(lon2, lat2, variable2, cmap='YlOrRd', levels=levels)
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
-ax.set_title('airtemp_month_lag=0')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
-ax.set_title('1.0°x1.0° gridded dataset')
+ax.set_title(r'$\Psi$ based on air_temp + soilw')
 
 ax = axs[1,1]
-sns.histplot(vals2, bins=int(len(vals2)/750), stat='density', kde=True, ax=ax, color='r')
+sns.histplot(vals2, bins=int(len(vals2)/2000), stat='density', kde=True, ax=ax, color='r')
 ax.set_xlabel(r'$\Psi^{NINO3}$')
-ax.set_title('1.0°x1.0° gridded dataset')
+ax.set_title(r'$\Psi$ based on air_temp + soilw')
 
-# plt.savefig('plots/psi_callahan_histograms.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('plots/psi_callahan_precip_vs_soilw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
+
+
+
+
+
+plt.figure(figsize=(8, 6))
+sns.histplot(vals1, color='blue', label='airtemp + precip', kde=True, stat="density", bins=int(len(vals2)/2000), alpha=0.5)
+sns.histplot(vals2, color='red', label='airtemp + soilw', kde=True, stat="density", bins=int(len(vals2)/2000), alpha=0.5)
+
+plt.legend()
+plt.xlabel(r'$\Psi^{NINO3}$')
+plt.title(r"$\Psi^{NINO3}$ computed with 'precip' vs. 'soilw'")
+plt.savefig('plots/psi_callahan_histograms_precip_vs_soilw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
