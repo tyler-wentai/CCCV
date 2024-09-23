@@ -6,6 +6,7 @@ from statsmodels.tsa.stattools import acf
 import statsmodels.api as sm
 import sys
 from datetime import datetime
+from init import compute_annualized_NINO3_index
 
 # ONI: Oceanic Nino Index (from NOAA, https://www.ncei.noaa.gov/access/monitoring/enso/sst#oni)
 # loc1 = Gulf of Guinea
@@ -64,24 +65,41 @@ df_oni.set_index('date', inplace=True)
 df_oni = df_oni.sort_index()
 df_oni = df_oni['ANOM'].resample('YE').mean() # aggregate to quarter level
 
+print(df_oni)
+
+# df_oni = np.load('/Users/tylerbagwell/Documents/GitHub/CCCV/data/NINO3_DJF_yearlyindex.npy')
+
+# print(df_oni)
+# print(df_oni.shape)
+
+# print(df_oni.flatten())
+
+# plt.plot(np.arange(df_oni.flatten().shape[0]), df_oni.flatten())
+# plt.show()
+
+
+df_oni = compute_annualized_NINO3_index(1960, 2024)
+df_oni['year'] = pd.to_datetime(df_oni['year'].astype(str) + '-12-31')
+df_oni.set_index('year', inplace=True)
+df_oni.rename(columns={'INDEX': 'ANOM'}, inplace=True)
 
 ####
-file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
-start_date = datetime(1950, 1, 1, 0, 0, 0)
-end_date = datetime(2023, 12, 1, 0, 0, 0)
+# file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
+# start_date = datetime(1950, 1, 1, 0, 0, 0)
+# end_date = datetime(2023, 12, 1, 0, 0, 0)
 
-# Read in data files
-dmi = pd.read_csv(file_path_DMI, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
-year_start = int(dmi.iloc[0,0])
-dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
-df_dmi = pd.DataFrame(dmi)
-date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='ME')
-df_dmi.index = date_range
-df_dmi.rename_axis('date', inplace=True)
-df_dmi.columns = ['ANOM']
+# # Read in data files
+# dmi = pd.read_csv(file_path_DMI, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+# year_start = int(dmi.iloc[0,0])
+# dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
+# df_dmi = pd.DataFrame(dmi)
+# date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='ME')
+# df_dmi.index = date_range
+# df_dmi.rename_axis('date', inplace=True)
+# df_dmi.columns = ['ANOM']
 
-df_dmi = df_dmi.resample('YE').mean() # Aggregate to QUEARTERLY level
-df_oni = df_dmi
+# df_dmi = df_dmi.resample('YE').mean() # Aggregate to QUEARTERLY level
+# df_oni = df_dmi
 ####
 
 # combine the two data sets
@@ -101,8 +119,9 @@ piracy_oni_loc3 = piracy_oni_loc3.dropna()
 piracy_oni_loc4 = pd.concat([df_oni, piracy_counts_loc4_qtr], axis=1)
 piracy_oni_loc4 = piracy_oni_loc4.dropna()
 
+
 # create lagged columns of ONI anom.
-n_lag = 3
+n_lag = 1
 for i in range(n_lag):
     lag_string = 'ANOM_lag' + str(i+1) + 'y'
     piracy_oni[lag_string]= piracy_oni['ANOM'].shift((i+1))
@@ -302,15 +321,15 @@ ax.set_xticks(ticks=xxx, labels=labels, rotation=90)
 
 from matplotlib.lines import Line2D
 custom_lines = [
-    Line2D([0], [0], color='blue', lw=2, label=r'$DMI_{t}$'),
-    Line2D([0], [0], color='orange', lw=2, label=r'$DMI_{t-1}$')
+    Line2D([0], [0], color='blue', lw=2, label=r'$NINO3_{t}$'),
+    Line2D([0], [0], color='orange', lw=2, label=r'$NINO3_{t-1}$')
 ]
 ax.legend(handles=custom_lines)
 
-ax.set_title('Effect of DMI on Piracy Counts, all locations, and single locations removed')
-ax.set_ylabel(r'$\beta_{DMI}$')
+ax.set_title('Effect of NINO3 on Piracy Counts, all locations, and single locations removed')
+ax.set_ylabel(r'$\beta_{NINO3}$')
 
-plt.savefig('plots/piracy_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('plots/piracy_oni.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

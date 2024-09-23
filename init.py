@@ -239,6 +239,10 @@ def prepare_gridded_panel_data(regions, stepsize, num_lag, show_grid=False, show
 
     return final_gdf
 
-data = prepare_gridded_panel_data(regions='Africa', stepsize=2.0, num_lag=1, show_grid=False, show_gridded_tot_counts=False)
+# data = prepare_gridded_panel_data(regions='Africa', stepsize=3.0, num_lag=1, show_grid=True, show_gridded_tot_counts=False)
 
+# print(data.shape)
 # data.to_csv('/Users/tylerbagwell/Desktop/prepared_conflict_data.csv')
+
+# annual_index = compute_annualized_NINO3_index(1960, 2024)
+# print(annual_index)
