@@ -249,8 +249,7 @@ def prepare_gridded_panel_data(regions, stepsize, num_lag, show_grid=False, show
 
 
 #######################################
-import h3
-import json
+import math
 
 regions = ['South Africa']
 stepsize = 1.0
@@ -296,18 +295,6 @@ df = gpd.GeoDataFrame(geometry=[pnt], crs=4326)
 lon_center = df.geometry.iloc[0].x
 lat_center = df.geometry.iloc[0].y
 
-from hexalattice.hexalattice import *
-hex_centers, _ = create_hex_grid(n=10000, do_plot=True)
-centers_x = hex_centers[:, 0]
-centers_x = hex_centers[:, 1]
-plt.show()
-
-
-radius = 5000  # 5 km, Define the radius in meters
-
-
-sys.exit()
-
 # compute the min and max lon and lat values of the entire region, determins spatial extent of grid
 lon_min = np.min(gdf.geometry.get_coordinates()['x']); lon_max = np.max(gdf.geometry.get_coordinates()['x'])
 lat_min = np.min(gdf.geometry.get_coordinates()['y']); lat_max = np.max(gdf.geometry.get_coordinates()['y'])
@@ -318,6 +305,66 @@ lon_start   = lon_center - np.ceil(lon_center-lon_min)
 lon_end     = lon_center + np.ceil(lon_max-lon_center) + stepsize
 lat_start   = lat_center - np.ceil(lat_center-lat_min)
 lat_end     = lat_center + np.ceil(lat_max-lat_center) + stepsize
+
+from matplotlib.patches import RegularPolygon
+
+def calculate_hexagon_vertices(center_x, center_y, radius):
+    """
+    Calculates the vertices of a hexagon given the center coordinates and radius.
+
+    :param center_x: X-coordinate of the center
+    :param center_y: Y-coordinate of the center
+    :param radius: Distance from the center to any vertex
+    :return: List of (x, y) tuples representing the vertices
+    """
+    vertices = []
+    for i in range(6):
+        angle_deg = 60 * i - 30  # Start with a flat side
+        angle_rad = math.radians(angle_deg)
+        x = center_x + radius * math.cos(angle_rad)
+        y = center_y + radius * math.sin(angle_rad)
+        vertices.append((x, y))
+    return vertices
+
+# Example usage
+radius = 1 # this refers to the maximal radius, R
+center_x1 = 2
+center_y1 = 3
+center_x2 = center_x1 + 3*radius/2
+center_y2 = center_y1 + np.sqrt(3)*radius/2
+center_x3 = center_x1 + 3*radius/2
+center_y3 = center_y1 - np.sqrt(3)*radius/2
+center_x3 = center_x1
+center_y3 = center_y1 - np.sqrt(3)*radius
+vertices = calculate_hexagon_vertices(center_x1, center_y1, radius)
+print("Hexagon Vertices:", vertices)
+
+# Optional: Plot the hexagon
+fig, ax = plt.subplots()
+hexagon_patch1 = RegularPolygon(
+    (center_x1, center_y1), numVertices=6, radius=radius, orientation=np.radians(30),
+    edgecolor='blue', facecolor='cyan', alpha=0.5
+)
+hexagon_patch2 = RegularPolygon(
+    (center_x2, center_y2), numVertices=6, radius=radius, orientation=np.radians(30),
+    edgecolor='red', facecolor='purple', alpha=0.5
+)
+hexagon_patch3 = RegularPolygon(
+    (center_x3, center_y3), numVertices=6, radius=radius, orientation=np.radians(30),
+    edgecolor='green', facecolor='k', alpha=0.5
+)
+ax.add_patch(hexagon_patch1)
+ax.add_patch(hexagon_patch2)
+ax.add_patch(hexagon_patch3)
+ax.set_aspect('equal')
+plt.xlim(center_x1 - radius - 3, center_x1 + radius + 3)
+plt.ylim(center_y1 - radius - 3, center_y1 + radius + 3)
+plt.grid(True)
+plt.show()
+
+
+
+sys.exit()
 
 # compute coordinate mesh
 xcoords = np.arange(start=lon_start, stop=lon_end, step=stepsize)
