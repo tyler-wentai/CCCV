@@ -4,10 +4,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import pandas as pd
-import warnings
 from datetime import datetime
+import math
 
 print('\n\nSTART ---------------------\n')
+
+#
+def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
+    """
+    Calculates the vertices of a hexagon given the center coordinates and radius.
+
+    :param center_x: X-coordinate of the center
+    :param center_y: Y-coordinate of the center
+    :param radius: Distance from the center to any vertex
+    :return: List of (x, y) tuples representing the vertices
+    """
+
+    vertices = []
+    for i in range(6):
+        angle_deg = 60 * i #- 30  # Start with a flat side
+        angle_rad = math.radians(angle_deg)
+        x = center_x + maximal_radius * math.cos(angle_rad)
+        y = center_y + maximal_radius * math.sin(angle_rad)
+        vertices.append((x, y))
+    return vertices
 
 #
 def prepare_NINO3(file_path, start_date, end_date):
@@ -78,7 +98,7 @@ def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
 
 
 #
-def create_grid(regions, stepsize=1.0, show_grid=False):
+def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     """
     Creates a square gridding over the specified region with specified stepsize in units of lat and lon degrees
     """
@@ -89,7 +109,10 @@ def create_grid(regions, stepsize=1.0, show_grid=False):
                         'Somaliland','Seychelles','Djibouti','Eritrea','Zimbabwe','Gambia','South Africa','Sudan','São Tomé and Principe','Zambia','Egypt',
                         'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara)
 
-    # print(len(africa_countries))
+    # Check that supplied grid_polygon is valid.
+    allowed_polygons = ['square', 'hex', 'hexagon']
+    if grid_polygon not in allowed_polygons:
+        raise ValueError(f"Invalid grid_polygon '{grid_polygon}'. Allowed colors are: {allowed_polygons}.")
 
     # read in shp file data
     path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
@@ -133,42 +156,83 @@ def create_grid(regions, stepsize=1.0, show_grid=False):
     lat_start   = lat_center - np.ceil(lat_center-lat_min)
     lat_end     = lat_center + np.ceil(lat_max-lat_center) + stepsize
 
-    # compute coordinate mesh
-    xcoords = np.arange(start=lon_start, stop=lon_end, step=stepsize)
-    ycoords = np.arange(start=lat_start, stop=lat_end, step=stepsize)
-    coords = np.array(np.meshgrid(xcoords, ycoords)).T.reshape(-1,2)
+    if grid_polygon=='square':
+        # compute coordinate mesh
+        xcoords = np.arange(start=lon_start, stop=lon_end, step=stepsize)
+        ycoords = np.arange(start=lat_start, stop=lat_end, step=stepsize)
+        coords = np.array(np.meshgrid(xcoords, ycoords)).T.reshape(-1,2)
 
-    # compute grid boxes' center points and create a GeoDataFrame of the grid
-    centerpoints = gpd.points_from_xy(x=coords[:,0], y=coords[:,1])
-    squares = [p.buffer(distance=(stepsize/2), cap_style=3) for p in centerpoints]
-    df2 = gpd.GeoDataFrame(geometry=squares, crs=df.crs)
+        # compute grid boxes' center points and create a GeoDataFrame of the grid
+        centerpoints = gpd.points_from_xy(x=coords[:,0], y=coords[:,1])
+        squares = [p.buffer(distance=(stepsize/2), cap_style=3) for p in centerpoints]
+        df2 = gpd.GeoDataFrame(geometry=squares, crs=df.crs)
+        # remove all grid boxes that do not contain a land regions
+        gdf_final = df2[df2.intersects(gdf.geometry.iloc[0])]
+    
+    elif grid_polygon=='hex' or grid_polygon=='hexagon':
+        # Not: the _stepsize_ argument in the function call refers to the _maximal radius_, R,
+        # of the hexagons forming the grid mesh.
 
-    # remove all grid boxes that do not contain a land regions
-    df2 = df2[df2.intersects(gdf.geometry.iloc[0])]
-    df2.reset_index(inplace=True)
-    df2.drop('index', axis=1, inplace=True)
-    df2['loc_id'] = ['loc_'+str(i) for i in range(df2.shape[0])]
+        # compute coordinate mesh
+        dx_step = 2*(3*stepsize/2)
+        dy_step = np.sqrt(3)*stepsize
+        xcoords1 = np.arange(start=lon_start, stop=lon_end, step=dx_step)
+        ycoords1 = np.arange(start=lat_start, stop=lat_end, step=dy_step)
+        xcoords2 = np.arange(start=lon_start+(dx_step/2), stop=lon_end+(dx_step/2), step=dx_step)
+        ycoords2 = np.arange(start=lat_start-(dy_step/2), stop=lat_end+(dy_step/2), step=dy_step)
+
+        xcoords1 = xcoords1 #np.append(arr=xcoords1, values=xcoords2, axis=None)
+        ycoords1 = ycoords1 #np.append(arr=ycoords1, values=ycoords2, axis=None)
+        xcoords2 = xcoords2 #np.append(arr=xcoords1, values=xcoords2, axis=None)
+        ycoords2 = ycoords2 #np.append(arr=ycoords1, values=ycoords2, axis=None)
+
+        coords1 = np.array(np.meshgrid(xcoords1, ycoords1)).T.reshape(-1,2)
+        coords2 = np.array(np.meshgrid(xcoords2, ycoords2)).T.reshape(-1,2)
+
+        # compute grid boxes' center points and create a GeoDataFrame of the grid
+        centerpoints1 = gpd.points_from_xy(x=coords1[:,0], y=coords1[:,1])
+        centerpoints2 = gpd.points_from_xy(x=coords2[:,0], y=coords2[:,1])
+
+        hexs1 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
+                                                                    center_y=p.y,
+                                                                    maximal_radius=stepsize)) for p in centerpoints1]
+        hexs1 = gpd.GeoDataFrame(geometry=hexs1, crs="EPSG:4326")
+
+        hexs2 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
+                                                                    center_y=p.y,
+                                                                    maximal_radius=stepsize)) for p in centerpoints2]
+        hexs2 = gpd.GeoDataFrame(geometry=hexs2, crs="EPSG:4326")
+
+        hexs_combined = pd.concat([hexs1, hexs2], ignore_index=True)
+        hexs_gdf = gpd.GeoDataFrame(hexs_combined, crs=hexs1.crs)
+
+        # remove all grid boxes that do not contain a land regions
+        gdf_final = hexs_gdf[hexs_gdf.intersects(gdf.geometry.iloc[0])]
+    
+    #
+    gdf_final.reset_index(inplace=True)
+    gdf_final = gdf_final.drop('index', axis=1, inplace=False)
+    gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
 
     if (show_grid==True):
-        df = df.to_crs(4326)
-        df2 = df2.to_crs(4326)
+        gdf_final = gdf_final.to_crs(4326)
         ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3)
-        df2.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
+        gdf_final.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
         gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
         # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-    return df2
+    return gdf_final
 
 
 #
-def prepare_gridded_panel_data(regions, stepsize, num_lag, show_grid=False, show_gridded_tot_counts=False):
+def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, show_grid=False, show_gridded_tot_counts=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
     """
     # create polygon grid
-    polygons_gdf = create_grid(regions=regions, stepsize=stepsize, show_grid=show_grid)
+    polygons_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
 
     # ensure CRS is WGS84
     if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
@@ -239,7 +303,11 @@ def prepare_gridded_panel_data(regions, stepsize, num_lag, show_grid=False, show
 
     return final_gdf
 
-# data = prepare_gridded_panel_data(regions='Africa', stepsize=1.0, num_lag=1, show_grid=True, show_gridded_tot_counts=False)
+gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1, show_grid=True, show_gridded_tot_counts=True)
+print(gridded_data.shape)
+
+#stepsize = 0.620401 gives a hexagon with area of 1.0
+
 
 # print(data.shape)
 # data.to_csv('/Users/tylerbagwell/Desktop/prepared_conflict_data.csv')
@@ -247,12 +315,15 @@ def prepare_gridded_panel_data(regions, stepsize, num_lag, show_grid=False, show
 # annual_index = compute_annualized_NINO3_index(1960, 2024)
 # print(annual_index)
 
+# create_grid(grid_polygon='hex', regions='Africa', stepsize=1.0, show_grid=True)
+
+
+sys.exit()
 
 #######################################
-import math
 
-regions = ['South Africa']
-stepsize = 1.0
+regions = 'Africa'
+stepsize = 0.65
 show_grid = True
 
 africa_countries = ['Mauritania','Western Sahara','Ivory Coast','Niger','Guinea-Bissau','Tunisia','Equatorial Guinea','Malawi','Gabon','Liberia',
@@ -306,9 +377,7 @@ lon_end     = lon_center + np.ceil(lon_max-lon_center) + stepsize
 lat_start   = lat_center - np.ceil(lat_center-lat_min)
 lat_end     = lat_center + np.ceil(lat_max-lat_center) + stepsize
 
-from matplotlib.patches import RegularPolygon
-
-def calculate_hexagon_vertices(center_x, center_y, radius):
+def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
     """
     Calculates the vertices of a hexagon given the center coordinates and radius.
 
@@ -319,48 +388,62 @@ def calculate_hexagon_vertices(center_x, center_y, radius):
     """
     vertices = []
     for i in range(6):
-        angle_deg = 60 * i - 30  # Start with a flat side
+        angle_deg = 60 * i #- 30  # Start with a flat side
         angle_rad = math.radians(angle_deg)
-        x = center_x + radius * math.cos(angle_rad)
-        y = center_y + radius * math.sin(angle_rad)
+        x = center_x + maximal_radius * math.cos(angle_rad)
+        y = center_y + maximal_radius * math.sin(angle_rad)
         vertices.append((x, y))
     return vertices
 
-# Example usage
-radius = 1 # this refers to the maximal radius, R
-center_x1 = 2
-center_y1 = 3
-center_x2 = center_x1 + 3*radius/2
-center_y2 = center_y1 + np.sqrt(3)*radius/2
-center_x3 = center_x1 + 3*radius/2
-center_y3 = center_y1 - np.sqrt(3)*radius/2
-center_x3 = center_x1
-center_y3 = center_y1 - np.sqrt(3)*radius
-vertices = calculate_hexagon_vertices(center_x1, center_y1, radius)
-print("Hexagon Vertices:", vertices)
+# compute coordinate mesh
+dx_step = 2*(3*stepsize/2)
+dy_step = np.sqrt(3)*stepsize
+xcoords1 = np.arange(start=lon_start, stop=lon_end, step=dx_step)
+ycoords1 = np.arange(start=lat_start, stop=lat_end, step=dy_step)
+xcoords2 = np.arange(start=lon_start+(dx_step/2), stop=lon_end+(dx_step/2), step=dx_step)
+ycoords2 = np.arange(start=lat_start-(dy_step/2), stop=lat_end+(dy_step/2), step=dy_step)
 
-# Optional: Plot the hexagon
-fig, ax = plt.subplots()
-hexagon_patch1 = RegularPolygon(
-    (center_x1, center_y1), numVertices=6, radius=radius, orientation=np.radians(30),
-    edgecolor='blue', facecolor='cyan', alpha=0.5
-)
-hexagon_patch2 = RegularPolygon(
-    (center_x2, center_y2), numVertices=6, radius=radius, orientation=np.radians(30),
-    edgecolor='red', facecolor='purple', alpha=0.5
-)
-hexagon_patch3 = RegularPolygon(
-    (center_x3, center_y3), numVertices=6, radius=radius, orientation=np.radians(30),
-    edgecolor='green', facecolor='k', alpha=0.5
-)
-ax.add_patch(hexagon_patch1)
-ax.add_patch(hexagon_patch2)
-ax.add_patch(hexagon_patch3)
-ax.set_aspect('equal')
-plt.xlim(center_x1 - radius - 3, center_x1 + radius + 3)
-plt.ylim(center_y1 - radius - 3, center_y1 + radius + 3)
-plt.grid(True)
+xcoords1 = xcoords1 #np.append(arr=xcoords1, values=xcoords2, axis=None)
+ycoords1 = ycoords1 #np.append(arr=ycoords1, values=ycoords2, axis=None)
+xcoords2 = xcoords2 #np.append(arr=xcoords1, values=xcoords2, axis=None)
+ycoords2 = ycoords2 #np.append(arr=ycoords1, values=ycoords2, axis=None)
+
+coords1 = np.array(np.meshgrid(xcoords1, ycoords1)).T.reshape(-1,2)
+coords2 = np.array(np.meshgrid(xcoords2, ycoords2)).T.reshape(-1,2)
+
+# compute grid boxes' center points and create a GeoDataFrame of the grid
+centerpoints1 = gpd.points_from_xy(x=coords1[:,0], y=coords1[:,1])
+centerpoints2 = gpd.points_from_xy(x=coords2[:,0], y=coords2[:,1])
+
+hexs1 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
+                                                            center_y=p.y,
+                                                            maximal_radius=stepsize)) for p in centerpoints1]
+hexs1 = gpd.GeoDataFrame(geometry=hexs1, crs="EPSG:4326")
+
+hexs2 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
+                                                            center_y=p.y,
+                                                            maximal_radius=stepsize)) for p in centerpoints2]
+hexs2 = gpd.GeoDataFrame(geometry=hexs2, crs="EPSG:4326")
+
+hexs_combined = pd.concat([hexs1, hexs2], ignore_index=True)
+hexs_gdf = gpd.GeoDataFrame(hexs_combined, crs=hexs1.crs)
+
+# remove all grid boxes that do not contain a land regions
+gdf_final = hexs_gdf[hexs_gdf.intersects(gdf.geometry.iloc[0])]
+gdf_final.reset_index(inplace=True)
+gdf_final.drop('index', axis=1, inplace=True)
+gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
+
+
+print(gdf_final)
+
+
+ax = gdf_final.plot(facecolor="none", edgecolor="black", aspect=1)
+gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
 plt.show()
+
+sys.exit()
+
 
 
 
@@ -375,6 +458,10 @@ coords = np.array(np.meshgrid(xcoords, ycoords)).T.reshape(-1,2)
 centerpoints = gpd.points_from_xy(x=coords[:,0], y=coords[:,1])
 squares = [p.buffer(distance=(stepsize/2), cap_style=3) for p in centerpoints]
 df2 = gpd.GeoDataFrame(geometry=squares, crs=df.crs)
+
+print(squares)
+
+sys.exit()
 
 # remove all grid boxes that do not contain a land regions
 df2 = df2[df2.intersects(gdf.geometry.iloc[0])]
