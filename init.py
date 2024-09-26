@@ -222,7 +222,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
         # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-    return gdf_final
+    return gdf_final, gdf1
 
 
 #
@@ -232,7 +232,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, show_gr
     via the create_grid() function.
     """
     # create polygon grid
-    polygons_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
+    polygons_gdf, borders_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
 
     # ensure CRS is WGS84
     if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
@@ -287,23 +287,25 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, show_gr
         total_counts = polygons_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        fig, ax = plt.subplots(1, 1, figsize=(9, 7))
         total_counts.plot(
             column='conflict_count',    
             cmap='turbo',                  
             legend=True,                   
             legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
             ax=ax,
-            vmax=500
+            vmax=500,
+            aspect=1.
         )
+        borders_gdf.plot(ax=ax, color='none', zorder=3, edgecolor='silver', linewidth=0.75)
         ax.set_title('Total Event Counts per Polygon', fontsize=15)
-        ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3_counts.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        #ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_hexagons_counts_INDIA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
 
-gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1, show_grid=True, show_gridded_tot_counts=True)
+gridded_data = prepare_gridded_panel_data(grid_polygon='hexagon', regions=['India'], stepsize=0.620401, num_lag=1, show_grid=True, show_gridded_tot_counts=True)
 print(gridded_data.shape)
 
 #stepsize = 0.620401 gives a hexagon with area of 1.0
