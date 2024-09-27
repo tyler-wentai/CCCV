@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 from datetime import datetime
 import math
+import xarray as xr
 
 print('\n\nSTART ---------------------\n')
 
@@ -222,17 +223,18 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
         # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-    return gdf_final, gdf1
+    return gdf_final
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, show_grid=False, show_gridded_tot_counts=False):
+def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
     """
+
     # create polygon grid
-    polygons_gdf, borders_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
+    polygons_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
 
     # ensure CRS is WGS84
     if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
@@ -279,34 +281,66 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, show_gr
     annual_index.drop('INDEX', axis=1, inplace=True)
 
     final_gdf = final_gdf.merge(annual_index, on='year', how='left')
-    
+
+    #
+    if telecon_path is not None:
+        # Match all gridded psi values to a polygon via loc_id and then aggregate psi values
+        # in each Polygon by taking the MAX psi value.
+        print('Computing gdf for psi...')
+        psi = xr.open_dataarray(telecon_path)
+
+        # Ensure that the DataArray has 'lat' and 'lon' coordinates
+        if 'lat' not in psi.coords or 'lon' not in psi.coords:
+            raise ValueError("DataArray must have 'lat' and 'lon' coordinates.")
+
+        df_psi = psi.to_dataframe(name='psi').reset_index()
+        df_psi['geometry'] = df_psi.apply(lambda row: shapely.geometry.Point(row['lon'], row['lat']), axis=1)
+        psi_gdf = gpd.GeoDataFrame(df_psi, geometry='geometry', crs='EPSG:4326')
+        psi_gdf = psi_gdf[['lat', 'lon', 'psi', 'geometry']]
+
+        # check crs
+        if psi_gdf.crs != polygons_gdf.crs:
+            psi_gdf = psi_gdf.to_crs(polygons_gdf.crs)
+            print("Reprojected gdf to match final_gdf CRS.")
+
+        joined_gdf = gpd.sjoin(psi_gdf, polygons_gdf, how='left', predicate='within')
+
+        cleaned_gdf = joined_gdf.dropna(subset=['loc_id'])
+        cleaned_gdf = cleaned_gdf.reset_index(drop=True)
+
+        grouped = joined_gdf.groupby('loc_id')
+        mean_psi = grouped['psi'].max().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
+
+        final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
     # plot
-    if (show_gridded_tot_counts==True):
-        total_counts = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
-        total_counts = polygons_gdf.merge(total_counts, left_on=['loc_id'], right_on=['loc_id'])
+    if (show_gridded_aggregate==True):
+        # total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
+        # print(total_aggregate)
+        # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
+        total_aggregate = mean_psi
+        total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
-        fig, ax = plt.subplots(1, 1, figsize=(9, 7))
-        total_counts.plot(
-            column='conflict_count',    
-            cmap='turbo',                  
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        total_aggregate.plot(
+            column='psi',    
+            cmap='YlOrRd',   #turbo    YlOrRd           
             legend=True,                   
-            legend_kwds={'label': "Total Event Counts", 'orientation': "vertical"},
-            ax=ax,
-            vmax=500,
-            aspect=1.
+            legend_kwds={'label': "Psi", 'orientation': "vertical"},
+            ax=ax #vmax=500
         )
-        borders_gdf.plot(ax=ax, color='none', zorder=3, edgecolor='silver', linewidth=0.75)
-        ax.set_title('Total Event Counts per Polygon', fontsize=15)
-        #ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_hexagons_counts_INDIA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        ax.set_title(r'Teleconnection, $\Psi^{NINO3}$', fontsize=15)
+        ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_INDIA_SRILANKA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
 
-gridded_data = prepare_gridded_panel_data(grid_polygon='hexagon', regions=['India'], stepsize=0.620401, num_lag=1, show_grid=True, show_gridded_tot_counts=True)
-print(gridded_data.shape)
+gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
+# print(gridded_data)
 
 #stepsize = 0.620401 gives a hexagon with area of 1.0
 
@@ -321,161 +355,15 @@ print(gridded_data.shape)
 
 
 sys.exit()
+telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc'
 
-#######################################
+psi = xr.open_dataarray(telecon_path)
 
-regions = 'Africa'
-stepsize = 0.65
-show_grid = True
+# Ensure that the DataArray has 'lat' and 'lon' coordinates
+if 'lat' not in psi.coords or 'lon' not in psi.coords:
+    raise ValueError("DataArray must have 'lat' and 'lon' coordinates.")
 
-africa_countries = ['Mauritania','Western Sahara','Ivory Coast','Niger','Guinea-Bissau','Tunisia','Equatorial Guinea','Malawi','Gabon','Liberia',
-                        'Cabo Verde','Algeria','Lesotho','Sierra Leone','Mozambique','Ethiopia','Benin','Kenya','Guinea','Somalia','Madagascar','Comoros',
-                        'Morocco','Rwanda','South Sudan','Burkina Faso','Democratic Republic of the Congo','Botswana','Central African Republic','Nigeria',
-                        'Mali','Namibia','Libya','Senegal','Burundi','eSwatini','Cameroon','United Republic of Tanzania','Togo','Mauritius','Republic of the Congo',
-                        'Somaliland','Seychelles','Djibouti','Eritrea','Zimbabwe','Gambia','South Africa','Sudan','São Tomé and Principe','Zambia','Egypt',
-                        'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara)
-
-# print(len(africa_countries))
-
-# read in shp file data
-path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
-gdf1 = gpd.read_file(path_land)
-
-# grab the polygons related to each country (SOVEREIGNT) and 'explode' any countries
-# made of multipolygons into individual polygons
-if (regions=='Africa' or regions=='africa'):
-    regions = africa_countries
-elif (regions=='Global' or regions=='global'):
-    regions = set(gdf1['SOVEREIGNT'])
-else:
-    if not isinstance(regions, list):
-        raise TypeError(f"'regions' argument should be a list if not a pre-specified region.")
-    regions = regions
-
-gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
-gdf1 = gdf1.explode(index_parts=True)
-exploded_polygons = [gdf1.iloc[i].geometry for i in range(gdf1.shape[0])]
-
-# Combine all individual polygons into a single multipolygon to ease the computation of the centroid,
-# centroid is used to form the grid around
-multi_polygon = shapely.geometry.MultiPolygon(exploded_polygons)
-gdf = gpd.GeoDataFrame(geometry=[multi_polygon])
-
-# compute region centroid and turn it into a gdf
-pnt = shapely.geometry.Point(multi_polygon.centroid.x, multi_polygon.centroid.y) 
-df = gpd.GeoDataFrame(geometry=[pnt], crs=4326)
-
-lon_center = df.geometry.iloc[0].x
-lat_center = df.geometry.iloc[0].y
-
-# compute the min and max lon and lat values of the entire region, determins spatial extent of grid
-lon_min = np.min(gdf.geometry.get_coordinates()['x']); lon_max = np.max(gdf.geometry.get_coordinates()['x'])
-lat_min = np.min(gdf.geometry.get_coordinates()['y']); lat_max = np.max(gdf.geometry.get_coordinates()['y'])
-
-# compute the grids lat and lon start and end values by 'ceiling' the 
-# above computed region's min and max lon and lat values
-lon_start   = lon_center - np.ceil(lon_center-lon_min)
-lon_end     = lon_center + np.ceil(lon_max-lon_center) + stepsize
-lat_start   = lat_center - np.ceil(lat_center-lat_min)
-lat_end     = lat_center + np.ceil(lat_max-lat_center) + stepsize
-
-def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
-    """
-    Calculates the vertices of a hexagon given the center coordinates and radius.
-
-    :param center_x: X-coordinate of the center
-    :param center_y: Y-coordinate of the center
-    :param radius: Distance from the center to any vertex
-    :return: List of (x, y) tuples representing the vertices
-    """
-    vertices = []
-    for i in range(6):
-        angle_deg = 60 * i #- 30  # Start with a flat side
-        angle_rad = math.radians(angle_deg)
-        x = center_x + maximal_radius * math.cos(angle_rad)
-        y = center_y + maximal_radius * math.sin(angle_rad)
-        vertices.append((x, y))
-    return vertices
-
-# compute coordinate mesh
-dx_step = 2*(3*stepsize/2)
-dy_step = np.sqrt(3)*stepsize
-xcoords1 = np.arange(start=lon_start, stop=lon_end, step=dx_step)
-ycoords1 = np.arange(start=lat_start, stop=lat_end, step=dy_step)
-xcoords2 = np.arange(start=lon_start+(dx_step/2), stop=lon_end+(dx_step/2), step=dx_step)
-ycoords2 = np.arange(start=lat_start-(dy_step/2), stop=lat_end+(dy_step/2), step=dy_step)
-
-xcoords1 = xcoords1 #np.append(arr=xcoords1, values=xcoords2, axis=None)
-ycoords1 = ycoords1 #np.append(arr=ycoords1, values=ycoords2, axis=None)
-xcoords2 = xcoords2 #np.append(arr=xcoords1, values=xcoords2, axis=None)
-ycoords2 = ycoords2 #np.append(arr=ycoords1, values=ycoords2, axis=None)
-
-coords1 = np.array(np.meshgrid(xcoords1, ycoords1)).T.reshape(-1,2)
-coords2 = np.array(np.meshgrid(xcoords2, ycoords2)).T.reshape(-1,2)
-
-# compute grid boxes' center points and create a GeoDataFrame of the grid
-centerpoints1 = gpd.points_from_xy(x=coords1[:,0], y=coords1[:,1])
-centerpoints2 = gpd.points_from_xy(x=coords2[:,0], y=coords2[:,1])
-
-hexs1 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
-                                                            center_y=p.y,
-                                                            maximal_radius=stepsize)) for p in centerpoints1]
-hexs1 = gpd.GeoDataFrame(geometry=hexs1, crs="EPSG:4326")
-
-hexs2 = [shapely.geometry.Polygon(calculate_hexagon_vertices(center_x=p.x,
-                                                            center_y=p.y,
-                                                            maximal_radius=stepsize)) for p in centerpoints2]
-hexs2 = gpd.GeoDataFrame(geometry=hexs2, crs="EPSG:4326")
-
-hexs_combined = pd.concat([hexs1, hexs2], ignore_index=True)
-hexs_gdf = gpd.GeoDataFrame(hexs_combined, crs=hexs1.crs)
-
-# remove all grid boxes that do not contain a land regions
-gdf_final = hexs_gdf[hexs_gdf.intersects(gdf.geometry.iloc[0])]
-gdf_final.reset_index(inplace=True)
-gdf_final.drop('index', axis=1, inplace=True)
-gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
-
-
-print(gdf_final)
-
-
-ax = gdf_final.plot(facecolor="none", edgecolor="black", aspect=1)
-gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
-plt.show()
-
-sys.exit()
-
-
-
-
-sys.exit()
-
-# compute coordinate mesh
-xcoords = np.arange(start=lon_start, stop=lon_end, step=stepsize)
-ycoords = np.arange(start=lat_start, stop=lat_end, step=stepsize)
-coords = np.array(np.meshgrid(xcoords, ycoords)).T.reshape(-1,2)
-
-# compute grid boxes' center points and create a GeoDataFrame of the grid
-centerpoints = gpd.points_from_xy(x=coords[:,0], y=coords[:,1])
-squares = [p.buffer(distance=(stepsize/2), cap_style=3) for p in centerpoints]
-df2 = gpd.GeoDataFrame(geometry=squares, crs=df.crs)
-
-print(squares)
-
-sys.exit()
-
-# remove all grid boxes that do not contain a land regions
-df2 = df2[df2.intersects(gdf.geometry.iloc[0])]
-df2.reset_index(inplace=True)
-df2.drop('index', axis=1, inplace=True)
-df2['loc_id'] = ['loc_'+str(i) for i in range(df2.shape[0])]
-
-if (show_grid==True):
-    df = df.to_crs(4326)
-    df2 = df2.to_crs(4326)
-    ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3)
-    df2.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
-    gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
-    # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-    plt.show()
+df_psi = psi.to_dataframe(name='psi').reset_index()
+df_psi['geometry'] = df_psi.apply(lambda row: shapely.geometry.Point(row['lon'], row['lat']), axis=1)
+psi_gdf = gpd.GeoDataFrame(df_psi, geometry='geometry', crs='EPSG:4326')
+psi_gdf = psi_gdf[['lat', 'lon', 'psi', 'geometry']]
