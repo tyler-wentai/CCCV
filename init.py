@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime
 import math
 import xarray as xr
+import seaborn as sns
 
 print('\n\nSTART ---------------------\n')
 
@@ -328,19 +329,69 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
             cmap='YlOrRd',   #turbo    YlOrRd           
             legend=True,                   
             legend_kwds={'label': "Psi", 'orientation': "vertical"},
-            ax=ax #vmax=500
+            ax=ax,
+            vmin=0.715 #vmax=500
         )
-        ax.set_title(r'Teleconnection, $\Psi^{NINO3}$', fontsize=15)
+        ax.set_title(r'Teleconnection, $\Psi^{NINO3}$; area=1.0, lower_truncation=0.715', fontsize=15)
         ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_INDIA_SRILANKA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_Africa_hexagon_truncated.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-    return final_gdf
+        # sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
+        # plt.show()
 
-gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
+    return final_gdf, mean_psi
+
+# gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+
+
+
+# gridded_data_0d5, mean_psi_4d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=1.2409, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+# gridded_data_2d0, mean_psi_2d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.8774, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+gridded_data_1d0, mean_psi_1d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401, num_lag=1,
                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                           show_grid=False, show_gridded_aggregate=True)
-# print(gridded_data)
+# gridded_data_0d5, mean_psi_0d5 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.4387, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+
+# gridded_data_0d5, mean_psi_4d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=2.0, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+# gridded_data_2d0, mean_psi_2d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(2), num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+# gridded_data_1d0, mean_psi_1d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=False)
+# gridded_data_0d5, mean_psi_0d5 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(0.5), num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+
+sys.exit()
+
+mean_psi_4d0['Polygon area'] = 'large,  4.0'
+mean_psi_2d0['Polygon area'] = 'medium, 2.0'
+mean_psi_1d0['Polygon area'] = 'small,  1.0'
+mean_psi_0d5['Polygon area'] = 'tiny,   0.5'
+
+mean_psi = pd.concat([mean_psi_4d0, mean_psi_2d0, mean_psi_1d0, mean_psi_0d5], ignore_index=True)
+mean_psi.drop('loc_id', axis=1, inplace=True)
+print(mean_psi)
+
+sns.kdeplot(data=mean_psi, x='psi', hue='Polygon area', common_norm=False, palette='magma')
+plt.xlabel(r'$\Psi^{NINO3}$')
+plt.title(r'$\Psi^{NINO3}$ of Africa, polygon=square')
+plt.savefig('/Users/tylerbagwell/Desktop/telecon_aggregation_comparions_square.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+
 
 #stepsize = 0.620401 gives a hexagon with area of 1.0
 
