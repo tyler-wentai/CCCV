@@ -11,6 +11,9 @@ import seaborn as sns
 
 print('\n\nSTART ---------------------\n')
 
+# Note that this code was originally written in the init.py file itself, I was too lazy to clean it up.
+# This code computs the _number_ of conflict absent and present and _ratio_ of conflict absent versus present cell-year observations.
+
 #
 def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
     """
@@ -135,8 +138,6 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     gdf1 = gdf1.explode(index_parts=True)
     exploded_polygons = [gdf1.iloc[i].geometry for i in range(gdf1.shape[0])]
 
-    gdf_countries = gdf1 # copy of gdf1 used later to find cell's dominant country.
-
     # Combine all individual polygons into a single multipolygon to ease the computation of the centroid,
     # centroid is used to form the grid around
     multi_polygon = shapely.geometry.MultiPolygon(exploded_polygons)
@@ -217,41 +218,12 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     gdf_final.reset_index(inplace=True)
     gdf_final = gdf_final.drop('index', axis=1, inplace=False)
     gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
-    gdf_final = gdf_final.to_crs(4326)
-
-    ####
-    intersection_gdf = gpd.overlay(gdf_final, gdf_countries, how='intersection')
-    if not intersection_gdf.crs.is_projected:
-        intersection_gdf = intersection_gdf.to_crs(epsg=3857)  # Example: Web Mercator
-    intersection_gdf['intersection_area'] = intersection_gdf.geometry.area
-    idx = intersection_gdf.groupby('loc_id')['intersection_area'].idxmax()
-    dominant_overlap = intersection_gdf.loc[idx][['loc_id', 'SOVEREIGNT']]
-    grid_with_country = gdf_final.merge(dominant_overlap, on='loc_id', how='left')
-
-    n1 = gdf_countries['SOVEREIGNT'].nunique()      # compute the starting number of unique countries
-    n2 = grid_with_country['SOVEREIGNT'].nunique()  # compute the number of unique countries after finding each dominant country per cell
-
-    countries_unique_to_list1 = set(gdf_countries['SOVEREIGNT']) - set(grid_with_country['SOVEREIGNT'])
-
-    print(f'Result of current gridsize produced a number of unique countries lost of {n1-n2}')
-    print(f'   ·Starting number of unique countries:                                      {n1}')
-    print(f'   ·Final number of unique countries after finding dominant country per cell: {n2}')
-    if not countries_unique_to_list1:
-        print(f'   ·Countries lost: NONE')
-    else:
-        print(f'   ·Countries lost: {countries_unique_to_list1}')
-
-    # print(grid_with_country)
-    ####
-
-    # print(grid_with_country)
 
     if (show_grid==True):
-        categorical_cmap = 'gist_ncar'#'Set1'
-        ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3) # plots the centroid of the entire region
-        grid_with_country.plot(ax=ax, column='SOVEREIGNT', cmap=categorical_cmap,
-                                       edgecolor='black', linewidth=0.75,  zorder=1)
-        gdf1.plot(ax=ax, facecolor='none', zorder=2, edgecolor='k', linewidth=0.75)
+        gdf_final = gdf_final.to_crs(4326)
+        ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3)
+        gdf_final.boundary.plot(ax=ax, zorder=2, color='black', linewidth=0.75)
+        gdf1.plot(ax=ax, color='lightgray', zorder=0, edgecolor='k', linewidth=0.75)
         # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
@@ -348,35 +320,138 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
     # plot
     if (show_gridded_aggregate==True):
         total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
+        # print(total_aggregate)
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
         # total_aggregate = mean_psi
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        total_aggregate.plot(
-            column='conflict_count',    
-            cmap='turbo',   #turbo    YlOrRd           
-            legend=True,                   
-            legend_kwds={'label': "conflict_count", 'orientation': "vertical"},
-            ax=ax,
-            vmax=500
-        )
-        ax.set_title(r'Total number of conflicts per cell', fontsize=15)
-        ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_Africa_hexagon_truncated.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        # total_aggregate.plot(
+        #     column='conflict_count',    
+        #     cmap='turbo',   #turbo    YlOrRd           
+        #     legend=True,                   
+        #     legend_kwds={'label': "Psi", 'orientation': "vertical"},
+        #     ax=ax,
+        #     vmin=0.715 #vmax=500
+        # )
+        # ax.set_title(r'Teleconnection, $\Psi^{NINO3}$; area=1.0, lower_truncation=0.715', fontsize=15)
+        # ax.set_axis_off()
+        # # plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_Africa_hexagon_truncated.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.show()
 
         # sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
         # plt.show()
 
-    return final_gdf
+    return final_gdf, total_aggregate
 
-### Hex stepsize = 0.620401 for an area of 1.0!!!
-
-# gridded_data = prepare_gridded_panel_data(grid_polygon='hex', regions=['Brazil'], stepsize=1.0, num_lag=1,
+# gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
 #                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
-#                                           show_grid=True, show_gridded_aggregate=True)
+#                                           show_grid=False, show_gridded_aggregate=True)
 
-grid_data = create_grid(grid_polygon='hex', regions='Africa', stepsize=0.4387, show_grid=True)
-# print(grid_data)
+
+
+gridded_data_4d0, mean_psi_4d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=1.2409, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
+gridded_data_2d0, mean_psi_2d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.8774, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
+gridded_data_1d0, mean_psi_1d0 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
+gridded_data_0d5, mean_psi_0d5 = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.4387, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
+
+# gridded_data_4d0, mean_psi_4d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=2.0, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+# gridded_data_2d0, mean_psi_2d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(2), num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+# gridded_data_1d0, mean_psi_1d0 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+# gridded_data_0d5, mean_psi_0d5 = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(0.5), num_lag=1,
+#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                           show_grid=False, show_gridded_aggregate=True)
+
+
+
+gridded_data_4d0['Polygon area'] = 'large,  4.0'
+gridded_data_2d0['Polygon area'] = 'medium, 2.0'
+gridded_data_1d0['Polygon area'] = 'small,  1.0'
+gridded_data_0d5['Polygon area'] = 'tiny,   0.5'
+
+mean_psi = pd.concat([gridded_data_4d0, gridded_data_2d0, gridded_data_1d0, gridded_data_0d5], ignore_index=True)
+mean_psi.drop('loc_id', axis=1, inplace=True)
+print(gridded_data_0d5)
+
+
+gridded_data_4d0['conflict_count'] = np.where(gridded_data_4d0['conflict_count'] > 0, 1, gridded_data_4d0['conflict_count'])
+gridded_data_2d0['conflict_count'] = np.where(gridded_data_2d0['conflict_count'] > 0, 1, gridded_data_2d0['conflict_count'])
+gridded_data_1d0['conflict_count'] = np.where(gridded_data_1d0['conflict_count'] > 0, 1, gridded_data_1d0['conflict_count'])
+gridded_data_0d5['conflict_count'] = np.where(gridded_data_0d5['conflict_count'] > 0, 1, gridded_data_0d5['conflict_count'])
+
+counts_4d0 = gridded_data_4d0['conflict_count'].value_counts().reset_index()
+counts_2d0 = gridded_data_2d0['conflict_count'].value_counts().reset_index()
+counts_1d0 = gridded_data_1d0['conflict_count'].value_counts().reset_index()
+counts_0d5 = gridded_data_0d5['conflict_count'].value_counts().reset_index()
+
+counts_4d0.columns = ['Conflict presence', 'count']
+counts_2d0.columns = ['Conflict presence', 'count']
+counts_1d0.columns = ['Conflict presence', 'count']
+counts_0d5.columns = ['Conflict presence', 'count']
+
+counts_4d0['Polygon area (hexagons)'] = 'large, 4.0'
+counts_4d0['Conflict presence'] = ['absent', 'present']
+counts_2d0['Polygon area (hexagons)'] = 'medium, 2.0'
+counts_2d0['Conflict presence'] = ['absent', 'present']
+counts_1d0['Polygon area (hexagons)'] = 'small, 1.0'
+counts_1d0['Conflict presence'] = ['absent', 'present']
+counts_0d5['Polygon area (hexagons)'] = 'tiny, 0.5'
+counts_0d5['Conflict presence'] = ['absent', 'present']
+
+binary_counts = pd.concat([counts_4d0, counts_2d0, counts_1d0, counts_0d5], ignore_index=True)
+ratios = [counts_4d0['count'].iloc[1]/counts_4d0['count'].iloc[0],
+          counts_2d0['count'].iloc[1]/counts_2d0['count'].iloc[0],
+          counts_1d0['count'].iloc[1]/counts_1d0['count'].iloc[0],
+          counts_0d5['count'].iloc[1]/counts_0d5['count'].iloc[0]]
+
+
+ratios = pd.DataFrame(ratios)
+ratios['Polygon area (hexagons)'] = [4.0,2.0,1.0,0.5]
+ratios.columns = ['Conflict present/absent ratio', 'Polygon area (hexagons)']
+print(ratios)
+
+fig, axes = plt.subplots(1, 2, figsize=(9, 4.5))
+#1
+sns.barplot(ax=axes[0], data=binary_counts, x="Polygon area (hexagons)", y="count", hue="Conflict presence", palette='magma')
+axes[0].set_title('Conflict present/absent counts, Africa')
+axes[0].set_ylabel('Conflict present/absent counts')
+#2
+sns.lineplot(ax=axes[1], data=ratios, x="Polygon area (hexagons)", y="Conflict present/absent ratio", marker='o', color='tomato', markersize=7.0)
+axes[1].set_xticks([0.5, 1.0, 2.0, 4.0])
+axes[1].set_title('Conflict present/absent ratio, Africa')
+
+plt.tight_layout()
+plt.savefig('/Users/tylerbagwell/Desktop/conflict_present_absent_ratio_AFRICA.png', dpi=300)
+plt.show()
+
+sys.exit()
+
+# sns.histplot(data=mean_psi, x='conflict_count', hue='Polygon area', common_bins=False, common_norm=False, bins=100, stat='density', kde=True, palette='magma')
+
+# sns.kdeplot(data=mean_psi, x='conflict_count', hue='Polygon area', common_norm=False, palette='magma', gridsize=2000)
+# sns.violinplot(data=mean_psi, x='conflict_count', hue='Polygon area', inner='box', common_norm=False, orient='v', palette='magma', fill=False)
+# sns.catplot(
+#     data=mean_psi, x="conflict_count", hue="Polygon area",
+    # kind="violin", bw_adjust=.5, cut=0, palette='magma')
+# sns.boxplot(data=mean_psi, x="conflict_count", hue="Polygon area", palette='magma', orient='h', fill=False)
+# sns.barplot(data=binary_counts, x="Conflict presence", y="count", hue="Polygon area", palette='magma')
+sns.barplot(data=binary_counts, x="Polygon area", y="count", hue="Conflict presence", palette='magma')
+plt.xlabel(r'$\Psi^{NINO3}$')
+plt.title(r'$\Psi^{NINO3}$ of Africa, polygon=square')
+# plt.savefig('/Users/tylerbagwell/Desktop/telecon_aggregation_comparions_square.png', dpi=300, bbox_inches='tight')
+plt.show()
