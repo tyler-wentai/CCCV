@@ -219,7 +219,39 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
     gdf_final = gdf_final.to_crs(4326)
 
-    ####
+    # determine the neighbors of each grid cell
+    gdf_help = gdf_final.copy()
+    projected_crs = "EPSG:3395"
+    gdf_help.to_crs(projected_crs, inplace=True) 
+    gdf_help['buffer'] = gdf_help.geometry.buffer(100)
+
+    neighbors = gpd.sjoin(gdf_help, gdf_help, how='left', predicate='intersects')
+    neighbors = neighbors[neighbors['loc_id_left'] != neighbors['loc_id_right']] # Remove self-matches
+    neighbors_list = neighbors.groupby('loc_id_left')['loc_id_right'].apply(list).reset_index()
+    neighbors_list = neighbors_list.rename(columns={'loc_id_left': 'loc_id', 'loc_id_right': 'neighbors'})
+    gdf_help = gdf_help.merge(neighbors_list, on='loc_id', how='left')
+    
+    gdf_help['neighbors'] = gdf_help['neighbors'].apply(lambda x: x if isinstance(x, list) else [])
+    max_neighbors = gdf_help['neighbors'].apply(len).max()
+    print(f"Maximum number of neighbors: {max_neighbors}")
+    for i in range(max_neighbors):
+        gdf_help[f'neighbor_{i+1}'] = gdf_help['neighbors'].apply(lambda x: x[i] if i < len(x) else None)
+    gdf_help = gdf_help.drop(columns=['neighbors'])
+
+
+    if not gdf_final['loc_id'].is_unique:
+        raise ValueError("The 'loc_id' column in gdf_final must be unique.")
+    
+    neighbor_cols_list = [f'neighbor_{i}' for i in range(1, max_neighbors + 1)]
+    neighbor_cols_list = ['loc_id'] + neighbor_cols_list
+    print(neighbor_cols_list)
+    gdf_final = gdf_final.merge(gdf_help[neighbor_cols_list],
+                                on='loc_id',
+                                how='left'
+                                )
+    
+
+    # determine the dominant country for each grid cell
     intersection_gdf = gpd.overlay(gdf_final, gdf_countries, how='intersection')
     if not intersection_gdf.crs.is_projected:
         intersection_gdf = intersection_gdf.to_crs(epsg=3857)  # Example: Web Mercator
@@ -233,6 +265,10 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
     countries_unique_to_list1 = set(gdf_countries['SOVEREIGNT']) - set(grid_with_country['SOVEREIGNT'])
 
+    gdf_final = grid_with_country.copy()
+    print(gdf_final.crs)
+
+    # pring out results of country-cell matching
     print(f'Result of current gridsize produced a number of unique countries lost of {n1-n2}')
     print(f'   ·Starting number of unique countries:                                      {n1}')
     print(f'   ·Final number of unique countries after finding dominant country per cell: {n2}')
@@ -241,18 +277,20 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     else:
         print(f'   ·Countries lost: {countries_unique_to_list1}')
 
-    # print(grid_with_country)
-    ####
-
-    # print(grid_with_country)
-
+    # plotting
     if (show_grid==True):
-        categorical_cmap = 'gist_ncar'#'Set1'
+        categorical_cmap = 'gist_ncar_r'#'Set1'
         ax = df.plot(color="violet", markersize=20, figsize=(6.5, 6.5), zorder=3) # plots the centroid of the entire region
         grid_with_country.plot(ax=ax, column='SOVEREIGNT', cmap=categorical_cmap,
-                                       edgecolor='black', linewidth=0.75,  zorder=1)
+                                       edgecolor='black', linewidth=0.75,  zorder=1)#, legend=True,
+                                    #    legend_kwds={
+                                    #        'loc': 'lower left',
+                                    #        'ncols' : 2,
+                                    #        'fontsize': 3.5,
+                                    #        'markerscale' : 0.5
+                                    #        })
         gdf1.plot(ax=ax, facecolor='none', zorder=2, edgecolor='k', linewidth=0.75)
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_ex3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_with_dom_country_AFRICA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return gdf_final
@@ -378,5 +416,50 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
 #                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
 #                                           show_grid=True, show_gridded_aggregate=True)
 
-grid_data = create_grid(grid_polygon='hex', regions='Africa', stepsize=0.4387, show_grid=True)
-# print(grid_data)
+grid_data = create_grid(grid_polygon='hex', regions='Africa', stepsize=1.25, show_grid=False)
+# pd.set_option('display.max_colwidth', None)
+print(grid_data)
+
+
+
+
+def plot_neighbors(gdf, target_loc_id):
+    """
+    Plots the target polygon and its neighbors.
+
+    Parameters:
+    - gdf: GeoDataFrame containing 'geometry', 'loc_id', and neighbor columns.
+    - target_loc_id: The loc_id of the target polygon.
+    """
+    # Ensure the GeoDataFrame has the necessary columns
+    required_columns = ['geometry', 'loc_id', 'neighbor_1', 'neighbor_2', 
+                        'neighbor_3', 'neighbor_4', 'neighbor_5', 'neighbor_6']
+    if not all(col in gdf.columns for col in required_columns):
+        raise ValueError(f"GeoDataFrame must contain columns: {required_columns}")
+
+    # 3. Identify the Target Polygon
+    target = gdf[gdf['loc_id'] == target_loc_id]
+    if target.empty:
+        print(f"loc_id '{target_loc_id}' not found in the GeoDataFrame.")
+        return
+
+    # 4. Retrieve Neighbor loc_ids, excluding None or NaN
+    neighbor_cols = ['neighbor_1', 'neighbor_2', 'neighbor_3', 
+                     'neighbor_4', 'neighbor_5', 'neighbor_6']
+    neighbors_ids = target[neighbor_cols].iloc[0].dropna().tolist()
+
+    if not neighbors_ids:
+        print(f"No neighbors found for loc_id '{target_loc_id}'.")
+        return
+
+    neighbors = gdf[gdf['loc_id'].isin(neighbors_ids)]
+
+    # 6. Plotting
+    fig, ax = plt.subplots(figsize=(10, 10))
+    gdf.plot(ax=ax, color='lightgrey', edgecolor='black', aspect=1)
+    target.plot(ax=ax, color='blue', edgecolor='black', label='Target')
+    neighbors.plot(ax=ax, color='red', edgecolor='black', label='Neighbors')
+    plt.title(f"Neighbors of loc_id '{target_loc_id}'")
+    plt.show()
+
+plot_neighbors(grid_data, 'loc_603')
