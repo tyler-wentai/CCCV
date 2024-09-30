@@ -416,7 +416,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
 #                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
 #                                           show_grid=True, show_gridded_aggregate=True)
 
-grid_data = create_grid(grid_polygon='hex', regions='Africa', stepsize=1.25, show_grid=False)
+grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=1.25, show_grid=False)
 # pd.set_option('display.max_colwidth', None)
 print(grid_data)
 
