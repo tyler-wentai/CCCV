@@ -38,7 +38,7 @@ def prepare_NINO3(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    nino3 = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    nino3 = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
     year_start = int(nino3.iloc[0,0])
     nino3 = nino3.iloc[:,1:nino3.shape[1]].values.flatten()
     df_nino3 = pd.DataFrame(nino3)
@@ -213,42 +213,42 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
         # remove all grid boxes that do not contain a land regions
         gdf_final = hexs_gdf[hexs_gdf.intersects(gdf.geometry.iloc[0])]
     
-    #
+    
     gdf_final.reset_index(inplace=True)
     gdf_final = gdf_final.drop('index', axis=1, inplace=False)
     gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
     gdf_final = gdf_final.to_crs(4326)
 
-    # determine the neighbors of each grid cell
-    gdf_help = gdf_final.copy()
-    projected_crs = "EPSG:3395"
-    gdf_help.to_crs(projected_crs, inplace=True) 
-    gdf_help['buffer'] = gdf_help.geometry.buffer(100)
+    # # determine the neighbors of each grid cell
+    # gdf_help = gdf_final.copy()
+    # projected_crs = "EPSG:3395"
+    # gdf_help.to_crs(projected_crs, inplace=True) 
+    # gdf_help['buffer'] = gdf_help.geometry.buffer(100)
 
-    neighbors = gpd.sjoin(gdf_help, gdf_help, how='left', predicate='intersects')
-    neighbors = neighbors[neighbors['loc_id_left'] != neighbors['loc_id_right']] # Remove self-matches
-    neighbors_list = neighbors.groupby('loc_id_left')['loc_id_right'].apply(list).reset_index()
-    neighbors_list = neighbors_list.rename(columns={'loc_id_left': 'loc_id', 'loc_id_right': 'neighbors'})
-    gdf_help = gdf_help.merge(neighbors_list, on='loc_id', how='left')
+    # neighbors = gpd.sjoin(gdf_help, gdf_help, how='left', predicate='intersects')
+    # neighbors = neighbors[neighbors['loc_id_left'] != neighbors['loc_id_right']] # Remove self-matches
+    # neighbors_list = neighbors.groupby('loc_id_left')['loc_id_right'].apply(list).reset_index()
+    # neighbors_list = neighbors_list.rename(columns={'loc_id_left': 'loc_id', 'loc_id_right': 'neighbors'})
+    # gdf_help = gdf_help.merge(neighbors_list, on='loc_id', how='left')
     
-    gdf_help['neighbors'] = gdf_help['neighbors'].apply(lambda x: x if isinstance(x, list) else [])
-    max_neighbors = gdf_help['neighbors'].apply(len).max()
-    print(f"Maximum number of neighbors: {max_neighbors}")
-    for i in range(max_neighbors):
-        gdf_help[f'neighbor_{i+1}'] = gdf_help['neighbors'].apply(lambda x: x[i] if i < len(x) else None)
-    gdf_help = gdf_help.drop(columns=['neighbors'])
+    # gdf_help['neighbors'] = gdf_help['neighbors'].apply(lambda x: x if isinstance(x, list) else [])
+    # max_neighbors = gdf_help['neighbors'].apply(len).max()
+    # print(f"Maximum number of neighbors: {max_neighbors}")
+    # for i in range(max_neighbors):
+    #     gdf_help[f'neighbor_{i+1}'] = gdf_help['neighbors'].apply(lambda x: x[i] if i < len(x) else None)
+    # gdf_help = gdf_help.drop(columns=['neighbors'])
 
 
-    if not gdf_final['loc_id'].is_unique:
-        raise ValueError("The 'loc_id' column in gdf_final must be unique.")
+    # if not gdf_final['loc_id'].is_unique:
+    #     raise ValueError("The 'loc_id' column in gdf_final must be unique.")
     
-    neighbor_cols_list = [f'neighbor_{i}' for i in range(1, max_neighbors + 1)]
-    neighbor_cols_list = ['loc_id'] + neighbor_cols_list
-    print(neighbor_cols_list)
-    gdf_final = gdf_final.merge(gdf_help[neighbor_cols_list],
-                                on='loc_id',
-                                how='left'
-                                )
+    # neighbor_cols_list = [f'neighbor_{i}' for i in range(1, max_neighbors + 1)]
+    # neighbor_cols_list = ['loc_id'] + neighbor_cols_list
+    # print(neighbor_cols_list)
+    # gdf_final = gdf_final.merge(gdf_help[neighbor_cols_list],
+    #                             on='loc_id',
+    #                             how='left'
+    #                             )
     
 
     # determine the dominant country for each grid cell
@@ -412,54 +412,54 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-# gridded_data = prepare_gridded_panel_data(grid_polygon='hex', regions=['Brazil'], stepsize=1.0, num_lag=1,
-#                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
-#                                           show_grid=True, show_gridded_aggregate=True)
+gridded_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401, num_lag=1,
+                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                          show_grid=False, show_gridded_aggregate=True)
 
-grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=1.25, show_grid=False)
+# grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=1.25, show_grid=False)
 # pd.set_option('display.max_colwidth', None)
-print(grid_data)
+# print(grid_data)
 
 
 
 
-def plot_neighbors(gdf, target_loc_id):
-    """
-    Plots the target polygon and its neighbors.
+# def plot_neighbors(gdf, target_loc_id):
+#     """
+#     Plots the target polygon and its neighbors.
 
-    Parameters:
-    - gdf: GeoDataFrame containing 'geometry', 'loc_id', and neighbor columns.
-    - target_loc_id: The loc_id of the target polygon.
-    """
-    # Ensure the GeoDataFrame has the necessary columns
-    required_columns = ['geometry', 'loc_id', 'neighbor_1', 'neighbor_2', 
-                        'neighbor_3', 'neighbor_4', 'neighbor_5', 'neighbor_6']
-    if not all(col in gdf.columns for col in required_columns):
-        raise ValueError(f"GeoDataFrame must contain columns: {required_columns}")
+#     Parameters:
+#     - gdf: GeoDataFrame containing 'geometry', 'loc_id', and neighbor columns.
+#     - target_loc_id: The loc_id of the target polygon.
+#     """
+#     # Ensure the GeoDataFrame has the necessary columns
+#     required_columns = ['geometry', 'loc_id', 'neighbor_1', 'neighbor_2', 
+#                         'neighbor_3', 'neighbor_4', 'neighbor_5', 'neighbor_6']
+#     if not all(col in gdf.columns for col in required_columns):
+#         raise ValueError(f"GeoDataFrame must contain columns: {required_columns}")
 
-    # 3. Identify the Target Polygon
-    target = gdf[gdf['loc_id'] == target_loc_id]
-    if target.empty:
-        print(f"loc_id '{target_loc_id}' not found in the GeoDataFrame.")
-        return
+#     # 3. Identify the Target Polygon
+#     target = gdf[gdf['loc_id'] == target_loc_id]
+#     if target.empty:
+#         print(f"loc_id '{target_loc_id}' not found in the GeoDataFrame.")
+#         return
 
-    # 4. Retrieve Neighbor loc_ids, excluding None or NaN
-    neighbor_cols = ['neighbor_1', 'neighbor_2', 'neighbor_3', 
-                     'neighbor_4', 'neighbor_5', 'neighbor_6']
-    neighbors_ids = target[neighbor_cols].iloc[0].dropna().tolist()
+#     # 4. Retrieve Neighbor loc_ids, excluding None or NaN
+#     neighbor_cols = ['neighbor_1', 'neighbor_2', 'neighbor_3', 
+#                      'neighbor_4', 'neighbor_5', 'neighbor_6']
+#     neighbors_ids = target[neighbor_cols].iloc[0].dropna().tolist()
 
-    if not neighbors_ids:
-        print(f"No neighbors found for loc_id '{target_loc_id}'.")
-        return
+#     if not neighbors_ids:
+#         print(f"No neighbors found for loc_id '{target_loc_id}'.")
+#         return
 
-    neighbors = gdf[gdf['loc_id'].isin(neighbors_ids)]
+#     neighbors = gdf[gdf['loc_id'].isin(neighbors_ids)]
 
-    # 6. Plotting
-    fig, ax = plt.subplots(figsize=(10, 10))
-    gdf.plot(ax=ax, color='lightgrey', edgecolor='black', aspect=1)
-    target.plot(ax=ax, color='blue', edgecolor='black', label='Target')
-    neighbors.plot(ax=ax, color='red', edgecolor='black', label='Neighbors')
-    plt.title(f"Neighbors of loc_id '{target_loc_id}'")
-    plt.show()
+#     # 6. Plotting
+#     fig, ax = plt.subplots(figsize=(10, 10))
+#     gdf.plot(ax=ax, color='lightgrey', edgecolor='black', aspect=1)
+#     target.plot(ax=ax, color='blue', edgecolor='black', label='Target')
+#     neighbors.plot(ax=ax, color='red', edgecolor='black', label='Neighbors')
+#     plt.title(f"Neighbors of loc_id '{target_loc_id}'")
+#     plt.show()
 
-plot_neighbors(grid_data, 'loc_603')
+# plot_neighbors(grid_data, 'loc_603')
