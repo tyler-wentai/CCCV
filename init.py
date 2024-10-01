@@ -297,7 +297,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon_path=None, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -340,12 +340,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
     final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'geometry']]
 
     # Add the observed annualized climate index values to panel dataset
-    start_year  = np.min(desired_years)-num_lag-1 #need the -1 because DEC(t-1)
+    start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
     end_year    = np.max(desired_years)
 
     annual_index = compute_annualized_NINO3_index(start_year, end_year)
 
-    for i in range(num_lag+1):
+    for i in range(nlag_psi+1):
         lag_string = 'INDEX_lag' + str(i) + 'y'
         annual_index[lag_string]= annual_index['INDEX'].shift((i))
     annual_index.drop('INDEX', axis=1, inplace=True)
@@ -412,7 +412,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, num_lag, telecon
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-gridded_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401, num_lag=1,
+gridded_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401, nlag_psi=1, nlag_conflict=0,
                                           telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                           show_grid=False, show_gridded_aggregate=True)
 
