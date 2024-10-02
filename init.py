@@ -296,11 +296,14 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, telecon_path=None, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, response_var='count', telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
     """
+    allowed_responses = ['binary', 'count']
+    if response_var not in allowed_responses:
+        raise ValueError(f"Invalid response var '{response_var}'. Allowed colors are: {allowed_responses}.")
 
     # create polygon grid
     polygons_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
@@ -335,8 +338,8 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
     count_complete_df = count_df.set_index(['loc_id', 'year']).reindex(complete_index, fill_value=0).reset_index()
 
     # merge conflict counts back to polygons to retain geometry
-    final_gdf = polygons_gdf[['loc_id', 'geometry']].merge(count_complete_df, on='loc_id', how='right')
-    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'geometry']]
+    final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
+    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
 
     # Add the observed annualized climate index values to panel dataset
     start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
@@ -352,7 +355,6 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
     final_gdf = final_gdf.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
 
     for i in range(nlag_conflict):
-        print(f"...{i}")
         lag_string = 'conflict_count_lag' + str(i+1) + 'y'
         final_gdf[lag_string] = final_gdf.groupby('loc_id')['conflict_count'].shift((i+1))
         final_gdf = final_gdf.dropna(subset=[lag_string])
@@ -390,6 +392,14 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
+    final_gdf = final_gdf.dropna(subset=['psi']) # remove all locations that do not have a psi value
+
+    # transform do desired response variable
+    if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
+        final_gdf['conflict_count'] = (final_gdf['conflict_count'] > 0).astype(int)
+        final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
+        final_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
+
     # plot
     if (show_gridded_aggregate==True):
         total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
@@ -417,13 +427,23 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
     return final_gdf
 
+
+
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-gridded_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.0, nlag_psi=1, nlag_conflict=1,
-                                          telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
-                                          show_grid=False, show_gridded_aggregate=False)
-gridded_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_AFRICA.csv', index=False)
-# grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=1.00, show_grid=True)
+panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=1.5,
+                                        nlag_psi=1, nlag_conflict=1,
+                                        response_var='binary',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                        show_grid=False, show_gridded_aggregate=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_AFRICA_binary.csv', index=False)
+print(panel_data)
+# nan_mask = panel_data.isna()
+# print(nan_mask)
+# nan_count_per_column = panel_data.isna().sum()
+# print(nan_count_per_column)
+
+# grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=2.00, show_grid=False)
 # pd.set_option('display.max_colwidth', None)
 # print(grid_data)
 
