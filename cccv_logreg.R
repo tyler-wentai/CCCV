@@ -60,3 +60,20 @@ print(summary(fit2), digits = 4)
 plot(fit2)
 
 
+tic("Brms Model Fitting")
+fit2 <- brm(
+  conflict_binary ~ 0 + ar(time = year, gr = loc_id, p = 1, cov = FALSE) +
+    I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) +
+    I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
+    I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
+    + (1 | loc_id),
+  data = dat, family = bernoulli(link = "logit"), 
+  iter = 5000, chains=1, warmup=1000,
+  prior = prior(normal(0, 10), class = b)
+)
+toc()
+
+print(summary(fit2), digits = 4)
+plot(fit2)
+
+
