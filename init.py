@@ -402,7 +402,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
     # plot
     if (show_gridded_aggregate==True):
-        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_binary'].sum().reset_index()
+        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
         # total_aggregate = mean_psi
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
@@ -410,12 +410,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         # plotting
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         total_aggregate.plot(
-            column='conflict_binary',    
+            column='conflict_count',    
             cmap='turbo',   #turbo    YlOrRd           
             legend=True,                   
-            legend_kwds={'label': "conflict_binary", 'orientation': "vertical"},
+            legend_kwds={'label': "conflict_count", 'orientation': "vertical"},
             ax=ax,
-            #vmax=500
+            vmax=500
         )
         ax.set_title(r'Total number of conflicts per cell', fontsize=15)
         ax.set_axis_off()
@@ -431,12 +431,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(3),
+panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(2),
                                         nlag_psi=2, nlag_conflict=1,
-                                        response_var='binary',
+                                        response_var='count',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_AFRICA_binary.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_AFRICA_count.csv', index=False)
 print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

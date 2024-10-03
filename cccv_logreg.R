@@ -1,5 +1,7 @@
 library(brms)
 library(tictoc)
+library(dplyr)
+library(ggplot2)
 
 panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_AFRICA_binary.csv'
 dat <- read.csv(panel_data_path)
@@ -75,5 +77,82 @@ toc()
 
 print(summary(fit2), digits = 4)
 plot(fit2)
+
+
+# negative binomial model
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_AFRICA_count.csv'
+dat <- read.csv(panel_data_path)
+
+dat$SOVEREIGNT <- as.factor(dat$SOVEREIGNT)
+dat$loc_id <- as.factor(dat$loc_id)
+dat$year <- dat$year - min(dat$year)
+
+colnames(dat)
+
+test = subset(dat, conflict_count<20)
+
+hist(test$conflict_count)
+
+tic("nb_model Fitting")
+nb_model <- brm(
+  formula = conflict_count ~ INDEX_lag0y + I(INDEX_lag0y*psi) + INDEX_lag1y + I(INDEX_lag1y*psi) + SOVEREIGNT,
+  data = dat,
+  family = negbinomial(link = "log", link_shape = "log"),
+  prior = c(
+    set_prior("normal(0, 10)", class = "b"),  # Priors for coefficients
+    set_prior("gamma(0.01, 0.01)", class = "shape")  # Prior for dispersion
+  ),
+  chains = 1,  # Number of Markov chains
+  cores = parallel::detectCores(),  # Utilize all available cores
+  iter = 4000,  # Number of iterations per chain
+  warmup = 1000,  # Number of warmup iterations
+  seed = 123  # For reproducibility
+)
+toc()
+
+print(summary(nb_model), digits = 4)
+plot(nb_model)
+
+
+
+draws_matrix <- as_draws_matrix(nb_model)
+colnames(draws_matrix)
+
+
+psi_help <- seq(0.0,1.2,length.out=100)
+results <- matrix(ncol=5, nrow=0)
+draws_matrix <- as_draws_matrix(nb_model)
+for (i in 1:length(psi_help)){
+  psi_i <- psi_help[i]
+  sum_params <- draws_matrix[, "b_INDEX_lag0y"] + psi_i*draws_matrix[, "b_IINDEX_lag0yMUpsi"] + 
+    draws_matrix[, "b_IINDEX_lag0yMUpsi"] + psi_i*draws_matrix[, "b_IINDEX_lag1yMUpsi"]
+  results <- rbind(results, c(psi_i,
+                              mean(sum_params), 
+                              sd(sum_params),
+                              quantile(sum_params, 0.025),
+                              quantile(sum_params, 0.975)))
+  
+}
+
+summary_sum <- data.frame(
+  mean = mean(sum_params),
+  median = median(sum_params),
+  sd = sd(sum_params),
+  `2.5%` = quantile(sum_params, 0.025),
+  `97.5%` = quantile(sum_params, 0.975)
+)
+summary_sum
+
+
+plot(results[,1], results[,2], type='l', col='black', ylim=c(min(results[,4]),max(results[,5])))
+lines(results[,1], results[,4], type='l', col='blue')
+lines(results[,1], results[,5], type='l', col='blue')
+abline(h=0)
+
+
+omega_post
+
+
+
 
 
