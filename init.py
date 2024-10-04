@@ -110,7 +110,9 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
                         'Mali','Namibia','Libya','Senegal','Burundi','eSwatini','Cameroon','United Republic of Tanzania','Togo','Mauritius','Republic of the Congo',
                         'Somaliland','Seychelles','Djibouti','Eritrea','Zimbabwe','Gambia','South Africa','Sudan','São Tomé and Principe','Zambia','Egypt',
                         'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara)
-
+    asia_countries = ['India','Philippines','Myanmar','Nepal','Bangladesh','Tajikistan','Pakistan','Sri Lanka','Thailand','Indonesia','China','Vietnam',
+                      'Afghanistan','Cambodia','Laos','Malaysia','Bhutan','Japan','Taiwan','South Korea','North Korea','Singapore']
+    
     # Check that supplied grid_polygon is valid.
     allowed_polygons = ['square', 'hex', 'hexagon']
     if grid_polygon not in allowed_polygons:
@@ -124,6 +126,8 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     # made of multipolygons into individual polygons
     if (regions=='Africa' or regions=='africa'):
         regions = africa_countries
+    elif (regions=='Asia' or regions=='asia'):
+        regions = asia_countries
     elif (regions=='Global' or regions=='global'):
         regions = set(gdf1['SOVEREIGNT'])
     else:
@@ -402,7 +406,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
     # plot
     if (show_gridded_aggregate==True):
-        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
+        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_binary'].sum().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
         # total_aggregate = mean_psi
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
@@ -410,20 +414,20 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         # plotting
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         total_aggregate.plot(
-            column='conflict_count',    
+            column='conflict_binary',    
             cmap='turbo',   #turbo    YlOrRd           
             legend=True,                   
-            legend_kwds={'label': "conflict_count", 'orientation': "vertical"},
+            legend_kwds={'label': "conflict_binary", 'orientation': "vertical"},
             ax=ax,
-            vmax=500
+            #vmax=500
         )
         ax.set_title(r'Total number of conflicts per cell', fontsize=15)
         ax.set_axis_off()
         # plt.savefig('/Users/tylerbagwell/Desktop/grid_psi_aggregate_Africa_hexagon_truncated.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-        # sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        # plt.show()
+        sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
+        plt.show()
 
     return final_gdf
 
@@ -431,13 +435,13 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Africa', stepsize=np.sqrt(1),
+panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Asia', stepsize=np.sqrt(0.5),
                                         nlag_psi=2, nlag_conflict=1,
-                                        response_var='count',
+                                        response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
-                                        show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_AFRICA_count.csv', index=False)
-print(panel_data)
+                                        show_grid=True, show_gridded_aggregate=True)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_ASIA_binary.csv', index=False)
+# print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
 # nan_count_per_column = panel_data.isna().sum()
