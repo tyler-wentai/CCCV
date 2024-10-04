@@ -112,7 +112,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
                         'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara)
     asia_countries = ['India','Philippines','Myanmar','Nepal','Bangladesh','Tajikistan','Pakistan','Sri Lanka','Thailand','Indonesia','China','Vietnam',
                       'Afghanistan','Cambodia','Laos','Malaysia','Bhutan','Japan','Taiwan','South Korea','North Korea','Singapore','Turkmenistan','Uzbekistan',
-                      'Kyrgyzstan','Iran']
+                      'Kyrgyzstan','Iran','Papua New Guinea']
     
     # Check that supplied grid_polygon is valid.
     allowed_polygons = ['square', 'hex', 'hexagon']
@@ -122,8 +122,6 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     # read in shp file data
     path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
     gdf1 = gpd.read_file(path_land)
-
-    print(list(gdf1['SOVEREIGNT']))
 
     # grab the polygons related to each country (SOVEREIGNT) and 'explode' any countries
     # made of multipolygons into individual polygons
@@ -443,7 +441,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='square', regions='Asia', s
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_ASIA_count.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_ASIA_binary.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
