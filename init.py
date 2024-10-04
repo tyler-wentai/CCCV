@@ -409,7 +409,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
     # plot
     if (show_gridded_aggregate==True):
-        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_count'].sum().reset_index()
+        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_binary'].sum().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
         # total_aggregate = mean_psi
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
@@ -417,12 +417,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         # plotting
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         total_aggregate.plot(
-            column='conflict_count',    
+            column='conflict_binary',    
             cmap='turbo',   #turbo    YlOrRd           
             legend=True,                   
-            legend_kwds={'label': "conflict_count", 'orientation': "vertical"},
+            legend_kwds={'label': "conflict_binary", 'orientation': "vertical"},
             ax=ax,
-            vmax=500
+            #vmax=500
         )
         ax.set_title(r'Total number of conflicts per cell', fontsize=15)
         ax.set_axis_off()
