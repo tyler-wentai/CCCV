@@ -441,7 +441,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', st
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
