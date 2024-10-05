@@ -318,7 +318,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -436,7 +436,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.4387,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
