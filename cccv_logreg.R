@@ -3,7 +3,7 @@ library(tictoc)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_AFRICA_binary.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)

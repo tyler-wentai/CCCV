@@ -318,7 +318,8 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
+    # conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_lowdeaths.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -441,7 +442,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', st
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_lowdeath.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

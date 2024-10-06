@@ -23,10 +23,10 @@ df_cleaned = df_conflict[~(df_conflict['side_a'].str.startswith('Government') & 
 # step 2: remove conflicts where there is large uncertainty in the event geo-location:
 df_cleaned = df_cleaned[df_cleaned['where_prec'] <= 4]
 
-# # step 3: remove extremely violent events with death counts above 15
-# df_cleaned = df_cleaned[df_cleaned['best'] <= 15]
+# # step 3: remove extremely violent events with death counts above 10
+# df_cleaned = df_cleaned[df_cleaned['best'] <= 10]
 
 
 print(df_cleaned.shape)
-df_cleaned.to_csv('/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv', index=False)
+# df_cleaned.to_csv('/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv', index=False)
 # df_cleaned.to_csv('/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_lowdeaths.csv', index=False)
