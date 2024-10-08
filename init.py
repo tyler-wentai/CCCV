@@ -442,7 +442,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='South America', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Asia', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
