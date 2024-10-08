@@ -618,7 +618,7 @@ def compute_psi_Callahan2023(climate_index, start_year, end_year, save_path):
                             },
                             dims = ["lat", "lon"],
                             attrs=dict(
-                                description="Psi, teleconnection strength via Hsiang 2011 method.",
+                                description="Psi, teleconnection strength via Callahan 2023 method.",
                                 cor_calc_start_date = str(start_date),
                                 cor_calc_end_date = str(end_date),
                                 climate_index_used = climate_index_name)

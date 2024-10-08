@@ -419,21 +419,21 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
         # plotting
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        total_aggregate.plot(
-            column='conflict_binary',    
-            cmap='turbo',   #turbo    YlOrRd           
+        final_gdf.plot(
+            column='psi',    
+            cmap='YlOrRd',   #turbo    YlOrRd           
             legend=True,                   
-            legend_kwds={'label': "conflict_binary", 'orientation': "vertical"},
+            legend_kwds={'label': "psi", 'orientation': "vertical"},
             ax=ax,
             #vmax=500
         )
-        ax.set_title(r'Total number of years with conflict', fontsize=15)
+        ax.set_title(r'Teleconnection strength, psi', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Asia_hexagon.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Asia_hexagon.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -442,12 +442,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Asia', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_SouthAmerica_binary.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_SouthAmerica_binary.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
