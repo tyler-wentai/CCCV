@@ -114,7 +114,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
                       'Afghanistan','Cambodia','Laos','Malaysia','Bhutan','Japan','Taiwan','South Korea','North Korea','Singapore','Turkmenistan','Uzbekistan',
                       'Kyrgyzstan','Iran','Papua New Guinea']
     south_america = ['Argentina','Uruguay','Chile','Brazil','Paraguay','Bolivia','Peru','Ecuador','Colombia','Venezuela','Guyana','Suriname','Panama',
-                     'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize','Mexico']
+                     'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize']
     
     # Check that supplied grid_polygon is valid.
     allowed_polygons = ['square', 'hex', 'hexagon']
