@@ -55,8 +55,8 @@ sns.histplot(vals1, color='blue', label='airtemp + precip', kde=True, stat="dens
 sns.histplot(vals2, color='red', label='airtemp + soilw', kde=True, stat="density", bins=int(len(vals2)/2000), alpha=0.5)
 
 plt.legend()
-plt.xlabel(r'$\Psi^{NINO3}$')
-plt.title(r"$\Psi^{NINO3}$ computed with 'precip' vs. 'soilw'")
+plt.xlabel(r'$\Psi^{DMI}$')
+plt.title(r"$\Psi^{DMI}$ computed with 'precip' vs. 'soilw'")
 plt.savefig('plots/psi_DMI_histograms.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
