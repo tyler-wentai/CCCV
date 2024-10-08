@@ -113,6 +113,8 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
     asia_countries = ['India','Philippines','Myanmar','Nepal','Bangladesh','Tajikistan','Pakistan','Sri Lanka','Thailand','Indonesia','China','Vietnam',
                       'Afghanistan','Cambodia','Laos','Malaysia','Bhutan','Japan','Taiwan','South Korea','North Korea','Singapore','Turkmenistan','Uzbekistan',
                       'Kyrgyzstan','Iran','Papua New Guinea']
+    south_america = ['Argentina','Uruguay','Chile','Brazil','Paraguay','Bolivia','Peru','Ecuador','Colombia','Venezuela','Guyana','Suriname','Panama',
+                     'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize','Mexico']
     
     # Check that supplied grid_polygon is valid.
     allowed_polygons = ['square', 'hex', 'hexagon']
@@ -129,6 +131,8 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
         regions = africa_countries
     elif (regions=='Asia' or regions=='asia'):
         regions = asia_countries
+    elif (regions=='South America' or regions=='south america'):
+        regions = south_america
     elif (regions=='Global' or regions=='global'):
         regions = set(gdf1['SOVEREIGNT'])
     else:
@@ -438,12 +442,12 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Asia', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='South America', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Asia_binary.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_SouthAmerica_binary.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
