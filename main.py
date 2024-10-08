@@ -202,22 +202,22 @@ def standardize_and_detrend_monthly(data):
 var1_std = np.empty_like(var1_common) # Initialize a new array to store the standardized data
 var2_std = np.empty_like(var2_common) # Initialize a new array to store the standardized data
 
-var1_std = var1_common # DELETE LATER!!!!!!!!!
-var2_std = var2_common # DELETE LATER!!!!!!!!!
+# var1_std = var1_common # DELETE LATER!!!!!!!!!
+# var2_std = var2_common # DELETE LATER!!!!!!!!!
 
 
 
-# print("Standardizing climate variable data...")
-# for i in range(n_lat):
-#     if (i%25==0): 
-#         print("...", i)
-#     for j in range(n_long):
-#         var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
-#         has_nan = np.isnan(var2_common[:, i, j]).any()
-#         if (has_nan==False):
-#             var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j])
-#         else: 
-#             var2_std[:, i, j] = var2_common[:, i, j]
+print("Standardizing climate variable data...")
+for i in range(n_lat):
+    if (i%25==0): 
+        print("...", i)
+    for j in range(n_long):
+        var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
+        has_nan = np.isnan(var2_common[:, i, j]).any()
+        if (has_nan==False):
+            var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j])
+        else: 
+            var2_std[:, i, j] = var2_common[:, i, j]
 
 
 
@@ -326,10 +326,10 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Psi, teleconnection strength via Callahan 2023 method using air and soilw.",
+                            description="Psi, teleconnection strength inspired by Callahan 2023 method using air and soilw.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = 'DMI')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc')
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
