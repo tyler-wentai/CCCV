@@ -500,11 +500,11 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         )
         ax.set_title(r'Teleconnection strength, psi (dmi)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
