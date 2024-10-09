@@ -64,6 +64,38 @@ def prepare_NINO3(file_path, start_date, end_date):
 
 
 #
+def prepare_DMI(file_path, start_date, end_date):
+    """
+    Prepare DMI index data as pd.Data.Frame from Standard PSL Format (https://psl.noaa.gov/data/timeseries/monthly/standard.html)
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    dmi = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    year_start = int(dmi.iloc[0,0])
+    dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
+    df_dmi = pd.DataFrame(dmi)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='MS')
+    df_dmi.index = date_range
+    df_dmi.rename_axis('date', inplace=True)
+    df_dmi.columns = ['ANOM']
+
+    start_ts_l = np.where(df_dmi.index == start_date)[0]
+    end_ts_l = np.where(df_dmi.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of DMI index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of DMI index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_dmi = df_dmi.iloc[start_ts_ind:end_ts_ind]
+
+    return df_dmi
+
+
+#
 def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     """
     Computes the annualized NINO3 index via the average of the index of DEC(t-1),JAN(t),FEB(t) based on
@@ -97,6 +129,39 @@ def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
         np.save(save_path, index_DJF)
 
     return index_DJF
+
+
+#
+def compute_annualized_DMI_index(start_year, end_year, save_path=False):
+    """
+    Computes the annualized DMI index via the average of the index of SEP(t),OCT(t),NOV(t) inspired by
+    the method of Callahan 2023
+    """
+    # load index data
+    clim_ind = prepare_DMI(file_path='data/NOAA_DMI_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+    # Compute the year index value as the average of SEP(t),OCT(t),NOV(t).
+    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
+    clim_ind['year'] = clim_ind.index.year
+    clim_ind['month'] = clim_ind.index.month
+
+    sep_oct_nov_df = clim_ind[clim_ind['month'].isin([9, 10, 11])].copy() # prepare September, October, and November data for current year
+    sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+    oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+    nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+
+    yearly = pd.merge(sep, oct, on='year', how='inner') # merge September, October data
+    yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+
+    yearly['INDEX'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average SON ANOM value
+    index_yrAVG = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
+
+    if (save_path!=False):
+        np.save(save_path, index_yrAVG)
+
+    return index_yrAVG
 
 
 #
@@ -305,7 +370,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, response_var='count', telecon_path=None, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -355,7 +420,13 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
     start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
     end_year    = np.max(desired_years)
 
-    annual_index = compute_annualized_NINO3_index(start_year, end_year)
+    if (clim_index == 'NINO3'):
+        annual_index = compute_annualized_NINO3_index(start_year, end_year)
+    elif (clim_index == 'DMI'):
+        annual_index = compute_annualized_DMI_index(start_year, end_year)
+    else:
+        raise ValueError("Specified 'clim_index' not found...")
+
     for i in range(nlag_psi+1):
         lag_string = 'INDEX_lag' + str(i) + 'y'
         annual_index[lag_string] = annual_index['INDEX'].shift((i))
@@ -427,13 +498,13 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
             ax=ax,
             #vmax=500
         )
-        ax.set_title(r'Teleconnection strength, psi', fontsize=15)
+        ax.set_title(r'Teleconnection strength, psi (dmi)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -444,10 +515,11 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
+                                        clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_SouthAmerica_binary.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
