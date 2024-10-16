@@ -70,7 +70,7 @@ def prepare_DMI(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    dmi = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    dmi = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
     year_start = int(dmi.iloc[0,0])
     dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
     df_dmi = pd.DataFrame(dmi)
@@ -363,7 +363,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
                                     #        'markerscale' : 0.5
                                     #        })
         gdf1.plot(ax=ax, facecolor='none', zorder=2, edgecolor='k', linewidth=0.75)
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_with_dom_country_AFRICA.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/grid_with_dom_country_Asia.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return gdf_final
@@ -498,13 +498,13 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
             ax=ax,
             #vmax=500
         )
-        ax.set_title(r'Teleconnection strength, psi (dmi)', fontsize=15)
+        ax.set_title(r'Teleconnection strength, Psi (nino3)', fontsize=15)
         ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_hexagon_psi_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Asia_hexagon_psi_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        # plt.savefig('/Users/tylerbagwell/Desktop/psi_binarycounts_Africa_hexagon_dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/psi_Asia_hexagon_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -513,13 +513,13 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Africa', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Asia', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
