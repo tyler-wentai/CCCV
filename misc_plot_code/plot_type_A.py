@@ -14,17 +14,34 @@ import geopandas as gpd
 
 print('\n\nSTART ---------------------\n')
 
-psi1 = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+# psi1 = xr.open_dataarray('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
+# lat1 = psi1['lat'].values
+# lon1 = psi1['lon'].values
+# variable1 = psi1.values[:,:]
+# vals1 = variable1.flatten()
+
+# psi2 = xr.open_dataarray('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
+# lat2 = psi2['lat'].values
+# lon2 = psi2['lon'].values
+# variable2 = psi2.values[:,:]
+# vals2 = variable2.flatten()
+
+
+psi1 = xr.open_dataset('/Users/tylerbagwell/Desktop/spi6_ERA5_mon_194001-202212.nc')
 lat1 = psi1['lat'].values
 lon1 = psi1['lon'].values
-variable1 = psi1.values[:,:]
+variable1 = psi1['spi6'].values[500,:,:]
 vals1 = variable1.flatten()
 
-psi2 = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
-lat2 = psi2['lat'].values
-lon2 = psi2['lon'].values
-variable2 = psi2.values[:,:]
-vals2 = variable2.flatten()
+# psi2 = xr.open_dataset('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
+# lat2 = psi2['lat'].values
+# lon2 = psi2['lon'].values
+# variable2 = psi2['spei6'].values[0,:,:]
+# vals2 = variable2.flatten()
+
+
+
+
 
 
 path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
@@ -35,10 +52,10 @@ gdf2 = gpd.read_file(path_maritime_0)
 fig, ax = plt.subplots(figsize=(10, 6.6))
 fig.suptitle(r'Global land-based teleconnection strength, $\Psi^{DMI}$', fontsize=16)
 
-prop = len(vals1)/len(vals2)
-levels = [0.2,0.4,0.6,0.8,1.0,1.2]
+# prop = len(vals1)/len(vals2)
+levels = [-4.0,-3.0,-2.0,-1.0,0.0,1.0,2.0,3.0,4.0]
 
-c = ax.contourf(lon1, lat1, variable1, cmap='YlOrRd', levels=levels)
+c = ax.contourf(lon1, lat1, variable1, cmap='RdYlBu')
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
@@ -46,8 +63,11 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 ax.set_title(r'$\Psi$ based on air_temp + soilw')
 
-plt.savefig('plots/psi_DMI_global.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('plots/spei6_global_t324.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
+
+
+sys.exit()
 
 
 plt.figure(figsize=(8, 6))
@@ -57,7 +77,7 @@ sns.histplot(vals2, color='red', label='airtemp + soilw', kde=True, stat="densit
 plt.legend()
 plt.xlabel(r'$\Psi^{DMI}$')
 plt.title(r"$\Psi^{DMI}$ computed with 'precip' vs. 'soilw'")
-plt.savefig('plots/psi_DMI_histograms.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('plots/psi_DMI_histograms.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

@@ -82,7 +82,8 @@ end_year    = 2022
 
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
-file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
+# file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
+file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5_mon_194001-202212.nc' # Soil moisture anomaly
     
 
 
@@ -91,10 +92,12 @@ import xarray as xr
 ds1 = xr.open_dataset(file_path_AIR)
 ds2 = xr.open_dataset(file_path_PREC)
 
+var2str = 'spi6'
+
 
 var1 = ds1['air']  # DataArray from the first dataset
-var2 = ds2['soilw']  # DataArray from the second dataset
-
+# var2 = ds2['soilw']  # DataArray from the second dataset
+var2 = ds2[var2str]
 
 # Access longitude and latitude coordinates
 lon1 = ds1['lon']
@@ -148,7 +151,7 @@ ds2_common      = ds2.sel(time=common_time, lon=common_lon, lat=common_lat)
 clim_ind_common = clim_ind.loc[clim_ind.index.isin(pd.to_datetime(common_time))]
 
 var1_common = ds1_common['air']
-var2_common = ds2_common['soilw']
+var2_common = ds2_common[var2str]
 
 
 
@@ -169,6 +172,7 @@ assert np.array_equal(var1_common['time'], var2_common['time'])
 assert np.array_equal(var1_common['time'], clim_ind_common.index)
 assert np.array_equal(var2_common['time'], clim_ind_common.index)
 
+sys.exit()
 
 
 
@@ -209,7 +213,7 @@ var2_std = np.empty_like(var2_common) # Initialize a new array to store the stan
 
 print("Standardizing climate variable data...")
 for i in range(n_lat):
-    if (i%25==0): 
+    if (i%10==0): 
         print("...", i)
     for j in range(n_long):
         var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
@@ -220,7 +224,7 @@ for i in range(n_lat):
             var2_std[:, i, j] = var2_common[:, i, j]
 
 
-
+sys.exit()
 
 # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
 # For pIOD, we use SEP(t),OCT(t),NOV(t)
