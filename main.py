@@ -83,7 +83,7 @@ end_year    = 2022
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
 # file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
-file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5_mon_194001-202212.nc' # Soil moisture anomaly
+file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc' # Soil moisture anomaly
     
 
 
@@ -98,6 +98,11 @@ var2str = 'spi6'
 var1 = ds1['air']  # DataArray from the first dataset
 # var2 = ds2['soilw']  # DataArray from the second dataset
 var2 = ds2[var2str]
+
+# print(var1)
+print(var2)
+
+sys.exit()
 
 # Access longitude and latitude coordinates
 lon1 = ds1['lon']
@@ -172,8 +177,6 @@ assert np.array_equal(var1_common['time'], var2_common['time'])
 assert np.array_equal(var1_common['time'], clim_ind_common.index)
 assert np.array_equal(var2_common['time'], clim_ind_common.index)
 
-sys.exit()
-
 
 
 def standardize_and_detrend_monthly(data):
@@ -224,7 +227,6 @@ for i in range(n_lat):
             var2_std[:, i, j] = var2_common[:, i, j]
 
 
-sys.exit()
 
 # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
 # For pIOD, we use SEP(t),OCT(t),NOV(t)
@@ -277,7 +279,7 @@ for i in range(n_lat):
         current_vars = pd.DataFrame(data=var1_std[:,i,j],
                                     index=var1_common['time'], #need to use var1_common since it still contains the time data
                                     columns=['air'])
-        current_vars['soilw'] = np.array(var2_std[:,i,j])
+        current_vars[var2str] = np.array(var2_std[:,i,j])
         current_vars.index = pd.to_datetime(current_vars.index)
         current_vars['year'] = current_vars.index.year
         current_vars['month'] = current_vars.index.month
@@ -295,10 +297,10 @@ for i in range(n_lat):
             # compute correlations of yearly month, k, air anomaly with index 
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
     
-            has_nan = var_ts['soilw'].isna().any()
+            has_nan = var_ts[var2str].isna().any()
             if has_nan==False:
-                partial_corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM', covar='soilw')['r'].values[0]
-                partial_corr_2 = partial_corr(data=var_ts, x='soilw', y='avg_ANOM', covar='air')['r'].values[0]
+                partial_corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM', covar=var2str)['r'].values[0]
+                partial_corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM', covar='air')['r'].values[0]
                 corrs_array_1[int(k-1),i,j] = partial_corr_1
                 corrs_array_2[int(k-1),i,j] = partial_corr_2
             else:
@@ -330,10 +332,10 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Psi, teleconnection strength inspired by Callahan 2023 method using air and soilw.",
+                            description="Psi, teleconnection strength inspired by Callahan 2023 method using air and spi6-land.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = 'DMI')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_DMI_spi6.nc') 

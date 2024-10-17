@@ -27,10 +27,10 @@ print('\n\nSTART ---------------------\n')
 # vals2 = variable2.flatten()
 
 
-psi1 = xr.open_dataset('/Users/tylerbagwell/Desktop/spi6_ERA5_mon_194001-202212.nc')
+psi1 = xr.open_dataset('/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc')
 lat1 = psi1['lat'].values
 lon1 = psi1['lon'].values
-variable1 = psi1['spi6'].values[500,:,:]
+variable1 = psi1['spi6'].values[400,:,:]
 vals1 = variable1.flatten()
 
 # psi2 = xr.open_dataset('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
@@ -50,20 +50,20 @@ gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
 fig, ax = plt.subplots(figsize=(10, 6.6))
-fig.suptitle(r'Global land-based teleconnection strength, $\Psi^{DMI}$', fontsize=16)
+# fig.suptitle(r'Global land-based teleconnection strength, $\Psi^{DMI}$', fontsize=16)
 
 # prop = len(vals1)/len(vals2)
 levels = [-4.0,-3.0,-2.0,-1.0,0.0,1.0,2.0,3.0,4.0]
 
-c = ax.contourf(lon1, lat1, variable1, cmap='RdYlBu')
+c = ax.contourf(lon1, lat1, variable1, cmap='RdYlBu', levels=levels)
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
-ax.set_title(r'$\Psi$ based on air_temp + soilw')
+ax.set_title(r'spi6-land, t400')
 
-# plt.savefig('plots/spei6_global_t324.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('plots/spi6_land_global_t400.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
