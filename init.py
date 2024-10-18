@@ -165,7 +165,7 @@ def compute_annualized_DMI_index(start_year, end_year, save_path=False):
 
 
 #
-def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
+def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     """
     Creates a square gridding over the specified region with specified stepsize in units of lat and lon degrees
     """
@@ -182,7 +182,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
                      'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize']
     
     # Check that supplied grid_polygon is valid.
-    allowed_polygons = ['square', 'hex', 'hexagon']
+    allowed_polygons = ['square', 'hex', 'hexagon','country','Country','first_admin']
     if grid_polygon not in allowed_polygons:
         raise ValueError(f"Invalid grid_polygon '{grid_polygon}'. Allowed colors are: {allowed_polygons}.")
 
@@ -192,20 +192,21 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
     # grab the polygons related to each country (SOVEREIGNT) and 'explode' any countries
     # made of multipolygons into individual polygons
-    if (regions=='Africa' or regions=='africa'):
+    if (localities=='Africa' or localities=='africa'):
         regions = africa_countries
-    elif (regions=='Asia' or regions=='asia'):
+    elif (localities=='Asia' or localities=='asia'):
         regions = asia_countries
-    elif (regions=='South America' or regions=='south america'):
+    elif (localities=='South America' or localities=='south america'):
         regions = south_america
-    elif (regions=='Global' or regions=='global'):
+    elif (localities=='Global' or localities=='global'):
         regions = set(gdf1['SOVEREIGNT'])
     else:
-        if not isinstance(regions, list):
-            raise TypeError(f"'regions' argument should be a list if not a pre-specified region.")
-        regions = regions
+        if not isinstance(localities, list):
+            raise TypeError(f"'localities' argument should be a list if not a pre-specified region.")
+        regions = localities
 
     gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
+    gdf1_help = gdf1.copy()
     gdf1 = gdf1.explode(index_parts=True)
     exploded_polygons = [gdf1.iloc[i].geometry for i in range(gdf1.shape[0])]
 
@@ -286,7 +287,27 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
         # remove all grid boxes that do not contain a land regions
         gdf_final = hexs_gdf[hexs_gdf.intersects(gdf.geometry.iloc[0])]
-    
+
+    elif grid_polygon=='country' or grid_polygon=='Country':
+        gdf_final = gdf1_help['geometry']
+        gdf_final = gdf_final.to_frame()
+
+    elif grid_polygon=='first_admin':
+        # Names conventions are different: "Guinea-Bissau" to "Guinea Bissau"; "South Sudan" to "S. Sudan"; "eSwatini" to "Swaziland".
+        if (localities=='Africa' or localities=='africa'):
+            replacements = {
+                "Guinea-Bissau": "Guinea Bissau",
+                "South Sudan": "S. Sudan",
+                "eSwatini": "Swaziland"
+                }
+            regions = [replacements.get(item, item) for item in regions]
+        path_admin = "data/map_packages/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp"
+        gdf_admin = gpd.read_file(path_admin)
+        gdf_admin = gdf_admin[gdf_admin['admin'].isin(regions)]
+        gdf_final = gdf_admin['geometry']
+        gdf_final = gdf_final.to_frame()
+
+
     gdf_final.reset_index(inplace=True)
     gdf_final = gdf_final.drop('index', axis=1, inplace=False)
     gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
@@ -370,7 +391,7 @@ def create_grid(grid_polygon, regions, stepsize=1.0, show_grid=False):
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -380,7 +401,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         raise ValueError(f"Invalid response var '{response_var}'. Allowed colors are: {allowed_responses}.")
 
     # create polygon grid
-    polygons_gdf = create_grid(grid_polygon, regions=regions, stepsize=stepsize, show_grid=show_grid)
+    polygons_gdf = create_grid(grid_polygon, localities=localities, stepsize=stepsize, show_grid=show_grid)
 
     # ensure CRS is WGS84
     if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
@@ -469,7 +490,7 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         cleaned_gdf = cleaned_gdf.reset_index(drop=True)
 
         grouped = joined_gdf.groupby('loc_id')
-        mean_psi = grouped['psi'].max().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
+        mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
@@ -500,11 +521,11 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
         )
         ax.set_title(r'Teleconnection strength, Psi (nino3)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Asia_hexagon_psi_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_1admin_psi_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/psi_Asia_hexagon_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/psi_Africa_1admin_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -513,21 +534,20 @@ def prepare_gridded_panel_data(grid_polygon, regions, stepsize, nlag_psi, nlag_c
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', regions='Asia', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Africa', stepsize=0.620401,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_1admin.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
 # nan_count_per_column = panel_data.isna().sum()
 # print(nan_count_per_column)
 
-# grid_data = create_grid(grid_polygon='square', regions='Africa', stepsize=2.00, show_grid=False)
-# pd.set_option('display.max_colwidth', None)
+# grid_data = create_grid(grid_polygon='first_admin', localities='Africa', stepsize=1.00, show_grid=True)
 # print(grid_data)
 
 

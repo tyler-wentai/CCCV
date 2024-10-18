@@ -11,6 +11,21 @@ from pingouin import partial_corr
 
 print('\n\nSTART ---------------------\n')
 
+
+
+import geopandas as gpd
+path_land = "/Users/tylerbagwell/Downloads/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp"
+gdf1 = gpd.read_file(path_land)
+
+print(gdf1)
+print(list(gdf1.columns))
+print(gdf1['admin'])
+
+gdf1.plot()
+plt.show()
+
+sys.exit()
+
 #
 def prepare_NINO3(file_path, start_date, end_date):
     """
