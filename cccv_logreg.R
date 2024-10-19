@@ -15,17 +15,44 @@ dat$loc_id <- as.factor(dat$loc_id)
 dat$year <- dat$year - min(dat$year)
 
 
+dat_rand <- dat
+dat_rand$INDEX_lag0y <- sample(dat_rand$INDEX_lag0y)
+dat_rand$INDEX_lag1y <- sample(dat_rand$INDEX_lag1y)
+dat_rand$INDEX_lag2y <- sample(dat_rand$INDEX_lag2y)
+
+reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
+            I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
+            I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
+            I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
+            year + loc_id - 1, data=dat_randpsi)
+summary(reg)
+
+
+unique_psi <- dat %>%
+  select(loc_id, psi) %>%
+  distinct()
+
+#set.seed(123)
+shuffled_psi <- unique_psi %>%
+  mutate(psi = sample(psi))
+
+dat_randpsi <- dat %>%
+  select(-psi) %>%  # Remove the original psi
+  left_join(shuffled_psi, by = "loc_id")  # Add the shuffled psi
+
+
+
 ###### BAYESIAN FITS
 # bernoulli model
 tic("Brms Model Fitting")
-fit1_nino <- brm(
+fit1_nino_randind <- brm(
   conflict_binary ~  0 + conflict_binary_lag1y + 
-    INDEX_lag0y + I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
-    INDEX_lag1y + I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
-    INDEX_lag2y + I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
-    year + loc_id + loc_id:year,
-  data = dat, family = bernoulli(link = "logit"), 
-  iter = 6000, chains=1, warmup=1000,
+    I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
+    I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
+    I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
+    year + loc_id,
+  data = dat_rand, family = bernoulli(link = "logit"), 
+  iter = 5000, chains=1, warmup=1000,
   prior = prior(normal(0, 10), class = b)
 )
 toc()
@@ -98,7 +125,7 @@ abline(h=1)
 library(viridis)
 library(scales)
 
-draws_matrix <- as_draws_matrix(fit1_nino)
+draws_matrix <- as_draws_matrix(fit1_nino_randind)
 colnames(draws_matrix)
 
 psi <- 1
@@ -106,9 +133,9 @@ climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
-  sum_params <- exp((climind*draws_matrix[, "b_INDEX_lag2y"]) + 
-                      (psi*climind*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) + 
-                      ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag2yMUpsiE2"])) - 1
+  sum_params <- exp( 
+                      (psi*climind*draws_matrix[, "b_IINDEX_lag0yMUpsi"]) + 
+                      ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag0yMUpsiE2"])) - 1
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),
@@ -116,10 +143,6 @@ for (i in 1:length(climindex)){
                               quantile(sum_params, 0.975)))
   
 }
-plot(results[,1], results[,2], type='l', col='black', ylim=c(0.9,6), lwd=2)
-lines(results[,1], results[,4], type='l', col='blue', lwd=2)
-lines(results[,1], results[,5], type='l', col='blue', lwd=2)
-abline(h=1)
 
 results_0d3 <- results
 results_0d7 <- results
