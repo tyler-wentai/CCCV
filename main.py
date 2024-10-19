@@ -12,20 +12,6 @@ from pingouin import partial_corr
 print('\n\nSTART ---------------------\n')
 
 
-
-import geopandas as gpd
-path_land = "/Users/tylerbagwell/Downloads/ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp"
-gdf1 = gpd.read_file(path_land)
-
-print(gdf1)
-print(list(gdf1.columns))
-print(gdf1['admin'])
-
-gdf1.plot()
-plt.show()
-
-sys.exit()
-
 #
 def prepare_NINO3(file_path, start_date, end_date):
     """
@@ -96,9 +82,10 @@ start_year  = 1980
 end_year    = 2022
 
 
+
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
-# file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
-file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc' # Soil moisture anomaly
+file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
+#file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc' # Soil moisture anomaly
     
 
 
@@ -107,7 +94,7 @@ import xarray as xr
 ds1 = xr.open_dataset(file_path_AIR)
 ds2 = xr.open_dataset(file_path_PREC)
 
-var2str = 'spi6'
+var2str = 'soilw'
 
 
 var1 = ds1['air']  # DataArray from the first dataset
@@ -115,9 +102,6 @@ var1 = ds1['air']  # DataArray from the first dataset
 var2 = ds2[var2str]
 
 # print(var1)
-print(var2)
-
-sys.exit()
 
 # Access longitude and latitude coordinates
 lon1 = ds1['lon']
@@ -152,19 +136,20 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
-
-clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 
 
 common_lon  = np.intersect1d(ds1['lon'], ds2['lon']) #probably should check that this is not null
 common_lat  = np.intersect1d(ds1['lat'], ds2['lat'])
 common_time = np.intersect1d(ds1['time'], ds2['time'])
 common_time = np.intersect1d(common_time, clim_ind.index.to_numpy())
+
 
 ds1_common      = ds1.sel(time=common_time, lon=common_lon, lat=common_lat)
 ds2_common      = ds2.sel(time=common_time, lon=common_lon, lat=common_lat)
@@ -174,13 +159,13 @@ var1_common = ds1_common['air']
 var2_common = ds2_common[var2str]
 
 
-
 # Check shapes
 print("var1_common shape:", var1_common.shape)
 print("var2_common shape:", var2_common.shape)
 print("clim_ind shape:   ", clim_ind_common.shape)
 
 n_time, n_lat, n_long = var1_common.shape
+
 
 
 
