@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_hex2.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -19,19 +19,19 @@ dat$year <- dat$year - min(dat$year)
 # bernoulli model
 tic("Brms Model Fitting")
 fit1_nino <- brm(
-  conflict_binary ~  conflict_binary_lag1y + 
+  conflict_binary ~  0 + conflict_binary_lag1y + 
     INDEX_lag0y + I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
     INDEX_lag1y + I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
     INDEX_lag2y + I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
-    year + SOVEREIGNT,
+    year + loc_id + loc_id:year,
   data = dat, family = bernoulli(link = "logit"), 
-  iter = 4000, chains=1, warmup=1000,
+  iter = 6000, chains=1, warmup=1000,
   prior = prior(normal(0, 10), class = b)
 )
 toc()
 
 print(summary(fit1_nino), digits = 3)
-#plot(fit2b)
+#plot(fit1_nino)
 
 
 draws_matrix <- as_draws_matrix(fit5)
@@ -106,7 +106,9 @@ climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
-  sum_params <- exp((climind*draws_matrix[, "b_INDEX_lag2y"]) + (psi*climind*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag2yMUpsiE2"])) - 1
+  sum_params <- exp((climind*draws_matrix[, "b_INDEX_lag2y"]) + 
+                      (psi*climind*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) + 
+                      ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag2yMUpsiE2"])) - 1
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),

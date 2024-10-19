@@ -534,13 +534,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Africa', stepsize=0.620401,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa', stepsize=1.5,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_1admin.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_hex1d5.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
