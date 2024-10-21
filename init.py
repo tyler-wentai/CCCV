@@ -521,11 +521,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         )
         ax.set_title(r'Teleconnection strength, Psi (nino3)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_1admin_psi_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/binarycounts_Africa_1admin_psi_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/psi_Africa_1admin_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/psi_Africa_1admin_nino3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -534,13 +534,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa', stepsize=1.5,
+panel_data = prepare_gridded_panel_data(grid_polygon='country', localities='Global', stepsize=1,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_hex1d5.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_country.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
