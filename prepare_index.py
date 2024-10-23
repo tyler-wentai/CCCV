@@ -98,11 +98,14 @@ def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     yearly['INDEX'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
     index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
 
+    # may_to_dec_df = clim_ind[clim_ind['month'].isin([5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    # index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    # index_DJF = index_DJF.rename(columns={'ANOM': 'INDEX'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+
     if (save_path!=False):
         np.save(save_path, index_DJF)
 
     return index_DJF
-
 
 #
 def compute_annualized_DMI_index(start_year, end_year, save_path=False):
@@ -130,6 +133,10 @@ def compute_annualized_DMI_index(start_year, end_year, save_path=False):
 
     yearly['INDEX'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average SON ANOM value
     index_yrAVG = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
+
+    # may_to_dec_df = clim_ind[clim_ind['month'].isin([5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    # index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    # index_yrAVG = index_DJF.rename(columns={'ANOM': 'INDEX'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 
     if (save_path!=False):
         np.save(save_path, index_yrAVG)

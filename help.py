@@ -63,8 +63,10 @@ conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
 conflict_df = pd.read_csv(conflictdata_path)
 
 # print(conflict_df.shape)
-conflict_df = conflict_df[conflict_df['best']>=1]
+# conflict_df = conflict_df[conflict_df['type_of_violence']==1]
+# conflict_df = conflict_df[conflict_df['best']>=1]
 conflict_df = conflict_df[conflict_df['active_year']==1]
+
 # print(conflict_df.shape)
 
 country_years = (
@@ -126,7 +128,7 @@ panel = panel.sort_values(['country', 'year']).reset_index(drop=True)
 nlag_psi = 4
 
 annual_index = compute_annualized_NINO3_index((start_year-nlag_psi-1), end_year)
-#annual_index = compute_annualized_DMI_index(start_year, end_year)
+# annual_index = compute_annualized_DMI_index((start_year-nlag_psi-1), end_year)
 
 for i in range(nlag_psi+1):
     lag_string = 'INDEX_lag' + str(i) + 'y'
