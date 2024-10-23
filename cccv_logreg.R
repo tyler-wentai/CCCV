@@ -1,10 +1,126 @@
 library(brms)
+library(dplyr)
+library(ggplot2)
+
+panel_data_path <- '/Users/tylerbagwell/Desktop/Onset_global_nino3.csv'
+dat <- read.csv(panel_data_path)
+
+head(dat)
+
+dat$country <- as.factor(dat$country)
+dat$year <- dat$year - min(dat$year)
+
+
+mod <- lm(conflict_onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
+            INDEX_lag1y + I(INDEX_lag1y*psi) + 
+            INDEX_lag2y + I(INDEX_lag2y*psi) + 
+            year + country + year:country - 1,
+          dat = dat)
+summary(mod)
+
+
+
+dat_l <- subset(dat, psi<0.4)
+dat_h <- subset(dat, psi>0.8)
+
+mod <- lm(conflict_onset ~ INDEX_lag0y +
+            year + country + year:country - 1,
+          dat = dat_h)
+summary(mod)
+
+
+
+###### BAYESIAN FITS
+# bernoulli model
+fit <- brm(
+  conflict_onset ~  0 + 
+    INDEX_lag0y + I(INDEX_lag0y*psi) +
+    INDEX_lag1y + I(INDEX_lag1y*psi) +
+    INDEX_lag2y + I(INDEX_lag2y*psi) +
+    year + country,
+  data = dat, family = bernoulli(link = "logit"), 
+  iter = 5000, chains=1, warmup=1000,
+  prior = prior(normal(0, 10), class = b)
+)
+
+print(summary(fit), digits = 3)
+
+
+
+
+
+#
+library(scales)
+
+draws_matrix <- as_draws_matrix(fit)
+colnames(draws_matrix)
+
+psi_range <- seq(min(dat$psi), max(dat$psi), length.out=100)
+results <- matrix(ncol=5, nrow=0)
+for (i in 1:length(psi_range)){
+  psi_i <- psi_range[i]
+  sum_params <- exp( draws_matrix[, "b_INDEX_lag2y"] + (psi_i*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) )
+  results <- rbind(results, c(psi_i,
+                              mean(sum_params), 
+                              sd(sum_params),
+                              quantile(sum_params, 0.025),
+                              quantile(sum_params, 0.975)))
+  
+}
+
+results_0d3 <- results
+results_0d7 <- results
+results_1d0 <- results
+
+df <- data.frame(
+  x = rep(psi_range, 3),
+  y = c(results_0d3[,2], results_0d7[,2], results_1d0[,2]),
+  ymin = c(results_0d3[,4], results_0d7[,4], results_1d0[,4]),
+  ymax = c(results_0d3[,5], results_0d7[,5], results_1d0[,5]),
+  group = rep(c("Lag 0", "Lag 1", "Lag 2"), each = length(psi_range))
+)
+
+sd_index <- sd(dat$INDEX_lag0y[1:34])
+df$x <- df$x/sd_index
+
+p <- ggplot(df, aes(x = x, y = y, color = group, fill = group)) +
+  geom_hline(yintercept=1, col = "gray", linewidth = 1.5) + 
+  geom_vline(xintercept=0, col = "gray", linewidth = 1.5) +
+  geom_ribbon(aes(ymin = ymin, ymax = ymax), alpha = 0.2, color = NA) +  # Credible region
+  geom_line(linewidth = 1) +  # Lines
+  scale_x_continuous(limits = c(min(df$x), max(df$x))) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  coord_cartesian(ylim = c(0.5, 1.7)) + 
+  labs(
+    title = "Africa, ENSO, Model 3",
+    x = "NINO3 Index (s.d.)",
+    y = "ENSO-induced change in the odds of conflict (%)",
+    color = expression("Teleconnection"~Psi~"=1.0"),
+    fill = expression("Teleconnection"~Psi~"=1.0")
+  ) +
+  theme_light() +
+  theme(legend.position=c(0.26, 0.8), legend.background = element_rect(fill = NA, color = NA),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12))
+
+p
+
+
+
+
+
+
+####################################################################
+
+library(brms)
 library(tictoc)
 library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary_nino3_hex2.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Global_binary_dmi_1admin.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -16,16 +132,17 @@ dat$year <- dat$year - min(dat$year)
 
 
 dat_rand <- dat
-dat_rand$INDEX_lag0y <- sample(dat_rand$INDEX_lag0y)
-dat_rand$INDEX_lag1y <- sample(dat_rand$INDEX_lag1y)
-dat_rand$INDEX_lag2y <- sample(dat_rand$INDEX_lag2y)
+dat_rand$INDEX_lag0y <- sample(dat$INDEX_lag0y)
+dat_rand$INDEX_lag1y <- sample(dat$INDEX_lag1y)
+dat_rand$INDEX_lag2y <- sample(dat$INDEX_lag2y)
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
-            I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
-            I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
-            year + loc_id - 1, data=dat_randpsi)
+            I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+            I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
+            I(psi*INDEX_lag2y) + I((psi*INDEX_lag2y)^2) +
+            year, data=dat_randpsi)
 summary(reg)
+
 
 
 unique_psi <- dat %>%
@@ -39,6 +156,9 @@ shuffled_psi <- unique_psi %>%
 dat_randpsi <- dat %>%
   select(-psi) %>%  # Remove the original psi
   left_join(shuffled_psi, by = "loc_id")  # Add the shuffled psi
+
+
+
 
 
 
@@ -134,8 +254,8 @@ results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
   sum_params <- exp( 
-                      (psi*climind*draws_matrix[, "b_IINDEX_lag0yMUpsi"]) + 
-                      ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag0yMUpsiE2"])) - 1
+    (psi*climind*draws_matrix[, "b_IINDEX_lag0yMUpsi"]) + 
+      ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag0yMUpsiE2"])) - 1
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),
@@ -218,20 +338,20 @@ d_odds_lag2 <- exp((index199.ob*draws_matrix[, "b_INDEX_lag2y"]) +
 
 results <- matrix(ncol=6, nrow=0)
 results <- rbind(results, c(psi, 0,
-                       mean(d_odds_lag0), 
-                       sd(d_odds_lag0),
-                       quantile(d_odds_lag0, 0.025),
-                       quantile(d_odds_lag0, 0.975)))
+                            mean(d_odds_lag0), 
+                            sd(d_odds_lag0),
+                            quantile(d_odds_lag0, 0.025),
+                            quantile(d_odds_lag0, 0.975)))
 results <- rbind(results, c(psi, 1,
-                       mean(d_odds_lag1), 
-                       sd(d_odds_lag1),
-                       quantile(d_odds_lag1, 0.025),
-                       quantile(d_odds_lag1, 0.975)))
+                            mean(d_odds_lag1), 
+                            sd(d_odds_lag1),
+                            quantile(d_odds_lag1, 0.025),
+                            quantile(d_odds_lag1, 0.975)))
 results <- rbind(results, c(psi, 2,
-                       mean(d_odds_lag2), 
-                       sd(d_odds_lag2),
-                       quantile(d_odds_lag2, 0.025),
-                       quantile(d_odds_lag2, 0.975)))
+                            mean(d_odds_lag2), 
+                            sd(d_odds_lag2),
+                            quantile(d_odds_lag2, 0.025),
+                            quantile(d_odds_lag2, 0.975)))
 
 results_0d4 <- results
 results_1d0 <- results

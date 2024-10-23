@@ -165,46 +165,25 @@ def compute_annualized_DMI_index(start_year, end_year, save_path=False):
 
 
 #
-def create_grid(localities, show_grid=False):
+def create_global_panel(show_grid=False):
     """
     Creates a square gridding over the specified region with specified stepsize in units of lat and lon degrees
     """
-    africa_countries = ['Mauritania','Western Sahara','Ivory Coast','Niger','Guinea-Bissau','Tunisia','Equatorial Guinea','Malawi','Gabon','Liberia',
-                        'Algeria','Lesotho','Sierra Leone','Mozambique','Ethiopia','Benin','Kenya','Guinea','Somalia','Madagascar',
-                        'Morocco','Rwanda','South Sudan','Burkina Faso','Democratic Republic of the Congo','Botswana','Central African Republic','Nigeria',
-                        'Mali','Namibia','Libya','Senegal','Burundi','eSwatini','Cameroon','United Republic of Tanzania','Togo','Republic of the Congo',
-                        'Somaliland','Djibouti','Eritrea','Zimbabwe','Gambia','South Africa','Sudan','Zambia','Egypt',
-                        'Chad','Angola','Uganda','Ghana'] #Africa has 54 reconized countries + 2 territories (Somaliland and Western Sahara) # removed Seychelles, Comoros, Mauritius, São Tomé and Principe, Cabo Verde
-    asia_countries = ['India','Philippines','Myanmar','Nepal','Bangladesh','Tajikistan','Pakistan','Sri Lanka','Thailand','Indonesia','China','Vietnam',
-                      'Afghanistan','Cambodia','Laos','Malaysia','Bhutan','Japan','Taiwan','South Korea','North Korea','Singapore','Turkmenistan','Uzbekistan',
-                      'Kyrgyzstan','Iran','Papua New Guinea']
-    south_america = ['Argentina','Uruguay','Chile','Brazil','Paraguay','Bolivia','Peru','Ecuador','Colombia','Venezuela','Guyana','Suriname','Panama',
-                     'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize']
+
+    remove_sovereignty = ['Antigua and Barbuda', 'Comoros', 'Federated States of Micronesia', 'Kiribati', 'Nauru', 'Marshall Islands', 'Maldives', 
+                          'Palau', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Seychelles',
+                          'Tuvalu', 'Vanuatu', 'Mauritius', 'São Tomé and Principe', 'Cabo Verde', 'Antarctica']
 
     # read in shp file data
     path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
     gdf1 = gpd.read_file(path_land)
-
-    # grab the polygons related to each country (SOVEREIGNT) and 'explode' any countries
-    # made of multipolygons into individual polygons
-    if (localities=='Africa' or localities=='africa'):
-        regions = africa_countries
-    elif (localities=='Asia' or localities=='asia'):
-        regions = asia_countries
-    elif (localities=='South America' or localities=='south america'):
-        regions = south_america
-    elif (localities=='Global' or localities=='global'):
-        regions = set(gdf1['SOVEREIGNT'])
-        regions.remove('Antarctica') # Remove Antarctica
-    else:
-        if not isinstance(localities, list):
-            raise TypeError(f"'localities' argument should be a list if not a pre-specified region.")
-        regions = localities
-
+    regions = set(gdf1['SOVEREIGNT'])
     gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
     gdf1 = gdf1[gdf1['SOVEREIGNT'] == gdf1['ADMIN']]
+    gdf1 = gdf1[~gdf1['SOVEREIGNT'].isin(remove_sovereignty)]
 
     print(sorted(gdf1['SOVEREIGNT']))
+
 
     gdf1_help = gdf1.copy()
     gdf1 = gdf1.explode(index_parts=True)
@@ -415,11 +394,11 @@ def prepare_panel_data(localities, nlag_psi, nlag_conflict, clim_index, telecon_
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
 
-panel_data = prepare_panel_data(localities='Global',
-                                nlag_psi=7, nlag_conflict=1,
-                                clim_index = 'NINO3',
-                                telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
-                                show_grid=False, show_gridded_aggregate=True)
+# panel_data = prepare_panel_data(localities='Global',
+#                                 nlag_psi=7, nlag_conflict=1,
+#                                 clim_index = 'NINO3',
+#                                 telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+#                                 show_grid=False, show_gridded_aggregate=True)
 
 
 # panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=1.5,
@@ -435,8 +414,8 @@ panel_data = prepare_panel_data(localities='Global',
 # nan_count_per_column = panel_data.isna().sum()
 # print(nan_count_per_column)
 
-# grid_data = create_grid(localities='Global', show_grid=True)
-# print(grid_data)
+panel = create_global_panel(show_grid=True)
+print(panel)
 
 
 
