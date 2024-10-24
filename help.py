@@ -86,7 +86,6 @@ country_years.rename(columns={'country_name': 'country'}, inplace=True)
 # print(country_years.iloc[0])
 
 
-
 countriesA = set(gdf1['SOVEREIGNT'])
 countriesB = set(country_years['country'])
 

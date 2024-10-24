@@ -408,8 +408,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
-    # conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_lowdeaths.csv'
+    # conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_2.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -537,13 +537,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=1.5,
+panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Global', stepsize=1.5,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_square1d5.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_CON1.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

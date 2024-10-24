@@ -18,7 +18,7 @@ def prepare_ONI(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    df_oni = pd.read_csv(file_path, sep='\s+')
+    df_oni = pd.read_csv(file_path, sep=r'\s+')
     season_to_months = {
         'NDJ': '01',
         'DJF': '02',
@@ -63,7 +63,7 @@ def prepare_NINO3(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    nino3 = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    nino3 = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
     year_start = int(nino3.iloc[0,0])
     nino3 = nino3.iloc[:,1:nino3.shape[1]].values.flatten()
     df_nino3 = pd.DataFrame(nino3)
@@ -95,7 +95,7 @@ def prepare_DMI(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    dmi = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    dmi = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
     year_start = int(dmi.iloc[0,0])
     dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
     df_dmi = pd.DataFrame(dmi)
@@ -129,7 +129,7 @@ def prepare_AMM(file_path, start_date, end_date):
     start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
     """
     # Read in data files
-    amm = pd.read_csv(file_path, sep='\s+', skiprows=1, skipfooter=5, header=None, engine='python')
+    amm = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=5, header=None, engine='python')
     year_start = int(amm.iloc[0,0])
     amm = amm.iloc[:,1:amm.shape[1]].values.flatten()
     df_amm = pd.DataFrame(amm)
@@ -177,6 +177,7 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
     file_path_ONI = 'data/NOAA_ONI_data.txt' # ONI: Oceanic Nino Index
     file_path_DMI = 'data/NOAA_DMI_data.txt' # DMI: Dipole Mode Index
     file_path_AMM = 'data/NOAA_AMM_data.txt' # AMM: Atlantic Meridional Mode Index
+    file_path_NINO3 = 'data/NOAA_NINO3_data.txt'
 
     start_date = datetime(start_year, 1, 1, 0, 0, 0)
     end_date = datetime(end_year, 12, 1, 0, 0, 0)
@@ -185,6 +186,9 @@ def compute_psi_Hsiang2011(climate_index, start_year, end_year, num_lag, num_R, 
     if climate_index=="oni" or climate_index=="ONI":
         df_climate_index = prepare_ONI(file_path_ONI, start_date, end_date)
         climate_index_name = 'oni'
+    elif climate_index=="nino3" or climate_index=="NINO3":
+        df_climate_index = prepare_NINO3(file_path_NINO3, start_date, end_date)
+        climate_index_name = 'nino3'
     elif climate_index=="dmi" or climate_index=="DMI":
         df_climate_index = prepare_DMI(file_path_DMI, start_date, end_date)
         climate_index_name = 'dmi'
@@ -412,11 +416,11 @@ def compute_gridded_correlation(climate_index, start_year, end_year, num_lag, sa
     rho_array.to_netcdf(save_path)
 
 
-# compute_psi_Hsiang2011(climate_index="amm",
-#                        start_year=1980, end_year=2020, 
-#                        num_lag=2, 
-#                        num_R=3, 
-#                        save_path="/Users/tylerbagwell/Desktop/psi_Hsiang2011_amm.nc")
+compute_psi_Hsiang2011(climate_index="nino3",
+                       start_year=1980, end_year=2020, 
+                       num_lag=2, 
+                       num_R=3, 
+                       save_path="/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc")
 
 
 # compute_gridded_correlation(climate_index="amm", 
@@ -859,4 +863,4 @@ psi_array = xr.DataArray(data = psi,
                             climate_index_used = 'NINO3')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc')
+# psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_NINO3.nc')
