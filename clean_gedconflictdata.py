@@ -20,7 +20,7 @@ print(df_conflict.shape)
 # step 1: remove conflicts between two or more governments, i.e., inter-state or state-on-state conflict
 # df_cleaned = df_conflict[~(df_conflict['side_a'].str.startswith('Government') & df_conflict['side_b'].str.startswith('Government'))]
 df_cleaned = df_conflict[df_conflict['active_year']==1]
-df_cleaned = df_cleaned[df_cleaned['type_of_violence']==1]
+# df_cleaned = df_cleaned[df_cleaned['type_of_violence']==2]
 
 # step 2: remove conflicts where there is large uncertainty in the event geo-location:
 df_cleaned = df_cleaned[df_cleaned['where_prec'] <= 4]

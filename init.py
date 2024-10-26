@@ -125,6 +125,10 @@ def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     yearly['INDEX'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
     index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
 
+    may_to_dec_df = clim_ind[clim_ind['month'].isin([5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+    index_DJF = index_DJF.rename(columns={'ANOM': 'INDEX'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+
     if (save_path!=False):
         np.save(save_path, index_DJF)
 
@@ -537,13 +541,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Global', stepsize=1.5,
+panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Africa', stepsize=1.5,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_CON1.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
