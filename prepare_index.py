@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
-
+import matplotlib.pyplot as plt
 
 #
 def prepare_NINO3(file_path, start_date, end_date):
@@ -98,6 +98,20 @@ def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     yearly['INDEX'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
     index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
 
+    # nov_dec_df = clim_ind[clim_ind['month'].isin([11,12])].copy() # prepare September, October, and November data for current year
+    # nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+    # dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+
+    # jan_df = clim_ind[clim_ind['month'].isin([1, 2])].copy() # prepare January and February data for current year
+    # jan_df['year'] = jan_df['year'] - 1  # Shift to past year
+    # jan     = jan_df[jan_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+
+    # yearly = pd.merge(nov, dec, on='year', how='inner') # merge December, January, and February data
+    # yearly = pd.merge(yearly, jan, on='year', how='inner') # merge December, January, and February data
+
+    # yearly['INDEX'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+    # index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
+
     # may_to_dec_df = clim_ind[clim_ind['month'].isin([5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
     # index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
     # index_DJF = index_DJF.rename(columns={'ANOM': 'INDEX'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
@@ -142,3 +156,117 @@ def compute_annualized_DMI_index(start_year, end_year, save_path=False):
         np.save(save_path, index_yrAVG)
 
     return index_yrAVG
+
+
+
+
+start_year = 1989
+end_year = 2023
+
+dat = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt', 
+                    start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                    end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+index_yr = compute_annualized_NINO3_index(start_year,end_year)
+index_yr = index_yr.set_index('year')
+
+# dat = prepare_DMI(file_path='data/NOAA_DMI_data.txt',
+#                   start_date=datetime(1960, 1, 1, 0, 0, 0),
+#                   end_date=datetime(2023, 12, 1, 0, 0, 0))
+
+# index_yr = compute_annualized_DMI_index(1960,2023)
+# index_yr = index_yr.set_index('year')
+
+# monthly_avg = dat.groupby(dat.index.month)['ANOM'].mean()
+
+# df_filtered_nino = dat[dat['ANOM'] >= 0]
+# monthly_avg_nino = df_filtered_nino.groupby(df_filtered_nino.index.month)['ANOM'].mean()
+
+# df_filtered_nina = dat[dat['ANOM'] <= 0]
+# monthly_avg_nina = df_filtered_nina.groupby(df_filtered_nina.index.month)['ANOM'].mean()
+# monthly_avg_nina = np.abs(monthly_avg_nina)
+
+
+# plt.plot(np.arange(1,13), monthly_avg_nino, marker='o', color='red', label='nino3, El Nino')
+# plt.plot(np.arange(1,13), monthly_avg_nina, marker='o', color='blue', label='nino3, La Nina (abs. val.)')
+# plt.plot(np.arange(1,13), monthly_avg, marker='o', color='green', label='nino3')
+# plt.xticks(range(1, 13))
+# # Optionally, label the ticks with month names
+# month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+#                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+# plt.gca().set_xticklabels(month_names)
+# plt.legend()
+# plt.grid()
+# plt.xlabel('Month')
+# plt.ylabel('nino3 index averaged (degC)')
+# plt.title('1990-2022')
+# plt.savefig('/Users/tylerbagwell/Desktop/nino3_index_avg_1990.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+
+###
+
+dat['date'] = pd.to_datetime(dat.index)
+dat['Year'] = dat['date'].dt.year
+dat['Month'] = dat['date'].dt.month
+
+# print(dat)
+
+pivot_df = dat.pivot(index='Year', columns='Month', values='ANOM')
+pivot_df[[13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]] = pivot_df[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]].shift(-1)
+
+
+
+pivot_df['index_yravg'] = pivot_df.index.map(index_yr['INDEX'])
+pivot_df = pivot_df.dropna()
+
+# print(pivot_df)
+
+print(pivot_df)
+# print(pivot_df.corr(method='pearson'))
+
+
+
+# print(corr)
+
+
+from scipy.stats import pearsonr
+def pearson_corr_pvals(df):
+    cols = df.columns
+    corr = pd.DataFrame(np.zeros((len(cols), len(cols))), columns=cols, index=cols)
+    pvals = pd.DataFrame(np.zeros((len(cols), len(cols))), columns=cols, index=cols)
+    
+    for i in range(len(cols)):
+        for j in range(len(cols)):
+            if i == j:
+                corr.iloc[i, j] = 1.0
+                pvals.iloc[i, j] = 0.0
+            elif i < j:
+                rho, pval = pearsonr(df.iloc[:, i], df.iloc[:, j])
+                corr.iloc[i, j] = rho
+                pvals.iloc[i, j] = pval
+                corr.iloc[j, i] = rho
+                pvals.iloc[j, i] = pval
+    return corr, pvals
+
+corr_matrix, pval_matrix = pearson_corr_pvals(pivot_df)
+
+# print(corr_matrix)
+
+
+plt.plot(np.arange(1,25), corr_matrix['index_yravg'][0:24], color='red', label='corr', marker='.')
+plt.plot(np.arange(1,25), pval_matrix['index_yravg'][0:24], color='red', linestyle='--', label='p-value', marker='.')
+plt.xticks(range(1, 25))
+month_names = ['J', 'F', 'M', 'A', 'M', 'J',
+               'J', 'A', 'S', 'O', 'N', 'D',
+               'J', 'F', 'M', 'A', 'M', 'J',
+               'J', 'A', 'S', 'O', 'N', 'D']
+plt.gca().set_xticklabels(month_names)
+rectangle = plt.Rectangle((10.5, -1), 3, 3, linewidth=1, edgecolor=None, facecolor='gray', alpha=0.5)
+plt.gca().add_patch(rectangle)
+plt.xlim(0.75,24.25)
+plt.legend()
+plt.title("NINO3, 1989-2023")
+plt.ylabel("Correlation with NDJ NINO3")
+# plt.savefig('/Users/tylerbagwell/Desktop/nino3_NDJ_correlation.png', dpi=300, bbox_inches='tight')
+plt.show()
