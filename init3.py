@@ -8,6 +8,7 @@ from datetime import datetime
 import math
 import xarray as xr
 import seaborn as sns
+from prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -30,156 +31,6 @@ def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
         y = center_y + maximal_radius * math.sin(angle_rad)
         vertices.append((x, y))
     return vertices
-
-#
-def prepare_NINO3(file_path, start_date, end_date):
-    """
-    Prepare NINO3 index data as pd.Data.Frame from Standard PSL Format (https://psl.noaa.gov/gcos_wgsp/Timeseries/Nino3/)
-    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
-    """
-    # Read in data files
-    nino3 = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
-    year_start = int(nino3.iloc[0,0])
-    nino3 = nino3.iloc[:,1:nino3.shape[1]].values.flatten()
-    df_nino3 = pd.DataFrame(nino3)
-    date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_nino3.shape[0], freq='MS')
-    df_nino3.index = date_range
-    df_nino3.rename_axis('date', inplace=True)
-    df_nino3.columns = ['ANOM']
-
-    start_ts_l = np.where(df_nino3.index == start_date)[0]
-    end_ts_l = np.where(df_nino3.index == end_date)[0]
-    # Test if index list is empty, i.e., start_date or end_date are outside time series range
-    if not start_ts_l:
-        raise ValueError("start_ts_l is empty, start_date is outside range of NINO3 index time series.")
-    if not end_ts_l:
-        raise ValueError("end_ts_l is empty, end_date is outside range of NINO3 index time series.")
-    
-    start_ts_ind = int(start_ts_l[0])
-    end_ts_ind = int(int(end_ts_l[0])+1)
-
-    df_nino3 = df_nino3.iloc[start_ts_ind:end_ts_ind]
-
-    return df_nino3
-
-
-#
-def prepare_DMI(file_path, start_date, end_date):
-    """
-    Prepare DMI index data as pd.Data.Frame from Standard PSL Format (https://psl.noaa.gov/data/timeseries/monthly/standard.html)
-    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
-    """
-    # Read in data files
-    dmi = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
-    year_start = int(dmi.iloc[0,0])
-    dmi = dmi.iloc[:,1:dmi.shape[1]].values.flatten()
-    df_dmi = pd.DataFrame(dmi)
-    date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_dmi.shape[0], freq='MS')
-    df_dmi.index = date_range
-    df_dmi.rename_axis('date', inplace=True)
-    df_dmi.columns = ['ANOM']
-
-    start_ts_l = np.where(df_dmi.index == start_date)[0]
-    end_ts_l = np.where(df_dmi.index == end_date)[0]
-    # Test if index list is empty, i.e., start_date or end_date are outside time series range
-    if not start_ts_l:
-        raise ValueError("start_ts_l is empty, start_date is outside range of DMI index time series.")
-    if not end_ts_l:
-        raise ValueError("end_ts_l is empty, end_date is outside range of DMI index time series.")
-    
-    start_ts_ind = int(start_ts_l[0])
-    end_ts_ind = int(int(end_ts_l[0])+1)
-
-    df_dmi = df_dmi.iloc[start_ts_ind:end_ts_ind]
-
-    return df_dmi
-
-
-#
-def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
-    """
-    Computes the annualized NINO3 index via the average of the index of DEC(t-1),JAN(t),FEB(t) based on
-    the method of Callahan 2023
-    """
-    # load index data
-    clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
-
-    # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
-    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
-    clim_ind['year'] = clim_ind.index.year
-    clim_ind['month'] = clim_ind.index.month
-
-    # dec_df = clim_ind[clim_ind['month'] == 12].copy() # prepare December data from previous year
-    # dec_df['year'] = dec_df['year'] + 1  # Shift to next year
-    # dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
-
-    # jan_feb_df = clim_ind[clim_ind['month'].isin([1, 2])].copy() # prepare January and February data for current year
-    # jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-    # feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
-
-    # yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
-    # yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
-
-    # yearly['INDEX'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-    # index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
-
-    # nov_dec_df = clim_ind[clim_ind['month'].isin([11,12])].copy() # prepare November, December, and January data 
-    # nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
-    # dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
-
-    # jan_df = clim_ind[clim_ind['month'].isin([1, 2])].copy() # prepare January data
-    # jan_df['year'] = jan_df['year'] - 1  # Shift to past year
-    # jan     = jan_df[jan_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-
-    # yearly = pd.merge(nov, dec, on='year', how='inner') # merge 
-    # yearly = pd.merge(yearly, jan, on='year', how='inner') # merge 
-
-    # yearly['INDEX'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
-    # index_DJF = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
-
-    may_to_dec_df = clim_ind[clim_ind['month'].isin([5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-    index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-    index_DJF = index_DJF.rename(columns={'ANOM': 'INDEX'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-
-    if (save_path!=False):
-        np.save(save_path, index_DJF)
-
-    return index_DJF
-
-
-#
-def compute_annualized_DMI_index(start_year, end_year, save_path=False):
-    """
-    Computes the annualized DMI index via the average of the index of SEP(t),OCT(t),NOV(t) inspired by
-    the method of Callahan 2023
-    """
-    # load index data
-    clim_ind = prepare_DMI(file_path='data/NOAA_DMI_data.txt',
-                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
-
-    # Compute the year index value as the average of SEP(t),OCT(t),NOV(t).
-    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
-    clim_ind['year'] = clim_ind.index.year
-    clim_ind['month'] = clim_ind.index.month
-
-    sep_oct_nov_df = clim_ind[clim_ind['month'].isin([9, 10, 11])].copy() # prepare September, October, and November data for current year
-    sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-    oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-    nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
-
-    yearly = pd.merge(sep, oct, on='year', how='inner') # merge September, October data
-    yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
-
-    yearly['INDEX'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average SON ANOM value
-    index_yrAVG = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
-
-    if (save_path!=False):
-        np.save(save_path, index_yrAVG)
-
-    return index_yrAVG
 
 
 #
@@ -334,38 +185,6 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     gdf_final['loc_id'] = ['loc_'+str(i) for i in range(gdf_final.shape[0])]
     gdf_final = gdf_final.to_crs(4326)
 
-    # # determine the neighbors of each grid cell
-    # gdf_help = gdf_final.copy()
-    # projected_crs = "EPSG:3395"
-    # gdf_help.to_crs(projected_crs, inplace=True) 
-    # gdf_help['buffer'] = gdf_help.geometry.buffer(100)
-
-    # neighbors = gpd.sjoin(gdf_help, gdf_help, how='left', predicate='intersects')
-    # neighbors = neighbors[neighbors['loc_id_left'] != neighbors['loc_id_right']] # Remove self-matches
-    # neighbors_list = neighbors.groupby('loc_id_left')['loc_id_right'].apply(list).reset_index()
-    # neighbors_list = neighbors_list.rename(columns={'loc_id_left': 'loc_id', 'loc_id_right': 'neighbors'})
-    # gdf_help = gdf_help.merge(neighbors_list, on='loc_id', how='left')
-    
-    # gdf_help['neighbors'] = gdf_help['neighbors'].apply(lambda x: x if isinstance(x, list) else [])
-    # max_neighbors = gdf_help['neighbors'].apply(len).max()
-    # print(f"Maximum number of neighbors: {max_neighbors}")
-    # for i in range(max_neighbors):
-    #     gdf_help[f'neighbor_{i+1}'] = gdf_help['neighbors'].apply(lambda x: x[i] if i < len(x) else None)
-    # gdf_help = gdf_help.drop(columns=['neighbors'])
-
-
-    # if not gdf_final['loc_id'].is_unique:
-    #     raise ValueError("The 'loc_id' column in gdf_final must be unique.")
-    
-    # neighbor_cols_list = [f'neighbor_{i}' for i in range(1, max_neighbors + 1)]
-    # neighbor_cols_list = ['loc_id'] + neighbor_cols_list
-    # print(neighbor_cols_list)
-    # gdf_final = gdf_final.merge(gdf_help[neighbor_cols_list],
-    #                             on='loc_id',
-    #                             how='left'
-    #                             )
-    
-
     # determine the dominant country for each grid cell
     intersection_gdf = gpd.overlay(gdf_final, gdf_countries, how='intersection')
     if not intersection_gdf.crs.is_projected:
@@ -445,37 +264,41 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     desired_years = list(set(conflict_df['year']))
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
-    # group by polygon (loc_id) and year and then count number of conflicts for each grouping
-    count_df = filtered_gdf.groupby(['loc_id', 'year']).size().reset_index(name='conflict_count')
-
-    # create complete grid, necessary to also get 0 counts for polygon,year pairs with no conflicts
-    polygon_ids = polygons_gdf['loc_id'].unique()
-    years = desired_years
-    complete_index = pd.MultiIndex.from_product([polygon_ids, years], names=['loc_id', 'year'])
-    count_complete_df = count_df.set_index(['loc_id', 'year']).reindex(complete_index, fill_value=0).reset_index()
-
-    # merge conflict counts back to polygons to retain geometry
-    final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
-    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
-
-    # Add the observed annualized climate index values to panel dataset
     start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
     end_year    = np.max(desired_years)
 
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        # align to tropical year
+        filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
+        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year - (filtered_gdf['date_start'].dt.month <= 5).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
     else:
         raise ValueError("Specified 'clim_index' not found...")
 
+    # group by polygon (loc_id) and year and then count number of conflicts for each grouping
+    count_df = filtered_gdf.groupby(['loc_id', 'tropical_year']).size().reset_index(name='conflict_count')
+
+    # create complete grid, necessary to also get 0 counts for polygon,year pairs with no conflicts
+    polygon_ids = polygons_gdf['loc_id'].unique()
+    years = desired_years
+    complete_index = pd.MultiIndex.from_product([polygon_ids, years], names=['loc_id', 'tropical_year'])
+    count_complete_df = count_df.set_index(['loc_id', 'tropical_year']).reindex(complete_index, fill_value=0).reset_index()
+
+    # merge conflict counts back to polygons to retain geometry
+    final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
+    final_gdf = final_gdf[['loc_id', 'tropical_year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
+
+    # Add the observed annualized climate index values to panel dataset
     for i in range(nlag_psi+1):
         lag_string = 'INDEX_lag' + str(i) + 'y'
         annual_index[lag_string] = annual_index['INDEX'].shift((i))
     annual_index.drop('INDEX', axis=1, inplace=True)
 
-    final_gdf = final_gdf.merge(annual_index, on='year', how='left')
-    final_gdf = final_gdf.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
+    final_gdf = final_gdf.merge(annual_index, on='tropical_year', how='left')
+    final_gdf = final_gdf.sort_values(['loc_id', 'tropical_year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
 
     for i in range(nlag_conflict):
         lag_string = 'conflict_count_lag' + str(i+1) + 'y'
@@ -514,7 +337,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
         # for randomizing psi:
-        # mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
+        mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
@@ -558,13 +381,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_OLD_square4_CON2.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_square2_NEW_RandPsi.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
