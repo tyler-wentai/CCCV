@@ -7,28 +7,28 @@ import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -72,19 +72,19 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 ax = axs[1, 0]
-c = ax.contourf(lon, lat, variable2, colors=colors, levels=levels)
+c = ax.contourf(lon, lat, variable2, cmap='BrBG')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
-gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
-ax.set_title('airtemp_month_lag=2')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+ax.set_title('airtemp_month_lag=1')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 ax = axs[1, 1]
-c = ax.contourf(lon, lat, variable3, colors=colors, levels=levels)
+c = ax.contourf(lon, lat, variable3, cmap='BrBG')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
-gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
-ax.set_title('airtemp_month_lag=3')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+ax.set_title('airtemp_month_lag=1')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
