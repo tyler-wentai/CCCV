@@ -514,7 +514,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
         # for randomizing psi:
-        mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
+        # mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
@@ -558,13 +558,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=5,
                                         nlag_psi=7, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_OLD_spei6_RandPsi.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_OLD_spei6_square5.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
