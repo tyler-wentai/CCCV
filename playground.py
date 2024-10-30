@@ -137,12 +137,12 @@ def prepare_DMI(file_path, start_date, end_date):
 start_year  = 1980
 end_year    = 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc' # SPEI
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # SPEI
 
 import xarray as xr
 
 ds1 = xr.open_dataset(file_path_VAR1)
-var1str = 'spei6'
+var1str = 'air'
 var1 = ds1[var1str]  # DataArray from the first dataset
 
 # Access longitude and latitude coordinates
@@ -150,8 +150,8 @@ lon1 = ds1['lon']
 lat1 = ds1['lat']
 
 
-lat_int_mask = (lat1 % 1 == 0)
-lon_int_mask = (lon1 % 1 == 0)
+lat_int_mask = (lat1 % 0.5 == 0)
+lon_int_mask = (lon1 % 0.5 == 0)
 
 ds_cleaned = ds1.sel(lat=lat1[lat_int_mask], lon=lon1[lon_int_mask])
 
@@ -351,10 +351,10 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Psi, teleconnection strength (w/ sign) inspired by Callahan 2023 method using spei.",
+                            description="Psi, teleconnection strength (w/ sign) inspired by Callahan 2023 method using air.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = 'NINO3')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc') 

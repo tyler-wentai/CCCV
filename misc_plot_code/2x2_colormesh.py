@@ -7,28 +7,28 @@ import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_spei_pm_1deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -54,7 +54,7 @@ fig, axs = plt.subplots(2, 2, figsize=(9, 7))
 fig.suptitle(r'Correlation $\rho$ of ONI and Air Temp.', fontsize=16)
 
 ax = axs[0, 0]
-c = ax.contourf(lon, lat, variable0, cmap='YlOrRd', levels=levels)
+c = ax.contourf(lon, lat, variable0, cmap='PRGn', levels=levels)
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_title('airtemp_month_lag=0')
@@ -63,7 +63,7 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 ax = axs[0, 1]
-c = ax.contourf(lon, lat, variable1, cmap='YlOrRd')
+c = ax.contourf(lon, lat, variable1, cmap='PRGn')
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
 ax.set_title('airtemp_month_lag=1')
@@ -90,5 +90,5 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 fig.tight_layout()
-# plt.savefig('plots/rho_AMM_airtemp_NoOcean.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/psi_nino3_spei6.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()

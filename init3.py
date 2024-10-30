@@ -337,7 +337,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
         # for randomizing psi:
-        mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
+        # mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
@@ -360,7 +360,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         final_gdf.plot(
             column='psi',    
-            cmap='YlOrRd',   #turbo    YlOrRd           
+            cmap='PRGn',   #turbo    YlOrRd     PRGn
             legend=True,                   
             legend_kwds={'label': "psi", 'orientation': "vertical"},
             ax=ax,
@@ -381,13 +381,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
-                                        nlag_psi=7, nlag_conflict=1,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=3.0,
+                                        nlag_psi=4, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_square2_NEW_RandPsi.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_NEW_air_square3.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
