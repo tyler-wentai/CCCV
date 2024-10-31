@@ -564,7 +564,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Globa
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_OLD_square1d5.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_OLD_square3.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
