@@ -72,7 +72,7 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 ax = axs[1, 0]
-c = ax.contourf(lon, lat, variable2, cmap='BrBG')
+c = ax.contourf(lon, lat, variable2, cmap='PRGn')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
 ax.set_title('airtemp_month_lag=1')
@@ -81,7 +81,7 @@ ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 
 ax = axs[1, 1]
-c = ax.contourf(lon, lat, variable3, cmap='BrBG')
+c = ax.contourf(lon, lat, variable3, cmap='PRGn')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
 ax.set_title('airtemp_month_lag=1')

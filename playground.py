@@ -159,9 +159,6 @@ print(ds_cleaned['lat'].values)
 print(ds_cleaned['lon'].values)
 
 ds1 = ds_cleaned.copy()
-lon1 = ds1['lon']
-lat1 = ds1['lat']
-
 
 # Function to convert longitude from 0-360 to -180 to 180
 def convert_longitude(ds):
@@ -175,6 +172,8 @@ if lon1.max() > 180:
     ds1 = convert_longitude(ds1)
 
 ds1 = ds1.sortby('lon')
+lon1 = ds1['lon']
+lat1 = ds1['lat']
 
 ds1 = ds1.assign_coords(
     lon=np.round(ds1['lon'], decimals=2),
