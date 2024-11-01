@@ -150,8 +150,8 @@ lon1 = ds1['lon']
 lat1 = ds1['lat']
 
 
-lat_int_mask = (lat1 % 0.5 == 0)
-lon_int_mask = (lon1 % 0.5 == 0)
+lat_int_mask = (lat1 % 2.0 == 0)
+lon_int_mask = (lon1 % 2.0 == 0)
 
 ds_cleaned = ds1.sel(lat=lat1[lat_int_mask], lon=lon1[lon_int_mask])
 
@@ -295,6 +295,7 @@ index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=Tr
 # IOD: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from MAY(t) to MAY(t+1) with SON index(t)
 corrs_array_1 = np.empty((15,n_lat,n_long))
 psi = np.empty((n_lat,n_long))
+psi_month_max = np.empty((n_lat,n_long))
 
 print("\nComputing psi array...")
 for i in range(n_lat):
@@ -340,8 +341,10 @@ for i in range(n_lat):
             max_corr1 = rolling_avg1[index] # find the extrema value (either neg or pos)
             # compute teleconnection (psi)
             psi[i,j] = max_corr1
+            psi_month_max[i,j] = index
         else:
             psi[i,j] = np.nan
+            psi_month_max[i,j] = np.nan
 
 psi_array = xr.DataArray(data = psi,
                             coords={
@@ -357,3 +360,17 @@ psi_array = xr.DataArray(data = psi,
                         )
 
 psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc') 
+
+psi_month_array = xr.DataArray(data = psi_month_max,
+                            coords={
+                            "lat": lat1,
+                            "lon": lon1
+                        },
+                        dims = ["lat", "lon"],
+                        attrs=dict(
+                            description="Psi max month index, teleconnection strength (w/ sign) inspired by Callahan 2023 method using air.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = 'NINO3')
+                        )
+psi_month_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc') 

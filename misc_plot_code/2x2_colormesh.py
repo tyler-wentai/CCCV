@@ -6,29 +6,30 @@ import seaborn as sns
 import xarray as xr
 from matplotlib.colors import ListedColormap
 import numpy as np
+import sys
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -41,6 +42,20 @@ gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
 
+fig, ax = plt.subplots(figsize=(9, 7))
+c = ax.contourf(lon, lat, variable2, cmap='PRGn')
+gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+ax.set_title('airtemp_month_lag=1')
+ax.set_xlim([-180.0, 180.0])
+ax.set_ylim([-90.0, +90.0])
+fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
+fig.tight_layout()
+# plt.savefig('/Users/tylerbagwell/Desktop/psi_nino3_spei6.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
+
+
+sys.exit()
 #### PLOTTING
 vmin = np.min([np.min(variable0),np.min(variable1),np.min(variable2),np.min(variable3)])
 vmax = np.max([np.max(variable0),np.max(variable1),np.max(variable2),np.max(variable3)])

@@ -265,14 +265,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
     start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
-    end_year    = np.max(desired_years)
+    end_year    = np.max(desired_years) + 1
 
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
         # align to tropical year
         filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
-        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year - (filtered_gdf['date_start'].dt.month <= 5).astype(int) # January to May belong to previous year NDJ index
+        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year #- (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
     else:
@@ -295,10 +295,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     for i in range(nlag_psi+1):
         lag_string = 'INDEX_lag' + str(i) + 'y'
         annual_index[lag_string] = annual_index['INDEX'].shift((i))
+    annual_index['INDEX_lagF1y'] = annual_index['INDEX'].shift((-1)) # Include one forward, i.e., future lag to test for spurious results
+    # annual_index['INDEX_lagF2y'] = annual_index['INDEX'].shift((-2)) # Include one forward, i.e., future lag to test for spurious results
     annual_index.drop('INDEX', axis=1, inplace=True)
 
     final_gdf = final_gdf.merge(annual_index, on='tropical_year', how='left')
     final_gdf = final_gdf.sort_values(['loc_id', 'tropical_year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
+    final_gdf = final_gdf.dropna(subset=['INDEX_lagF1y']) # need to remove NANs 
 
     for i in range(nlag_conflict):
         lag_string = 'conflict_count_lag' + str(i+1) + 'y'
@@ -391,13 +394,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Global', stepsize=4,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=1.5,
                                         nlag_psi=4, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_nino3_air_pm_0d5deg.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_nino3_NEW_air_1admin.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_air_square1d5_NDJ.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

@@ -27,7 +27,7 @@ print('\n\nSTART ---------------------\n')
 # vals2 = variable2.flatten()
 
 
-psi1 = xr.open_dataset('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi1 = xr.open_dataset('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
 lat1 = psi1['lat'].values
 lon1 = psi1['lon'].values
 variable1 = psi1['spi6'].values[400,:,:]
