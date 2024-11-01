@@ -11,7 +11,7 @@ dat$country <- as.factor(dat$country)
 dat$year <- dat$year - min(dat$year)
 
 
-mod <- lm(conflict_onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
+mod <- lm(onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
             INDEX_lag1y + I(INDEX_lag1y*psi) + 
             INDEX_lag2y + I(INDEX_lag2y*psi) + 
             year + country + year:country - 1,
@@ -19,11 +19,11 @@ mod <- lm(conflict_onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) +
 summary(mod)
 
 
+med_psi <- median(dat$psi)
+dat_l <- subset(dat, psi<med_psi)
+dat_h <- subset(dat, psi>med_psi)
 
-dat_l <- subset(dat, psi<0.4)
-dat_h <- subset(dat, psi>0.8)
-
-mod <- lm(conflict_onset ~ INDEX_lag0y +
+mod <- lm(onset ~ INDEX_lag0y + INDEX_lag1y + 
             year + country + year:country - 1,
           dat = dat_h)
 summary(mod)
@@ -120,7 +120,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Global_binary_dmi_1admin.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/Global_binary_nino3_NEW_air_1admin.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -128,37 +128,54 @@ colnames(dat)
 
 dat$SOVEREIGNT <- as.factor(dat$SOVEREIGNT)
 dat$loc_id <- as.factor(dat$loc_id)
-dat$year <- dat$year - min(dat$year)
+dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
+#dat$year <- dat$year - min(dat$year)
 
-
-dat_rand <- dat
-dat_rand$INDEX_lag0y <- sample(dat$INDEX_lag0y)
-dat_rand$INDEX_lag1y <- sample(dat$INDEX_lag1y)
-dat_rand$INDEX_lag2y <- sample(dat$INDEX_lag2y)
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
-            I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
-            I(psi*INDEX_lag2y) + I((psi*INDEX_lag2y)^2) +
-            year, data=dat_randpsi)
+            INDEX_lag0y + I(psi*INDEX_lag0y) + 
+            INDEX_lag1y + I(psi*INDEX_lag1y) + 
+            tropical_year + loc_id - 1, data=dat)
 summary(reg)
 
 
+dat_m <- subset(dat, psi<0)
+dat_p <- subset(dat, psi>=0)
 
-unique_psi <- dat %>%
-  select(loc_id, psi) %>%
-  distinct()
-
-#set.seed(123)
-shuffled_psi <- unique_psi %>%
-  mutate(psi = sample(psi))
-
-dat_randpsi <- dat %>%
-  select(-psi) %>%  # Remove the original psi
-  left_join(shuffled_psi, by = "loc_id")  # Add the shuffled psi
+medmed_psi <- median(dat_p$psi)
+psi_quants <- quantile(x=unique(dat_p$psi), c(0.33,0.66))
+dat_p_weak   <- subset(dat_p, psi < psi_quants[1])
+dat_p_mod    <- subset(dat_p, psi>= psi_quants[1] & psi<= psi_quants[2])
+dat_p_strong <- subset(dat_p, psi>  psi_quants[2])
 
 
 
+reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
+            INDEX_lag0y + I(psi*INDEX_lag0y) + 
+            INDEX_lag1y + I(psi*INDEX_lag1y) + 
+            tropical_year + loc_id + tropical_year:loc_id - 1, data=dat_m)
+summary(reg)
+
+reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
+            INDEX_lag0y + 
+            INDEX_lag1y + 
+            INDEX_lag2y + 
+            tropical_year + loc_id - 1, data=dat_p_strong)
+summary(reg)
+
+
+#
+dat_p_nino <- subset(dat_p, INDEX_lag0y>=0)
+dat_p_nina <- subset(dat_p, INDEX_lag0y< 0)
+
+dat_m_nino <- subset(dat_m, INDEX_lag0y>=0)
+dat_m_nina <- subset(dat_m, INDEX_lag0y< 0)
+
+reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
+            INDEX_lag0y + I(psi*INDEX_lag0y) + 
+            INDEX_lag1y + I(psi*INDEX_lag1y) + 
+            tropical_year + loc_id - 1, data=dat_p_nino)
+summary(reg)
 
 
 
