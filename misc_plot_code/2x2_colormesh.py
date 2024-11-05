@@ -8,28 +8,28 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import sys
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_nino3_air_pm_2deg_maxmonthindex.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_Hsiang2011_nino3.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -43,15 +43,15 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 
 fig, ax = plt.subplots(figsize=(9, 7))
-c = ax.contourf(lon, lat, variable2, cmap='PRGn')
+c = ax.contourf(lon, lat, variable2, cmap='bwr')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
-ax.set_title('airtemp_month_lag=1')
+ax.set_title('Hsiang 2011, Teleconnection w/ ENSO')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 fig.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/psi_nino3_spei6.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/Hsiang_2011_ENSO_Teleconnection.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

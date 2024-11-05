@@ -62,7 +62,7 @@ conflict_df.drop(['country'], axis=1, inplace=True)
 conflict_df.rename(columns={'country_name': 'country'}, inplace=True)
 
 # 1. Remove events that do not belong to years containing an active conflict dyad
-# conflict_df = conflict_df[conflict_df['type_of_violence']==3]
+conflict_df = conflict_df[conflict_df['type_of_violence']==3]
 conflict_df = conflict_df[conflict_df['active_year']==1]
 
 # 2. 
@@ -130,19 +130,19 @@ panel = onset_sum.sort_values(['country', 'year']).reset_index(drop=True)
 ### add the climate index to the panel 
 nlag_psi = 4
 
-annual_index = compute_annualized_NINO3_index((start_year-nlag_psi-1), end_year)
-# annual_index = compute_annualized_DMI_index((start_year-nlag_psi-1), end_year)
+# annual_index = compute_annualized_NINO3_index((start_year-nlag_psi-1), end_year)
+annual_index = compute_annualized_DMI_index((start_year-nlag_psi-1), end_year)
 
 for i in range(nlag_psi+1):
     lag_string = 'INDEX_lag' + str(i) + 'y'
     annual_index[lag_string] = annual_index['INDEX'].shift((i))
 lag_string = 'INDEX_lagF' + str(1) + 'y'                            # Add a forward lag
-annual_index[lag_string] = annual_index['INDEX'].shift((-1))        # Add a forward lag
+# annual_index[lag_string] = annual_index['INDEX'].shift((-1))        # Add a forward lag
 annual_index.drop('INDEX', axis=1, inplace=True)
 
 panel = panel.merge(annual_index, on='year', how='left')
 
-panel = panel[panel['year'] != 2023]
+# panel = panel[panel['year'] != 2023] # !!!!!!!!!!!!!!!!!!!!!!!!
 panel = panel.reset_index(drop=True)
 
 
@@ -150,8 +150,9 @@ panel = panel.reset_index(drop=True)
 ### add the teleconnection strength (psi) to the panel 
 print('Computing gdf for psi...')
 
-telecon_path = "/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc"
+telecon_path = "/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc"
 psi = xr.open_dataarray(telecon_path)
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon']) ### REMOVE IF NOT USING psi_Hsiang2011_nino3.nc !!!!
 if 'lat' not in psi.coords or 'lon' not in psi.coords:
     raise ValueError("DataArray must have 'lat' and 'lon' coordinates.")
 
@@ -185,13 +186,16 @@ panel = panel.merge(mean_psi, on='country', how='left')
 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 psi_geom.plot(
             column='psi',    
-            cmap='YlOrRd',   #turbo    YlOrRd
+            cmap='bwr',   #turbo    YlOrRd
             legend=True,                   
             legend_kwds={'label': "psi", 'orientation': "horizontal"},           
-            ax=ax
+            ax=ax,
         )
+plt.title('Country aggregated teleconnection strength, Hsiang 2011 Method')
+fig.tight_layout()
+# plt.savefig('/Users/tylerbagwell/Desktop/Hsiang_2011_ENSO_Teleconnection_CountryAggregate.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 print(panel)
 
-panel.to_csv('/Users/tylerbagwell/Desktop/Onset_global_nino3.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/Onset_global_dmi_Callahan_CON3.csv', index=False)
