@@ -76,6 +76,45 @@ def prepare_DMI(file_path, start_date, end_date):
     return df_dmi
 
 
+#
+def prepare_ANI(file_path, start_date, end_date):
+    """
+    Prepare Atlantic Nino Index (ANI) data as pd.Data.Frame from csv file with
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    ani = pd.read_csv(file_path)
+    ani['time'] = pd.to_datetime(
+        ani['time'],
+        format='%Y-%m-%d %H:%M:%S.%f', 
+        )
+    ani['time'] = ani['time'].apply(lambda dt: dt.replace(day=1))
+    ani['time'] = ani['time'].dt.floor('D')
+    ani = ani.drop('month', axis=1)
+    year_start = int(ani['time'].dt.year.min())
+    ani = ani.iloc[:,1:ani.shape[1]].values.flatten()
+    df_ani = pd.DataFrame(ani)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=ani.shape[0], freq='MS')
+    df_ani.index = date_range
+    df_ani.rename_axis('date', inplace=True)
+    df_ani.columns = ['ANOM']
+
+    start_ts_l = np.where(df_ani.index == start_date)[0]
+    end_ts_l = np.where(df_ani.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of NINO3 index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of NINO3 index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_ani = df_ani.iloc[start_ts_ind:end_ts_ind]
+
+    return df_ani
+
+
 
 
 start_year  = 1980
@@ -136,13 +175,17 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
+                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 
 
 common_lon  = np.intersect1d(ds1['lon'], ds2['lon']) #probably should check that this is not null
@@ -251,17 +294,97 @@ clim_ind_common['month'] = clim_ind_common.index.month
 
 
 
-sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
 
-yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
 
-yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
+may_to_dec_df = clim_ind_common[clim_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() 
+index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() 
+index_AVG = index_DJF.rename(columns={'ANOM': 'avg_ANOM'})
+
+
+# ENSO: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from JUN(t-1) to AUG(t) with DJF index(t)
+# IOD: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from MAY(t) to MAY(t+1) with SON index(t)
+corrs_array_1 = np.empty((12,n_lat,n_long))
+corrs_array_2 = np.empty((12,n_lat,n_long))
+psi = np.empty((n_lat,n_long))
+
+print("\nComputing psi array...")
+for i in range(n_lat):
+    if (i%10==0): 
+        print("...", i)
+    for j in range(n_long):
+        current_vars = pd.DataFrame(data=var1_std[:,i,j],
+                                    index=var1_common['time'], #need to use var1_common since it still contains the time data
+                                    columns=['air'])
+        current_vars[var2str] = np.array(var2_std[:,i,j])
+        current_vars.index = pd.to_datetime(current_vars.index)
+        current_vars['year'] = current_vars.index.year
+        current_vars['month'] = current_vars.index.month
+
+        # iterate through the months
+        for k in range(1,13,1):
+            # may-dec of year t
+            if (k<=12):
+                var_ts = current_vars[current_vars['month'] == int(k)].copy()
+
+            # compute correlations of yearly month, k, air anomaly with index 
+            var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
+    
+            has_nan = var_ts[var2str].isna().any()
+            if has_nan==False:
+                partial_corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM', covar=var2str)['r'].values[0]
+                partial_corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM', covar='air')['r'].values[0]
+                corrs_array_1[int(k-1),i,j] = partial_corr_1
+                corrs_array_2[int(k-1),i,j] = partial_corr_2
+            else:
+                corrs_array_1[int(k-1),i,j] = np.nan
+                corrs_array_2[int(k-1),i,j] = np.nan
+
+        corrs1 = pd.Series(corrs_array_1[:,i,j])
+        corrs2 = pd.Series(corrs_array_2[:,i,j])
+
+        has_nan = corrs1.isna().any()
+        if has_nan==False:
+            # var1
+            rolling_avg1 = corrs1.rolling(window=3, center=False).mean() ### BE AWARE OF CENTERING OF WINDOW!!!
+            rolling_avg1 = np.abs(rolling_avg1)
+            max_corr1 = np.nanmax(rolling_avg1)
+            # var2
+            rolling_avg2 = corrs2.rolling(window=3, center=False).mean() ### BE AWARE OF CENTERING OF WINDOW!!!
+            rolling_avg2 = np.abs(rolling_avg2)
+            max_corr2 = np.nanmax(rolling_avg2)
+            # compute teleconnection (psi)
+            psi[i,j] = max_corr1 + max_corr2
+        else:
+            psi[i,j] = np.nan
+
+psi_array = xr.DataArray(data = psi,
+                            coords={
+                            "lat": common_lat,
+                            "lon": common_lon
+                        },
+                        dims = ["lat", "lon"],
+                        attrs=dict(
+                            description="Psi, teleconnection strength inspired by Callahan 2023 method using air and soilw.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = 'ANI')
+                        )
+
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_ANI.nc') 
+
+
+sys.exit()
+
+################################################ 
 
 
 
@@ -335,7 +458,7 @@ psi_array = xr.DataArray(data = psi,
                             description="Psi, teleconnection strength inspired by Callahan 2023 method using air and spi6-land.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = 'DMI')
+                            climate_index_used = 'ANI')
                         )
 
 psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_DMI_spi6.nc') 

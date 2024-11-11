@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
+import sys
 
 #
 def prepare_NINO3(file_path, start_date, end_date):
@@ -66,6 +67,70 @@ def prepare_DMI(file_path, start_date, end_date):
     df_dmi = df_dmi.iloc[start_ts_ind:end_ts_ind]
 
     return df_dmi
+
+
+#
+def prepare_ANI(file_path, start_date, end_date):
+    """
+    Prepare Atlantic Nino Index (ANI) data as pd.Data.Frame from csv file with
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    ani = pd.read_csv(file_path)
+    ani['time'] = pd.to_datetime(
+        ani['time'],
+        format='%Y-%m-%d %H:%M:%S.%f', 
+        )
+    ani['time'] = ani['time'].apply(lambda dt: dt.replace(day=1))
+    ani['time'] = ani['time'].dt.floor('D')
+    ani = ani.drop('month', axis=1)
+    year_start = int(ani['time'].dt.year.min())
+    ani = ani.iloc[:,1:ani.shape[1]].values.flatten()
+    df_ani = pd.DataFrame(ani)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=ani.shape[0], freq='MS')
+    df_ani.index = date_range
+    df_ani.rename_axis('date', inplace=True)
+    df_ani.columns = ['ANOM']
+
+    start_ts_l = np.where(df_ani.index == start_date)[0]
+    end_ts_l = np.where(df_ani.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of NINO3 index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of NINO3 index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_ani = df_ani.iloc[start_ts_ind:end_ts_ind]
+
+    return df_ani
+
+
+#
+def compute_annualized_ANI_index(start_year, end_year, save_path=False):
+    """
+    Computes the annualized ANI index via either (1) the average over the whole year or (2) ...
+    """
+    # load index data
+    clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+    # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
+    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
+    clim_ind['year'] = clim_ind.index.year
+    clim_ind['month'] = clim_ind.index.month
+
+    may_to_dec_df = clim_ind[clim_ind['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() 
+    index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() 
+    index_yrAVG = index_DJF.rename(columns={'ANOM': 'INDEX'}) 
+
+    if (save_path!=False):
+        np.save(save_path, index_yrAVG)
+
+    return index_yrAVG
 
 
 #
