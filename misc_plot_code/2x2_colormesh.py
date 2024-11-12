@@ -8,28 +8,28 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import sys
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values

@@ -109,31 +109,6 @@ def prepare_ANI(file_path, start_date, end_date):
 
 
 #
-def compute_annualized_ANI_index(start_year, end_year, save_path=False):
-    """
-    Computes the annualized ANI index via either (1) the average over the whole year or (2) ...
-    """
-    # load index data
-    clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
-                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
-
-    # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
-    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
-    clim_ind['year'] = clim_ind.index.year
-    clim_ind['month'] = clim_ind.index.month
-
-    may_to_dec_df = clim_ind[clim_ind['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() 
-    index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() 
-    index_yrAVG = index_DJF.rename(columns={'ANOM': 'INDEX'}) 
-
-    if (save_path!=False):
-        np.save(save_path, index_yrAVG)
-
-    return index_yrAVG
-
-
-#
 def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     """
     Computes the annualized NINO3 index via the average of the index of DEC(t-1),JAN(t),FEB(t) based on
@@ -222,6 +197,38 @@ def compute_annualized_DMI_index(start_year, end_year, save_path=False):
 
     return index_yrAVG
 
+
+#
+def compute_annualized_ANI_index(start_year, end_year, save_path=False):
+    """
+    Computes the annualized ANI (Atlantic Nino Index) via the average of the index of JUN(t),JUL(t),AUG(t) inspired by
+    the method of Callahan 2023.
+    """
+    # load index data
+    clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+    # Compute the year index value as the average of JUN(t),JUL(t),AUG(t).
+    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
+    clim_ind['year'] = clim_ind.index.year
+    clim_ind['month'] = clim_ind.index.month
+
+    jun_jul_aug_df = clim_ind[clim_ind['month'].isin([6, 7, 8])].copy() # prepare June, July, and August data for current year
+    jun     = jun_jul_aug_df[jun_jul_aug_df['month'] == 6][['year', 'ANOM']].rename(columns={'ANOM': 'JUN_ANOM'})
+    jul     = jun_jul_aug_df[jun_jul_aug_df['month'] == 7][['year', 'ANOM']].rename(columns={'ANOM': 'JUL_ANOM'})
+    aug     = jun_jul_aug_df[jun_jul_aug_df['month'] == 8][['year', 'ANOM']].rename(columns={'ANOM': 'AUG_ANOM'})
+
+    yearly = pd.merge(jun, jul, on='year', how='inner') # merge June, July data
+    yearly = pd.merge(yearly, aug, on='year', how='inner') # merge June, July, and August data
+
+    yearly['INDEX'] = yearly[['JUN_ANOM', 'JUL_ANOM', 'AUG_ANOM']].mean(axis=1) # Calculate the average JJA ANOM value
+    index_yrAVG = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
+
+    if (save_path!=False):
+        np.save(save_path, index_yrAVG)
+
+    return index_yrAVG
 
 
 
