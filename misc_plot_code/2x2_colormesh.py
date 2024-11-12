@@ -43,9 +43,9 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 
 fig, ax = plt.subplots(figsize=(9, 7))
-c = ax.contourf(lon, lat, variable2, cmap='YlOrRd')
+c = ax.contourf(lon, lat, variable2, cmap='Reds')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
-gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.1, vmin=0.5)
 ax.set_title('Teleconnection w/ DMI (SON), Callahan method (2023)')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])

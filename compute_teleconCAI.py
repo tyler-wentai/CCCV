@@ -14,13 +14,13 @@ print('\n\nSTART ---------------------\n')
 
 
 
-start_year  = 1980
+start_year  = 1970
 end_year    = 2022
 
 
 
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
-file_path_PREC = '/Users/tylerbagwell/Desktop/soilw.mon.mean.v2.nc' # Soil moisture anomaly
+file_path_PREC = '/Users/tylerbagwell/Desktop/precip.mon.total.v2020.nc' # Soil moisture anomaly
 #file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc' # Soil moisture anomaly
     
 
@@ -30,7 +30,7 @@ import xarray as xr
 ds1 = xr.open_dataset(file_path_AIR)
 ds2 = xr.open_dataset(file_path_PREC)
 
-var2str = 'soilw'
+var2str = 'precip'
 
 
 var1 = ds1['air']  # DataArray from the first dataset
@@ -115,14 +115,18 @@ assert np.array_equal(var1_common['time'], clim_ind_common.index)
 assert np.array_equal(var2_common['time'], clim_ind_common.index)
 
 
-def standardize_and_detrend_monthly(data):
+def standardize_and_detrend_monthly(data, israin=False):
     data = np.array(data)
     n = len(data)
     months = np.arange(n) % 12  # Assign month indices 0-11
     means = np.array([data[months == m].mean() for m in range(12)])
     stds = np.array([data[months == m].std() for m in range(12)])
 
-    standardized = (data - means[months]) / stds[months]
+    if israin==False:
+        standardized = (data - means[months]) / stds[months]
+    else:
+        stds = np.where(stds == 0, 1, stds) # Just making sure we do not divide by zero here, dividing by 1 won't affect a gridpoint that experience no rain anyway, still will be 0.
+        standardized = (data - means[months]) / stds[months]
 
     data = standardized.tolist()
     n = len(data)
@@ -156,7 +160,7 @@ for i in range(n_lat):
         var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
         has_nan = np.isnan(var2_common[:, i, j]).any()
         if (has_nan==False):
-            var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j])
+            var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j], israin=True)
         else: 
             var2_std[:, i, j] = var2_common[:, i, j]
 
@@ -209,8 +213,8 @@ for i in range(n_lat):
     
             has_nan = var_ts[var2str].isna().any()
             if has_nan==False:
-                corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM', covar=var2str)
-                corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM', covar='air')
+                corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM')#, covar=var2str)
+                corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM')#, covar='air')
 
                 corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
                 corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]
@@ -248,10 +252,10 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Psi, teleconnection strength inspired by Cai et al. 2024 method using air and soilw.",
+                            description="Psi, teleconnection strength inspired by Cai et al. 2024 method using air and precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = 'DMI')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc') 
