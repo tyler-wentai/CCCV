@@ -293,7 +293,7 @@ clim_ind_common['month'] = clim_ind_common.index.month
 # index_DJF = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 
-
+## --- DMI
 # sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
 # sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
 # oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
@@ -305,15 +305,25 @@ clim_ind_common['month'] = clim_ind_common.index.month
 # yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
 # index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
-may_to_dec_df = clim_ind_common[clim_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() 
-index_DJF = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() 
-index_AVG = index_DJF.rename(columns={'ANOM': 'avg_ANOM'})
+
+## --- ANI
+jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August of current year
+jun     = jun_jul_aug_df[jun_jul_aug_df['month'] == 6][['year', 'ANOM']].rename(columns={'ANOM': 'JUN_ANOM'})
+jul     = jun_jul_aug_df[jun_jul_aug_df['month'] == 7][['year', 'ANOM']].rename(columns={'ANOM': 'JUL_ANOM'})
+aug     = jun_jul_aug_df[jun_jul_aug_df['month'] == 8][['year', 'ANOM']].rename(columns={'ANOM': 'AUG_ANOM'})
+
+yearly = pd.merge(jun, jul, on='year', how='inner') # merge June, July data
+yearly = pd.merge(yearly, aug, on='year', how='inner') # merge June, July, and August data
+
+yearly['avg_ANOM'] = yearly[['JUN_ANOM', 'JUL_ANOM', 'AUG_ANOM']].mean(axis=1) # Calculate the average JJA ANOM value
+index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
 
 
 # ENSO: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from JUN(t-1) to AUG(t) with DJF index(t)
 # IOD: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from MAY(t) to MAY(t+1) with SON index(t)
-corrs_array_1 = np.empty((12,n_lat,n_long))
-corrs_array_2 = np.empty((12,n_lat,n_long))
+corrs_array_1 = np.empty((14,n_lat,n_long))
+corrs_array_2 = np.empty((14,n_lat,n_long))
 psi = np.empty((n_lat,n_long))
 
 print("\nComputing psi array...")
@@ -330,10 +340,13 @@ for i in range(n_lat):
         current_vars['month'] = current_vars.index.month
 
         # iterate through the months
-        for k in range(1,13,1):
+        for k in range(1,15,1):
             # may-dec of year t
             if (k<=12):
                 var_ts = current_vars[current_vars['month'] == int(k)].copy()
+            else:
+                var_ts = current_vars[current_vars['month'] == int(k-12)].copy()
+                var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
 
             # compute correlations of yearly month, k, air anomaly with index 
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
@@ -379,7 +392,7 @@ psi_array = xr.DataArray(data = psi,
                             climate_index_used = 'ANI')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_ANI.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_ANI_JJA.nc') 
 
 
 sys.exit()
