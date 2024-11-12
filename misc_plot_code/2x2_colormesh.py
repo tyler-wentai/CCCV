@@ -8,28 +8,28 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import sys
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -43,7 +43,7 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 
 fig, ax = plt.subplots(figsize=(9, 7))
-c = ax.contourf(lon, lat, variable2, cmap='Reds')
+c = ax.contourf(lon, lat, variable2, cmap='Reds', vmax=4)
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.1, vmin=0.5)
 ax.set_title('Teleconnection w/ DMI (SON), Callahan method (2023)')
