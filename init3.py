@@ -265,7 +265,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
     start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
-    end_year    = np.max(desired_years) + 1
+    end_year    = np.max(desired_years) #+ 1
 
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
@@ -275,6 +275,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year - (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
+    elif (clim_index == 'ANI'):
+        annual_index = compute_annualized_ANI_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
 
@@ -364,16 +368,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         psi_min = final_gdf['psi'].min()
         psi_max = final_gdf['psi'].max()
 
-        max_abs = max(abs(psi_min), abs(psi_max))
-        vmin = -max_abs
-        vmax = max_abs
-        norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+        # max_abs = max(abs(psi_min), abs(psi_max))
+        # vmin = -max_abs
+        # vmax = max_abs
+        # norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         final_gdf.plot(
             column='psi',    
-            cmap='PRGn',   #turbo    YlOrRd     PRGn
-            norm=norm,
+            cmap='YlOrRd',   #turbo    YlOrRd     PRGn
             legend=True,                   
             legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
             ax=ax,
@@ -394,13 +397,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=2,
                                         nlag_psi=4, nlag_conflict=1,
-                                        clim_index = 'NINO3',
+                                        clim_index = 'ANI',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_cai_ANI_air_precip.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_square2_NDJ_CON2.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_ani_NEW_square2_CON1.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

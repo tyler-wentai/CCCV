@@ -96,9 +96,9 @@ def prepare_ANI(file_path, start_date, end_date):
     end_ts_l = np.where(df_ani.index == end_date)[0]
     # Test if index list is empty, i.e., start_date or end_date are outside time series range
     if not start_ts_l:
-        raise ValueError("start_ts_l is empty, start_date is outside range of NINO3 index time series.")
+        raise ValueError("start_ts_l is empty, start_date is outside range of ANI index time series.")
     if not end_ts_l:
-        raise ValueError("end_ts_l is empty, end_date is outside range of NINO3 index time series.")
+        raise ValueError("end_ts_l is empty, end_date is outside range of ANI index time series.")
     
     start_ts_ind = int(start_ts_l[0])
     end_ts_ind = int(int(end_ts_l[0])+1)
