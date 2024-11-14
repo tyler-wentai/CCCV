@@ -9,5 +9,320 @@ from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
 from prepare_index import *
+from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
+
+import xarray as xr
+
+start_year  = 1970
+end_year    = 2023
+clim_index = 'DMI'
+
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/cccv_data/raw_climate_data/air.2m.mon.mean.nc' # Air temperature anomaly
+file_path_VAR2 = '/Users/tylerbagwell/Desktop/cccv_data/raw_climate_data/precip.mon.total.v2020.nc' # Precip anomaly
+
+ds1 = xr.open_dataset(file_path_VAR1)
+ds2 = xr.open_dataset(file_path_VAR2)
+
+var1str = 'air'
+var2str = 'precip'
+
+var1 = ds1[var1str]  # DataArray from the first dataset
+var2 = ds2[var2str]
+
+# Access longitude and latitude coordinates
+lon1 = ds1['lon']
+lat1 = ds1['lat']
+lon2 = ds2['lon']
+lat2 = ds2['lat']
+
+# Function to convert longitude from 0-360 to -180 to 180
+def convert_longitude(ds):
+    lon = ds['lon']
+    lon = ((lon + 180) % 360) - 180
+    ds = ds.assign_coords(lon=lon)
+    return ds
+
+# Apply conversion if necessary
+if lon1.max() > 180:
+    ds1 = convert_longitude(ds1)
+if lon2.max() > 180:
+    ds2 = convert_longitude(ds2)
+
+ds1 = ds1.sortby('lon')
+ds2 = ds2.sortby('lon')
+
+ds1 = ds1.assign_coords(
+    lon=np.round(ds1['lon'], decimals=2),
+    lat=np.round(ds1['lat'], decimals=2)
+)
+ds2 = ds2.assign_coords(
+    lon=np.round(ds2['lon'], decimals=2),
+    lat=np.round(ds2['lat'], decimals=2)
+)
+
+
+# load index data
+if (clim_index == 'NINO3'):
+    clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (clim_index == 'DMI'):
+    ENSO_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+    clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (clim_index == 'ANI'):
+    ENSO_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+    clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
+                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+else:
+    raise ValueError("Specified 'clim_index' not found...")
+
+
+common_lon  = np.intersect1d(ds1['lon'], ds2['lon']) #probably should check that this is not null
+common_lat  = np.intersect1d(ds1['lat'], ds2['lat'])
+common_time = np.intersect1d(ds1['time'], ds2['time'])
+common_time = np.intersect1d(common_time, clim_ind.index.to_numpy())
+common_time = np.intersect1d(common_time, ENSO_ind.index.to_numpy())
+
+ds1_common      = ds1.sel(time=common_time, lon=common_lon, lat=common_lat)
+ds2_common      = ds2.sel(time=common_time, lon=common_lon, lat=common_lat)
+clim_ind_common = clim_ind.loc[clim_ind.index.isin(pd.to_datetime(common_time))]
+ENSO_ind_common = ENSO_ind.loc[ENSO_ind.index.isin(pd.to_datetime(common_time))]
+
+var1_common = ds1_common['air']
+var2_common = ds2_common[var2str]
+
+# Check shapes
+print("var1_common shape:", var1_common.shape)
+print("var2_common shape:", var2_common.shape)
+print("clim_ind shape:   ", clim_ind_common.shape)
+
+n_time, n_lat, n_long = var1_common.shape
+
+# Verify that coordinates are identical
+assert np.array_equal(var1_common['lon'], var2_common['lon'])
+assert np.array_equal(var1_common['lat'], var2_common['lat'])
+assert np.array_equal(var1_common['time'], var2_common['time'])
+assert np.array_equal(var1_common['time'], clim_ind_common.index)
+assert np.array_equal(var2_common['time'], clim_ind_common.index)
+
+
+def standardize_and_detrend_monthly(data, israin=False):
+    data = np.array(data)
+    n = len(data)
+    months = np.arange(n) % 12  # Assign month indices 0-11
+    means = np.array([data[months == m].mean() for m in range(12)])
+    stds = np.array([data[months == m].std() for m in range(12)])
+
+    if israin==False:
+        standardized = (data - means[months]) / stds[months]
+    else:
+        stds = np.where(stds == 0, 1, stds) # Just making sure we do not divide by zero here, dividing by 1 won't affect a gridpoint that experience no rain anyway, still will be 0.
+        standardized = (data - means[months]) / stds[months]
+
+    data = standardized.tolist()
+    n = len(data)
+    df = pd.DataFrame({
+        'value': data,
+        'month': np.arange(n) % 12,  # Assign months 0-11
+        'time': np.arange(n)         # Time index
+    })
+    
+    def remove_trend(group):
+        if len(group) < 2:
+            return group['value']
+        slope, intercept, _, _, _ = linregress(group['time'], group['value'])
+        return group['value'] - (slope * group['time'] + intercept)
+    
+    # Apply detrending per month
+    df['detrended'] = df.groupby('month').apply(remove_trend, include_groups=False).reset_index(level=0, drop=True)
+    return df['detrended'].tolist()
+
+
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom.npy')
+anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom.npy')
+
+if anom_file1.exists() and anom_file2.exists():
+    print("Both anomaly field files exist. Skipping processing.")
+
+    var1_std = np.load(anom_file1)
+    var2_std = np.load(anom_file2)
+    # shape
+    print(var1_std.shape)
+    print(var2_std.shape)
+
+else:
+    print("One or both anomaly field files are missing. Proceeding with processing.")
+    # var1_std = np.empty_like(var1_common) # Initialize a new array to store the standardized data
+    # var2_std = np.empty_like(var2_common) # Initialize a new array to store the standardized data
+
+    var1_std = var1_common.values       # DELETE LATER!!!!!!!!!
+    var2_std = var2_common.values       # DELETE LATER!!!!!!!!!
+
+    # print("Standardizing and de-trending climate variable data...")
+    # for i in range(n_lat):
+    #     if (i%10==0): 
+    #         print("...", i)
+    #     for j in range(n_long):
+    #         var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
+    #         has_nan = np.isnan(var2_common[:, i, j]).any()
+    #         if (has_nan==False):
+    #             var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j], israin=True)
+    #         else: 
+    #             var2_std[:, i, j] = var2_common[:, i, j]
+
+    print(var1_std)
+    print(var1_std)
+
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom.npy", var1_std)
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom.npy", var2_std)
+
+
+# Compute the annualized index value:
+clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
+clim_ind_common = clim_ind_common.copy()
+clim_ind_common['year'] = clim_ind_common.index.year
+clim_ind_common['month'] = clim_ind_common.index.month
+
+ENSO_ind_common.index = pd.to_datetime(ENSO_ind_common.index)     # Ensure 'date' to datetime and extract year & month
+ENSO_ind_common = ENSO_ind_common.copy()
+ENSO_ind_common['year'] = ENSO_ind_common.index.year
+ENSO_ind_common['month'] = ENSO_ind_common.index.month
+
+## --- NINO3
+dec_df = ENSO_ind_common[ENSO_ind_common['month'] == 12].copy() # prepare December data from previous year
+dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+
+jan_feb_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
+jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+
+yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
+
+yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+ENSO_index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+## --- DMI
+if (clim_index == 'DMI'):
+    sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+    sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+    oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+    nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+
+    yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+    yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+
+    yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+    index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+## --- ANI
+elif (clim_index == 'ANI'):
+    jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August (JJA) data for current year
+    jun     = jun_jul_aug_df[jun_jul_aug_df['month'] == 6][['year', 'ANOM']].rename(columns={'ANOM': 'JUN_ANOM'})
+    jul     = jun_jul_aug_df[jun_jul_aug_df['month'] == 7][['year', 'ANOM']].rename(columns={'ANOM': 'JUL_ANOM'})
+    aug     = jun_jul_aug_df[jun_jul_aug_df['month'] == 8][['year', 'ANOM']].rename(columns={'ANOM': 'AUG_ANOM'})
+
+    yearly = pd.merge(jun, jul, on='year', how='inner') # merge June, July, August data
+    yearly = pd.merge(yearly, aug, on='year', how='inner') # merge June, July, August data
+
+    yearly['avg_ANOM'] = yearly[['JUN_ANOM', 'JUL_ANOM', 'AUG_ANOM']].mean(axis=1) # Calculate the average JJA ANOM value
+    index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
+index_dat = pd.merge(
+    ENSO_index_AVG, 
+    index_AVG, 
+    on='year', 
+    suffixes=('_ENSO', '_Other')
+)
+print("Final climate index year span: ", np.min(index_dat['year']), "-", np.max(index_dat['year']))
+
+
+# COMPUTE PSI, i.e., TELECONNECTION FOR EACH GRID POINT
+corrs_array_1 = np.empty((12,n_lat,n_long))
+pvals_array_1 = np.empty((12,n_lat,n_long))
+corrs_array_2 = np.empty((12,n_lat,n_long))
+pvals_array_2 = np.empty((12,n_lat,n_long))
+psi = np.empty((n_lat,n_long))
+
+
+index_dat['avg_ANOM_ENSO'] = index_dat['avg_ANOM_ENSO'].shift(-1) # NEED TO TEST WHICH YEAR OF ENSO DJF TO CORRELATE!!!!
+index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO']) 
+
+corr_EI = pearsonr(index_dat['avg_ANOM_ENSO'], index_dat['avg_ANOM_Other'])[0]
+sd_IgE = np.std(index_dat['avg_ANOM_Other']) * np.sqrt(1 - (corr_EI**2))
+
+
+i = 300
+j = 500
+
+current_vars = pd.DataFrame(data=var1_std[:,i,j],
+                                    index=var1_common['time'], #need to use var1_common since it still contains the time data
+                                    columns=['air'])
+current_vars[var2str] = np.array(var2_std[:,i,j])
+current_vars.index = pd.to_datetime(current_vars.index)
+current_vars['year'] = current_vars.index.year
+current_vars['month'] = current_vars.index.month
+
+# iterate through the months
+for k in range(1,2,1):
+    #var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+    # may-dec of year t
+    if (k<=8):
+        var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+    else:
+        var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
+        var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
+
+    # compute correlations of yearly month, k, air anomaly with index 
+    var_ts = pd.merge(var_ts, index_dat, how='inner', on='year')
+
+    print(var_ts)
+
+    has_nan = var_ts[var2str].isna().any()
+    if has_nan==False:
+        #air temp
+        corr_TI = pearsonr(var_ts[var1str], var_ts['avg_ANOM_Other'])[0]
+        corr_TE = pearsonr(var_ts[var1str], var_ts['avg_ANOM_ENSO'])[0]
+        sd_T = np.std(var_ts[var1str])
+
+        tele_T = corr_TI - (corr_TE*corr_EI)
+        tele_T = tele_T*sd_T/sd_IgE
+        tele_T = tele_T/np.sqrt(1 - corr_EI**2)
+
+        #precip
+        corr_PI = pearsonr(var_ts[var2str], var_ts['avg_ANOM_Other'])[0]
+        corr_PE = pearsonr(var_ts[var2str], var_ts['avg_ANOM_ENSO'])[0]
+        sd_P = np.std(var_ts[var2str])
+
+        tele_P = corr_PI - (corr_PE*corr_EI)
+        tele_P = tele_P*sd_P/sd_IgE
+        tele_P = tele_P/np.sqrt(1 - corr_EI**2)
+
+        # print(sd_P)
+
+
+    #     corr_1 = partial_corr(data=var_ts, x='air', y='avg_ANOM')#, covar=var2str)
+    #     corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM')#, covar='air')
+
+    #     corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
+    #     corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]
+    #     pvals_array_1[int(k-1),i,j] = corr_1['p-val'].values[0]
+    #     pvals_array_2[int(k-1),i,j] = corr_2['p-val'].values[0]
+
+    # else:
+    #     corrs_array_1[int(k-1),i,j] = np.nan
+    #     corrs_array_2[int(k-1),i,j] = np.nan
+    #     pvals_array_1[int(k-1),i,j] = 1.
+    #     pvals_array_2[int(k-1),i,j] = 1.
+
+
+
