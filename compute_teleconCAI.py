@@ -72,13 +72,13 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
-
-clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
@@ -170,25 +170,41 @@ clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date
 clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
-## --- DMI
-sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+## --- NINO3
 
-yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
+dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
 
-yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
+jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+
+yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
+
+yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
 index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
+## --- DMI
+# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+
+# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+
+# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 
 # ENSO: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from JUN(t-1) to AUG(t) with DJF index(t)
 # IOD: Compute monthly correlation and teleconnection (psi) at each grid point, computes correlations for each month from MAY(t) to MAY(t+1) with SON index(t)
-corrs_array_1 = np.empty((8,n_lat,n_long))
-pvals_array_1 = np.empty((8,n_lat,n_long))
-corrs_array_2 = np.empty((8,n_lat,n_long))
-pvals_array_2 = np.empty((8,n_lat,n_long))
+corrs_array_1 = np.empty((12,n_lat,n_long))
+pvals_array_1 = np.empty((12,n_lat,n_long))
+corrs_array_2 = np.empty((12,n_lat,n_long))
+pvals_array_2 = np.empty((12,n_lat,n_long))
 psi = np.empty((n_lat,n_long))
 
 print("\nComputing psi array...")
@@ -205,8 +221,14 @@ for i in range(n_lat):
         current_vars['month'] = current_vars.index.month
 
         # iterate through the months
-        for k in range(1,9,1):
-            var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+        for k in range(1,13,1):
+            #var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+            # may-dec of year t
+            if (k<=8):
+                var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+            else:
+                var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
+                var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
 
             # compute correlations of yearly month, k, air anomaly with index 
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
@@ -255,7 +277,7 @@ psi_array = xr.DataArray(data = psi,
                             description="Psi, teleconnection strength inspired by Cai et al. 2024 method using air and precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = 'DMI')
+                            climate_index_used = 'NINO3')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_cai_DMI_air_precip.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_cai_NINO3_air_precip.nc')

@@ -392,7 +392,7 @@ psi_array = xr.DataArray(data = psi,
                             climate_index_used = 'ANI')
                         )
 
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_ANI_JJA.nc') 
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/psi_callahan_ANI.nc') 
 
 
 sys.exit()

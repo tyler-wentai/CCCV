@@ -272,9 +272,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
         # align to tropical year
         filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
-        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year - (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
+        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year #- (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ANI'):
         annual_index = compute_annualized_ANI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
@@ -384,11 +386,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         )
         ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_nino3_spei6_hex1.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi_nino3_spei6_hex1.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -397,13 +399,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Global', stepsize=4,
                                         nlag_psi=4, nlag_conflict=1,
                                         clim_index = 'ANI',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/psi_cai_ANI_air_precip.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_ani_NEW_square2_CON1.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_ani_NEW_1admin_CON1.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
