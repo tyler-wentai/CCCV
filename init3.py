@@ -346,7 +346,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
         # for randomizing psi:
-        # mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
+        mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
@@ -399,13 +399,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Global', stepsize=4,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
                                         nlag_psi=4, nlag_conflict=1,
-                                        clim_index = 'ANI',
+                                        clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/psi_cai_ANI_air_precip.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_1d0.nc',
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Global_binary_ani_NEW_1admin_CON1.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_square2_CON1_RandPsi.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)
