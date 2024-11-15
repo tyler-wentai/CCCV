@@ -200,19 +200,24 @@ ENSO_ind_common['year'] = ENSO_ind_common.index.year
 ENSO_ind_common['month'] = ENSO_ind_common.index.month
 
 ## --- NINO3
-dec_df = ENSO_ind_common[ENSO_ind_common['month'] == 12].copy() # prepare December data from previous year
-dec_df['year'] = dec_df['year'] + 1  # Shift to next year
-dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+# dec_df = ENSO_ind_common[ENSO_ind_common['month'] == 12].copy() # prepare December data from previous year
+# dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+# dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
 
-jan_feb_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
-jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+# jan_feb_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
+# jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+# feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
 
-yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
 
-yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-ENSO_index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+# yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# ENSO_index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
+may_to_dec_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+ENSO_index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+ENSO_index_AVG = ENSO_index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+
 ## --- DMI
 if (clim_index == 'DMI'):
     sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
@@ -244,6 +249,7 @@ index_dat = pd.merge(
     on='year', 
     suffixes=('_ENSO', '_Other')
 )
+print(index_dat)
 print("Final climate index year span: ", np.min(index_dat['year']), "-", np.max(index_dat['year']))
 
 
@@ -260,7 +266,7 @@ pvals_array_2 = np.empty((n_months,n_lat,n_long))
 psi = np.empty((n_lat,n_long))
 
 # index_dat['avg_ANOM_ENSO'] = index_dat['avg_ANOM_ENSO'].shift(-1) # NEED TO TEST WHICH YEAR OF ENSO DJF TO CORRELATE!!!!
-# index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO']) 
+# index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO'])
 
 print("\nComputing psi array...")
 for i in range(n_lat):
@@ -339,7 +345,7 @@ psi_array = xr.DataArray(data = psi,
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index)
                         )
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_noENSO_normalENSO.nc')
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_noENSO_ENSOAvg.nc')
 
 psi_T = xr.DataArray(data = corrs_array_1,
                             coords={
