@@ -13,7 +13,6 @@ from prepare_index import *
 print('\n\nSTART ---------------------\n')
 
 
-
 start_year  = 1970
 end_year    = 2022
 
@@ -22,10 +21,7 @@ end_year    = 2022
 file_path_AIR = '/Users/tylerbagwell/Desktop/air.2m.mon.mean.nc' # Air temperature anomaly
 file_path_PREC = '/Users/tylerbagwell/Desktop/precip.mon.total.v2020.nc' # Soil moisture anomaly
 #file_path_PREC = '/Users/tylerbagwell/Desktop/spi6_ERA5-Land_mon_195001-202212.nc' # Soil moisture anomaly
-    
 
-
-import xarray as xr
 
 ds1 = xr.open_dataset(file_path_AIR)
 ds2 = xr.open_dataset(file_path_PREC)

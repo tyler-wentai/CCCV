@@ -20,8 +20,8 @@ start_year  = 1970
 end_year    = 2023
 clim_index = 'DMI'
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/cccv_data/raw_climate_data/air.2m.mon.mean.nc' # Air temperature anomaly
-file_path_VAR2 = '/Users/tylerbagwell/Desktop/cccv_data/raw_climate_data/precip.mon.total.v2020.nc' # Precip anomaly
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/air.2m.mon.mean.nc' # Air temperature anomaly
+file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/precip.mon.total.v2020.nc' # Precip anomaly
 
 ds1 = xr.open_dataset(file_path_VAR1)
 ds2 = xr.open_dataset(file_path_VAR2)
