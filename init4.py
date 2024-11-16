@@ -10,6 +10,7 @@ import xarray as xr
 import seaborn as sns
 import rioxarray
 from shapely.geometry import mapping
+import statsmodels.api as sm
 from prepare_index import *
 
 print('\n\nSTART ---------------------\n')
@@ -254,6 +255,15 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
             return x * 0  # Assign zero or any other constant value
         else:
             return (x - x.mean()) / std
+        
+    # Function to perform de-trending
+    def detrend_group(group, var_in):
+        X = group['INDEX']
+        y = group[var_in]
+        X = sm.add_constant(X)  # Adds intercept term to the model
+        model = sm.OLS(y, X).fit()
+        group[var_in] = model.resid
+        return group
 
     # LOAD IN ANOMALIZED CLIMATE DATA
     file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
@@ -315,6 +325,12 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
     results1 = results1.drop(columns=['number', 'spatial_ref'])
     results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group) # standardize the data over all years for each loc_id
+
+    results1 = results1.merge(annual_index, on='tropical_year', how='left')
+    results1 = results1.groupby('loc_id').apply(detrend_group(var_in='t2m'))
+    print(results1)
+
+    sys.exit()
 
     # tp
     results_list2 = []
@@ -409,7 +425,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
     ###### --- COMPUTE WEATHER (AIR TEMP and PRECIP) CONTROLS
     if add_weather_controls==True:
-        weather_controls = compute_weather_controls(start_year, end_year, polygons_gdf, annual_index)
+        weather_controls = compute_weather_controls((start_year+1), end_year, polygons_gdf, annual_index)
 
         for i in range(nlag_psi+1):
             lag_string_var1 = 't2m_lag' + str(i) + 'y'
