@@ -371,7 +371,6 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
 
     print(results)
 
-    sys.exit()
 
     return results
 
