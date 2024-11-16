@@ -556,13 +556,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities=['Nigeria'], stepsize=5,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities=['Mexico'], stepsize=5,
                                         nlag_psi=4, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_1d0.nc',
                                         add_weather_controls=True,
-                                        show_grid=False, show_gridded_aggregate=False)
+                                        show_grid=True, show_gridded_aggregate=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_square2_CON1_RandPsi.csv', index=False)
 panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
