@@ -335,7 +335,8 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group) # standardize the data over all years for each loc_id
 
     results1 = results1.merge(annual_index, on='tropical_year', how='left')
-    results1 = results1.groupby('loc_id').apply(detrend_group_t2m)
+    results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)
+    results1.drop('INDEX', axis=1, inplace=True)
     print(results1)
 
 
@@ -360,7 +361,8 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group) # standardize the data over all years for each loc_id
 
     results2 = results2.merge(annual_index, on='tropical_year', how='left')
-    results2 = results2.groupby('loc_id').apply(detrend_group_tp)
+    results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)
+    results2.drop('INDEX', axis=1, inplace=True)
     print(results2)
 
 
