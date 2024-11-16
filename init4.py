@@ -333,6 +333,9 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
     results1 = results1.drop(columns=['number', 'spatial_ref'])
 
+    print(results1)
+    print(results1[results1['loc_id']=='loc_133'])
+    sys.exit()
 
     results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
     results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
@@ -364,7 +367,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
 
     #
     results = results1.merge(results2, on=['loc_id', 'tropical_year'], how='left')
-    print(results)
+    # print(results)
 
     return results
 
@@ -556,7 +559,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities=['Mexico'], stepsize=5,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=5,
                                         nlag_psi=4, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
