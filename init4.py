@@ -259,7 +259,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     def detrend_group_t2m(group):
         X = group['INDEX']
         y = group['t2m']
-        X = sm.add_constant(X)  # Adds intercept term to the model
+        X = sm.add_constant(X)
         model = sm.OLS(y, X).fit()
         group['t2m'] = model.resid
         return group
@@ -268,7 +268,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     def detrend_group_tp(group):
         X = group['INDEX']
         y = group['tp']
-        X = sm.add_constant(X)  # Adds intercept term to the model
+        X = sm.add_constant(X)
         model = sm.OLS(y, X).fit()
         group['tp'] = model.resid
         return group
