@@ -8,7 +8,6 @@ from datetime import datetime
 import math
 import xarray as xr
 import seaborn as sns
-import rioxarray
 from shapely.geometry import mapping
 import statsmodels.api as sm
 from prepare_index import *
@@ -257,12 +256,21 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
             return (x - x.mean()) / std
         
     # Function to perform de-trending
-    def detrend_group(group, var_in):
+    def detrend_group_t2m(group):
         X = group['INDEX']
-        y = group[var_in]
+        y = group['t2m']
         X = sm.add_constant(X)  # Adds intercept term to the model
         model = sm.OLS(y, X).fit()
-        group[var_in] = model.resid
+        group['t2m'] = model.resid
+        return group
+    
+    # Function to perform de-trending
+    def detrend_group_tp(group):
+        X = group['INDEX']
+        y = group['tp']
+        X = sm.add_constant(X)  # Adds intercept term to the model
+        model = sm.OLS(y, X).fit()
+        group['tp'] = model.resid
         return group
 
     # LOAD IN ANOMALIZED CLIMATE DATA
@@ -327,7 +335,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group) # standardize the data over all years for each loc_id
 
     results1 = results1.merge(annual_index, on='tropical_year', how='left')
-    results1 = results1.groupby('loc_id').apply(detrend_group(var_in='t2m'))
+    results1 = results1.groupby('loc_id').apply(detrend_group_t2m())
     print(results1)
 
     sys.exit()
@@ -351,7 +359,14 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results2 = results2.drop(columns=['number', 'spatial_ref'])
     results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group) # standardize the data over all years for each loc_id
 
+    results2 = results2.merge(annual_index, on='tropical_year', how='left')
+    results2 = results2.groupby('loc_id').apply(detrend_group_tp())
+    print(results2)
+
+
+
     results = results1.merge(results2, on=['loc_id', 'tropical_year'], how='left')
+
     print(results)
 
     return results
