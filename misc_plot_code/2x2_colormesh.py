@@ -43,7 +43,8 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 
 fig, ax = plt.subplots(figsize=(9, 7))
-c = ax.contourf(lon, lat, variable2, cmap='Reds', vmax=10)
+levels = np.arange(0,11,1)
+c = ax.contourf(lon, lat, variable2, cmap='Reds', levels=levels)
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.1, vmin=0.5)
 ax.set_title('Teleconnection w/ NINO3 (DJF), Callahan method (2023)')
