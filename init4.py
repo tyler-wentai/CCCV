@@ -332,14 +332,12 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
 
     results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
     results1 = results1.drop(columns=['number', 'spatial_ref'])
-    results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group) # standardize the data over all years for each loc_id
-
-    results1 = results1.merge(annual_index, on='tropical_year', how='left')
-    results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)
-    results1.drop('INDEX', axis=1, inplace=True)
-    print(results1)
 
 
+    results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
+    results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
+    results1.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
+    results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group)        # standardize residuals over all years for each loc_id
 
     # tp
     results_list2 = []
@@ -356,21 +354,17 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
         df = df.rename(columns={'year': 'tropical_year'})
         results_list2.append(df)
 
-    results2 = pd.concat(results_list2, ignore_index=True)    # Concatenate all results into a single DataFrame
+    results2 = pd.concat(results_list2, ignore_index=True)  # Concatenate all results into a single DataFrame
     results2 = results2.drop(columns=['number', 'spatial_ref'])
-    results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group) # standardize the data over all years for each loc_id
 
-    results2 = results2.merge(annual_index, on='tropical_year', how='left')
-    results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)
-    results2.drop('INDEX', axis=1, inplace=True)
-    print(results2)
+    results2 = results2.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
+    results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)    # remove climate index signal via detrending
+    results2.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
+    results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group)          # standardize residuals over all years for each loc_id
 
-
-
+    #
     results = results1.merge(results2, on=['loc_id', 'tropical_year'], how='left')
-
     print(results)
-
 
     return results
 
@@ -479,7 +473,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
     final_gdf.reset_index(drop=True, inplace=True)
 
-    #
+    ###### --- COMPUTE AGGREGATED TELECONNECTION STRENGTH FOR EACH SPATIAL UNIT
     if telecon_path is not None:
         # Match all gridded psi values to a polygon via loc_id and then aggregate psi values
         # in each Polygon by taking the MAX psi value.
@@ -515,7 +509,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
     final_gdf = final_gdf.dropna(subset=['psi']) # remove all locations that do not have a psi value
 
-    # transform do desired response variable
+    ###### --- TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
     if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
         final_gdf['conflict_count'] = (final_gdf['conflict_count'] > 0).astype(int)
         final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
