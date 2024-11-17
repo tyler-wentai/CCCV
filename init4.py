@@ -274,8 +274,10 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
         return group
 
     # LOAD IN ANOMALIZED CLIMATE DATA
-    file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
-    file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  # total precipitation
+    # t2m: air temperature at 2 m
+    # tp: total precipitation
+    file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # t2m
+    file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  # tp
     ds1 = xr.open_dataset(file_path_VAR1)
     ds2 = xr.open_dataset(file_path_VAR2)
 
@@ -333,10 +335,6 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
     results1 = results1.drop(columns=['number', 'spatial_ref'])
 
-    print(results1)
-    print(results1[results1['loc_id']=='loc_133'])
-    sys.exit()
-
     results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
     results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
     results1.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
@@ -345,7 +343,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     # tp
     results_list2 = []
     for idx, row in polygons_gdf.iterrows():
-        print(f"tp: rocessing polygon {idx+1}/{len(polygons_gdf)}")
+        print(f"tp: processing polygon {idx+1}/{len(polygons_gdf)}")
         geometry = [mapping(row['geometry'])]
 
         ds_clipped = ds_yearly2.rio.clip(geometry, ds2.rio.crs, drop=False)  # Clip the dataset to the polygon
@@ -452,10 +450,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             weather_controls[lag_string_var2] = weather_controls['tp'].shift(i)
         weather_controls['tp_lagF1y'] = weather_controls['tp'].shift(-1)
         weather_controls.drop('tp', axis=1, inplace=True)
-        print(weather_controls)
+        # print(weather_controls)
 
     final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'tropical_year'], how='left')
-    print(final_gdf)
+    # print(final_gdf)
 
     ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
     for i in range(nlag_psi+1):
@@ -559,15 +557,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=5,
-                                        nlag_psi=4, nlag_conflict=1,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
+                                        nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_1d0.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=True,
-                                        show_grid=True, show_gridded_aggregate=False)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_square2_CON1_RandPsi.csv', index=False)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
+                                        show_grid=True, show_gridded_aggregate=True)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_square2_CON1_5deaths.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

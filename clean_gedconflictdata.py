@@ -29,7 +29,7 @@ df_cleaned = df_cleaned[df_cleaned['where_prec'] <= 4]
 # # step 3a: remove extremely violent events with death counts above 5
 # df_cleaned = df_cleaned[df_cleaned['best'] <= 5]
 # # step 3b: remove extremely violent events with death counts above 5
-df_cleaned = df_cleaned[df_cleaned['best'] >= 1]
+df_cleaned = df_cleaned[df_cleaned['best'] >= 5]
 
 
 print(df_cleaned.shape)
