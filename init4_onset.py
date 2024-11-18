@@ -526,13 +526,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             column='conflict_binary',    
             cmap='turbo',   #turbo    YlOrRd     PRGn
             legend=True,                   
-            legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
-            ax=ax,
+            legend_kwds={'label': r"No. of onsets", 'orientation': "horizontal"},
+            ax=ax
             #vmax=500
         )
-        ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
+        ax.set_title(r'No. of conflict onsets', fontsize=15)
         ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         # plotting
@@ -566,24 +566,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     return final_gdf
 
 
-
-### Hex stepsize = 0.620401 for an area of 1.0!!!
-
-panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Africa', stepsize=2,
+#
+panel_data = prepare_gridded_panel_data(grid_polygon='country', localities='Global', stepsize=3,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_1admin_CON1.csv', index=False)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
-# print(panel_data)
-# nan_mask = panel_data.isna()
-# print(nan_mask)
-# nan_count_per_column = panel_data.isna().sum()
-# print(nan_count_per_column)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Global_NINO3_country.csv', index=False)
 
-# grid_data = create_grid(grid_polygon='first_admin', localities='Africa', stepsize=1.00, show_grid=True)
-# print(grid_data)
 
