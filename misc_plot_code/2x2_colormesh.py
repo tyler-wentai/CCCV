@@ -8,28 +8,28 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import sys
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat0 = psi['lat'].values
 lon0 = psi['lon'].values
 variable0 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable1 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
 lon = psi['lon'].values
 variable2 = psi.values[:,:]
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat = psi['lat'].values
@@ -44,15 +44,15 @@ gdf2 = gpd.read_file(path_maritime_0)
 
 fig, ax = plt.subplots(figsize=(9, 7))
 levels = np.arange(0,11,1)
-c = ax.contourf(lon, lat, variable2, cmap='Reds')
+c = ax.contourf(lon, lat, variable2, cmap='Reds', vmax=6)
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.1, vmin=0.5)
-ax.set_title('Teleconnection w/ NINO3 (DJF), Callahan method (2023)')
+ax.set_title('Teleconnection w/ NINO3 (DJF), Cai method (2024)')
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
 fig.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/NINO3_ERA5_Cai_controlled_revised_1d0_stdONLY.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/NINO3_ERA5_Cai.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

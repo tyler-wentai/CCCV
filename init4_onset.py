@@ -475,12 +475,27 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     if telecon_path is not None:
         # Match all gridded psi values to a polygon via loc_id and then aggregate psi values
         # in each Polygon by taking the MAX psi value.
+
+        def convert_longitude(ds):
+            lon = ds['lon']
+            lon = ((lon + 180) % 360) - 180
+            ds = ds.assign_coords(lon=lon)
+            return ds
+
         print('Computing gdf for psi...')
         psi = xr.open_dataarray(telecon_path)
 
         # Ensure that the DataArray has 'lat' and 'lon' coordinates
         if 'lat' not in psi.coords or 'lon' not in psi.coords:
             raise ValueError("DataArray must have 'lat' and 'lon' coordinates.")
+        
+        # Apply conversion if necessary
+        lon1 = psi['lon']
+        if lon1.max() > 180:
+            psi = convert_longitude(psi)
+
+        psi = psi.sortby('lon')
+        lon1 = psi['lon']
 
         df_psi = psi.to_dataframe(name='psi').reset_index()
         df_psi['geometry'] = df_psi.apply(lambda row: shapely.geometry.Point(row['lon'], row['lat']), axis=1)
@@ -554,7 +569,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             ax=ax,
             #vmax=500
         )
-        ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
+        ax.set_title(r'Teleconnection strength, $\Psi$ (NINO3)', fontsize=15)
         ax.set_axis_off()
         plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
@@ -567,13 +582,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=3,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='global', stepsize=1,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Africa_NINO3_square3.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Global_ANI_square1.csv', index=False)
 
 
