@@ -387,8 +387,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    # conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1.csv'
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/ONSETS_ONLY_withLOCS.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -409,9 +408,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        # align to tropical year
-        filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
-        filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year #- (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
@@ -450,8 +447,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             weather_controls[lag_string_var2] = weather_controls['tp'].shift(i)
         weather_controls['tp_lagF1y'] = weather_controls['tp'].shift(-1)
         weather_controls.drop('tp', axis=1, inplace=True)
+        # print(weather_controls)
 
         final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'tropical_year'], how='left')
+    # print(final_gdf)
 
     ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
     for i in range(nlag_psi+1):
@@ -522,6 +521,21 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        total_aggregate.plot(
+            column='conflict_binary',    
+            cmap='turbo',   #turbo    YlOrRd     PRGn
+            legend=True,                   
+            legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
+            ax=ax,
+            #vmax=500
+        )
+        ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
+        ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
+
+        # plotting
         from matplotlib.colors import TwoSlopeNorm
         psi_min = final_gdf['psi'].min()
         psi_max = final_gdf['psi'].max()
@@ -560,7 +574,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
-                                        add_weather_controls=True,
+                                        add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
 panel_data.to_csv('/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_1admin_CON1.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
