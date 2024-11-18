@@ -387,8 +387,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    # conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
-    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_2.csv'
+    # conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -544,11 +544,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         )
         ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -557,14 +557,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='first_admin', localities='Africa', stepsize=2,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=True,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_square2_CON1_5deaths.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_1admin_CON1.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()

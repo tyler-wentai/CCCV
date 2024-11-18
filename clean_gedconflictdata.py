@@ -12,7 +12,7 @@ print('\n\nSTART ---------------------\n')
 # where_prec (integer): The precision with which the coordinates and location assigned to the event reflects the location of the actual event.
 # best:                 The best (most likely) estimate of total fatalities resulting from an event.
 
-conflict_data_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
+conflict_data_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1.csv'
 df_conflict = pd.read_csv(conflict_data_path)
 
 print(df_conflict.shape)
@@ -29,9 +29,9 @@ df_cleaned = df_cleaned[df_cleaned['where_prec'] <= 4]
 # # step 3a: remove extremely violent events with death counts above 5
 # df_cleaned = df_cleaned[df_cleaned['best'] <= 5]
 # # step 3b: remove extremely violent events with death counts above 5
-df_cleaned = df_cleaned[df_cleaned['best'] >= 5]
+df_cleaned = df_cleaned[df_cleaned['best'] >= 1]
 
 
 print(df_cleaned.shape)
 # df_cleaned.to_csv('/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv', index=False)
-df_cleaned.to_csv('/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_2.csv', index=False)
+df_cleaned.to_csv('/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1_CLEANED.csv', index=False)
