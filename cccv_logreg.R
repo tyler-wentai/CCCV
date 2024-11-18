@@ -11,7 +11,7 @@ dat$country <- as.factor(dat$country)
 dat$year <- dat$year - min(dat$year)
 
 
-mod <- lm(onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
+mod <- lm(conflict_onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
             INDEX_lag1y + I(INDEX_lag1y*psi) + 
             INDEX_lag2y + I(INDEX_lag2y*psi) + 
             year + country + year:country - 1,
@@ -19,11 +19,11 @@ mod <- lm(onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) +
 summary(mod)
 
 
-med_psi <- median(dat$psi)
-dat_l <- subset(dat, psi<med_psi)
-dat_h <- subset(dat, psi>med_psi)
 
-mod <- lm(onset ~ INDEX_lag0y + INDEX_lag1y + 
+dat_l <- subset(dat, psi<0.4)
+dat_h <- subset(dat, psi>0.8)
+
+mod <- lm(conflict_onset ~ INDEX_lag0y +
             year + country + year:country - 1,
           dat = dat_h)
 summary(mod)
@@ -120,7 +120,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/Global_binary_nino3_NEW_air_1admin.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_square2_CON1.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -129,53 +129,53 @@ colnames(dat)
 dat$SOVEREIGNT <- as.factor(dat$SOVEREIGNT)
 dat$loc_id <- as.factor(dat$loc_id)
 dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
-#dat$year <- dat$year - min(dat$year)
-
-
-reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            INDEX_lag0y + I(psi*INDEX_lag0y) + 
-            INDEX_lag1y + I(psi*INDEX_lag1y) + 
-            tropical_year + loc_id - 1, data=dat)
-summary(reg)
-
-
-dat_m <- subset(dat, psi<0)
-dat_p <- subset(dat, psi>=0)
-
-medmed_psi <- median(dat_p$psi)
-psi_quants <- quantile(x=unique(dat_p$psi), c(0.33,0.66))
-dat_p_weak   <- subset(dat_p, psi < psi_quants[1])
-dat_p_mod    <- subset(dat_p, psi>= psi_quants[1] & psi<= psi_quants[2])
-dat_p_strong <- subset(dat_p, psi>  psi_quants[2])
 
 
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            INDEX_lag0y + I(psi*INDEX_lag0y) + 
-            INDEX_lag1y + I(psi*INDEX_lag1y) + 
-            tropical_year + loc_id + tropical_year:loc_id - 1, data=dat_m)
+            INDEX_lag0y + I(psi*INDEX_lag0y) +
+            INDEX_lag1y + I(psi*INDEX_lag1y) +
+            poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
+            poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+            loc_id + tropical_year, data=dat)
 summary(reg)
 
-reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            INDEX_lag0y + 
-            INDEX_lag1y + 
-            INDEX_lag2y + 
-            tropical_year + loc_id - 1, data=dat_p_strong)
+reg <- glm(conflict_binary ~ conflict_binary_lag1y + 
+             INDEX_lag0y + I(psi*INDEX_lag0y) +
+             INDEX_lag1y + I(psi*INDEX_lag1y) +
+             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
+             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+             loc_id + tropical_year - 1,
+           data = dat,
+           family = binomial)
 summary(reg)
-
 
 #
-dat_p_nino <- subset(dat_p, INDEX_lag0y>=0)
-dat_p_nina <- subset(dat_p, INDEX_lag0y< 0)
 
-dat_m_nino <- subset(dat_m, INDEX_lag0y>=0)
-dat_m_nina <- subset(dat_m, INDEX_lag0y< 0)
+median(dat$psi)
 
-reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            INDEX_lag0y + I(psi*INDEX_lag0y) + 
-            INDEX_lag1y + I(psi*INDEX_lag1y) + 
-            tropical_year + loc_id - 1, data=dat_p_nino)
+dat_weak   <- subset(dat, psi < 0.5)
+dat_moderate   <- subset(dat, psi > 0.5 & psi < 1.0)
+dat_strong <- subset(dat, psi > 1.5)
+
+reg <- lm(conflict_binary ~ conflict_binary_lag1y +
+            INDEX_lag0y + 
+            INDEX_lag1y +
+            poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
+            poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+            loc_id + tropical_year, data=dat_weak)
 summary(reg)
+
+reg <- glm(conflict_binary ~ conflict_binary_lag1y + 
+             INDEX_lag0y + 
+             INDEX_lag1y + 
+             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
+             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+             loc_id + tropical_year,
+           data = dat_strong,
+           family = binomial)
+summary(reg)
+
 
 
 
