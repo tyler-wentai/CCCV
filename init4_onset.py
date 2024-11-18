@@ -567,13 +567,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='country', localities='Global', stepsize=3,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=3,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'NINO3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Global_NINO3_country.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Africa_NINO3_square3.csv', index=False)
 
 
