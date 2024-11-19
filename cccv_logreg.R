@@ -120,7 +120,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/Binary_Africa_NINO3_square2_CON1.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -142,9 +142,7 @@ summary(reg)
 
 reg <- glm(conflict_binary ~ conflict_binary_lag1y + 
              INDEX_lag0y + I(psi*INDEX_lag0y) +
-             INDEX_lag1y + I(psi*INDEX_lag1y) +
              poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
-             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
              loc_id + tropical_year - 1,
            data = dat,
            family = binomial)
@@ -154,9 +152,10 @@ summary(reg)
 
 median(dat$psi)
 
-dat_weak   <- subset(dat, psi < 0.5)
-dat_moderate   <- subset(dat, psi > 0.5 & psi < 1.0)
-dat_strong <- subset(dat, psi > 1.5)
+dat_l   <- subset(dat, psi < 1.0)
+dat_m   <- subset(dat, psi > 1.0 & psi < 2.00)
+dat_h   <- subset(dat, psi > 2.0 & psi < 3.00)
+dat_hh  <- subset(dat, psi > 2.5)
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y +
             INDEX_lag0y + 
@@ -171,12 +170,30 @@ reg <- glm(conflict_binary ~ conflict_binary_lag1y +
              INDEX_lag1y + 
              poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
              poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
-             loc_id + tropical_year,
-           data = dat_strong,
+             loc_id + tropical_year:loc_id,
+           data = dat_l,
            family = binomial)
 summary(reg)
 
 
+
+library(mgcv)
+
+dat_strongninoremoved <- subset(dat, INDEX_lag0y<2.0)
+
+# Fit a GAM with a smooth term for predictor x
+gam_model <- gam(conflict_binary ~ conflict_binary_lag1y + 
+                   INDEX_lag0y + s(I(psi*INDEX_lag0y)) +
+                   poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
+                   loc_id + tropical_year,
+                 family = binomial, data=dat_strongninoremoved)
+
+# Summary of the GAM model
+summary(gam_model)
+
+# Plot the smooth term
+plot(gam_model, se = TRUE)
+abline(h=0)
 
 
 ###### BAYESIAN FITS
