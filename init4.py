@@ -336,7 +336,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results1 = results1.drop(columns=['number', 'spatial_ref'])
 
     results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
+    # results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
     results1.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
     results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group)        # standardize residuals over all years for each loc_id
 
@@ -359,7 +359,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     results2 = results2.drop(columns=['number', 'spatial_ref'])
 
     results2 = results2.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)    # remove climate index signal via detrending
+    # results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)    # remove climate index signal via detrending
     results2.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
     results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group)          # standardize residuals over all years for each loc_id
 
@@ -562,7 +562,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Afric
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=True,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON2.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1_notrend.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
