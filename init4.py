@@ -562,7 +562,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Afric
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=True,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON2.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
