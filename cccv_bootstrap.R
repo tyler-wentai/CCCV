@@ -63,7 +63,7 @@ myFunction <- function() {
   }
 }
 
-n_runs <- 250                     # Specify how many times you want to run the function
+n_runs <- 25                     # Specify how many times you want to run the function
 numCores <- detectCores() - 1   # Leave one core free
 
 system.time({
@@ -82,12 +82,38 @@ system.time({
 boot_dat <- read.csv(csv_file)
 
 
-
+bootstrap_mean <- apply(boot_dat, 2, mean)
 conf_int_percentile <- apply(boot_dat, 2, quantile, probs = c(0.025, 0.975))
 conf_int_percentile <- t(conf_int_percentile)
 conf_int_percentile
 
+x_span <- range(dat$INDEX_lag0y)
+x_vals <- seq(x_span[1], x_span[2], length.out=100)
 
+psi_val <- quantile(unique(dat$psi), 0.9)
+y0 <- exp( bootstrap_mean['I.psi...INDEX_lag0y.']*(psi_val*x_vals) + 
+             bootstrap_mean['I..psi...INDEX_lag0y..2.']*(psi_val*x_vals)^2 )
+y1 <- exp( bootstrap_mean['I.psi...INDEX_lag1y.']*(psi_val*x_vals) + 
+             bootstrap_mean['I..psi...INDEX_lag1y..2.']*(psi_val*x_vals)^2 )
+
+plot(x_vals, y0, type='l', lwd=3.0, col='red')
+lines(x_vals, y1, type='l', lwd=3.0, col='blue')
+abline(h=1.0)
+
+
+val_mat <- matrix(ncol=2, nrow=0)
+for (i in 1:length(x_vals)){
+  x_val <- x_vals[i]
+  val <- exp( boot_dat[,'I.psi...INDEX_lag1y.']*(psi_val*x_val) + 
+                boot_dat[,'I..psi...INDEX_lag1y..2.']*(psi_val*x_val)^2 )
+  val_mat <- rbind(val_mat, quantile(val, c(0.025, 0.975)))
+}
+
+
+plot(x_vals, y1, type='l', lwd=3.0, col='red', ylim=c(0.5,1.5))
+lines(x_vals, val_mat[,1], lwd=3.0, col='red', lty=2)
+lines(x_vals, val_mat[,2], lwd=3.0, col='red', lty=2)
+abline(h=1.0)
 
 
 
