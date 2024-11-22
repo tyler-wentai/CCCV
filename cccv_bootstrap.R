@@ -1,5 +1,3 @@
-library(brms)
-library(tictoc)
 library(dplyr)
 library(ggplot2)
 library(parallel)
@@ -17,7 +15,7 @@ formula <- as.formula('conflict_binary ~ conflict_binary_lag1y +
              I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) + 
              t2m_lag0y + tp_lag0y +
              t2m_lag1y + tp_lag1y +
-             tropical_year')
+             tropical_year + as.factor(loc_id) - 1')
 
 desired_coefficients <- c('conflict_binary_lag1y',
                           'I(psi * INDEX_lag0y)', 'I((psi * INDEX_lag0y)^2)',
@@ -65,13 +63,13 @@ myFunction <- function() {
   }
 }
 
-
-n_runs <- 10                     # Specify how many times you want to run the function
+n_runs <- 250                     # Specify how many times you want to run the function
 numCores <- detectCores() - 1   # Leave one core free
 
 system.time({
   mclapply(1:n_runs, function(x) myFunction(), mc.cores = numCores)
 })
+
 
 #system.time({
 #  results <- lapply(1:n_runs, function(x) myFunction())
@@ -79,7 +77,15 @@ system.time({
 
 
 
+### Read csv file
 
+boot_dat <- read.csv(csv_file)
+
+
+
+conf_int_percentile <- apply(boot_dat, 2, quantile, probs = c(0.025, 0.975))
+conf_int_percentile <- t(conf_int_percentile)
+conf_int_percentile
 
 
 
