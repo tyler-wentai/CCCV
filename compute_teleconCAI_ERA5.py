@@ -16,7 +16,7 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'NINO3'
+clim_index = 'EEI'
 
 start_year  = 1970
 end_year    = 2023
@@ -77,7 +77,10 @@ ds2 = ds2.assign_coords(
 )
 
 # load index data
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
@@ -328,13 +331,13 @@ for i in range(n_lat):
         has_nan = corrs1.isna().any()
         if has_nan==False:
             # var1
-            #corr1_total_sum = np.abs(corrs1[pvals1 < 0.05]).sum()
+            corr1_total_sum = np.abs(corrs1[pvals1 < 0.05]).sum()
             # var2
-            #corr2_total_sum = np.abs(corrs2[pvals2 < 0.05]).sum()
-            corr2_total_sum = corrs2[pvals2 < 0.05].sum()
+            corr2_total_sum = np.abs(corrs2[pvals2 < 0.05]).sum()
+            # corr2_total_sum = corrs2[pvals2 < 0.05].sum()
             # compute teleconnection (psi)
-            # psi[i,j] = corr1_total_sum + corr2_total_sum
-            psi[i,j] = corr2_total_sum
+            psi[i,j] = corr1_total_sum + corr2_total_sum
+            # psi[i,j] = corr2_total_sum
         else:
             psi[i,j] = np.nan
 
@@ -350,7 +353,7 @@ psi_array = xr.DataArray(data = psi,
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index)
                         )
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_precipONLY_NOCOV_cai_0d5.nc')
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc')
 
 sys.exit()
 
