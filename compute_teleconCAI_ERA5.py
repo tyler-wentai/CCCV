@@ -16,7 +16,7 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'EEI'
+clim_index = 'ECI'
 
 start_year  = 1970
 end_year    = 2023
@@ -80,7 +80,10 @@ ds2 = ds2.assign_coords(
 # clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+# clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
@@ -353,7 +356,7 @@ psi_array = xr.DataArray(data = psi,
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index)
                         )
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc')
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc')
 
 sys.exit()
 
