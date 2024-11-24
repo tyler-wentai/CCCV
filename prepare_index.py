@@ -109,6 +109,88 @@ def prepare_ANI(file_path, start_date, end_date):
 
 
 #
+def prepare_Eindex(file_path, start_date, end_date):
+    """
+    Prepare NINO E-Index (NEI) data as pd.Data.Frame from csv file with
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    nei = pd.read_csv(file_path)
+    nei['time'] = pd.to_datetime(
+        nei['time'],
+        format='%Y-%m-%d %H:%M:%S.%f', 
+        )
+    nei['time'] = nei['time'].apply(lambda dt: dt.replace(day=1))
+    nei['time'] = nei['time'].dt.floor('D')
+    nei = nei.drop('month', axis=1)
+    year_start = int(nei['time'].dt.year.min())
+    nei = nei['Eindex'].values.flatten()
+
+    df_nei = pd.DataFrame(nei)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=nei.shape[0], freq='MS')
+    df_nei.index = date_range
+    df_nei.rename_axis('date', inplace=True)
+    df_nei.columns = ['ANOM']
+
+
+    start_ts_l = np.where(df_nei.index == start_date)[0]
+    end_ts_l = np.where(df_nei.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of ANI index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of ANI index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_nei = df_nei.iloc[start_ts_ind:end_ts_ind]
+
+    return df_nei
+
+
+#
+def prepare_Cindex(file_path, start_date, end_date):
+    """
+    Prepare NINO C-Index (NEI) data as pd.Data.Frame from csv file with
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    nci = pd.read_csv(file_path)
+    nci['time'] = pd.to_datetime(
+        nci['time'],
+        format='%Y-%m-%d %H:%M:%S.%f', 
+        )
+    nci['time'] = nci['time'].apply(lambda dt: dt.replace(day=1))
+    nci['time'] = nci['time'].dt.floor('D')
+    nci = nci.drop('month', axis=1)
+    year_start = int(nci['time'].dt.year.min())
+    nci = nci['Cindex'].values.flatten()
+
+    df_nci = pd.DataFrame(nci)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=nci.shape[0], freq='MS')
+    df_nci.index = date_range
+    df_nci.rename_axis('date', inplace=True)
+    df_nci.columns = ['ANOM']
+
+
+    start_ts_l = np.where(df_nci.index == start_date)[0]
+    end_ts_l = np.where(df_nci.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of ANI index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of ANI index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_nci = df_nci.iloc[start_ts_ind:end_ts_ind]
+
+    return df_nci
+
+
+#
 def compute_annualized_NINO3_index(start_year, end_year, save_path=False):
     """
     Computes the annualized NINO3 index via the average of the index of DEC(t-1),JAN(t),FEB(t) based on
