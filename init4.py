@@ -424,6 +424,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         annual_index = compute_annualized_EEI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
+    elif (clim_index == 'ECI'):
+        annual_index = compute_annualized_ECI_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
 
@@ -561,12 +565,12 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'EEI',
+                                        clim_index = 'ECI',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_EEI_square2_CON1_nocontrols.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ECI_square2_CON1_nocontrols.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
