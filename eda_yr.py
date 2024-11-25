@@ -6,7 +6,7 @@ from statsmodels.tsa.stattools import acf
 import statsmodels.api as sm
 import sys
 from datetime import datetime
-from init import compute_annualized_NINO3_index
+from prepare_index import *
 
 # ONI: Oceanic Nino Index (from NOAA, https://www.ncei.noaa.gov/access/monitoring/enso/sst#oni)
 # loc1 = Gulf of Guinea
@@ -78,7 +78,7 @@ print(df_oni)
 # plt.show()
 
 
-df_oni = compute_annualized_NINO3_index(1960, 2024)
+df_oni = compute_annualized_ANI_index(1960, 2023)
 df_oni['year'] = pd.to_datetime(df_oni['year'].astype(str) + '-12-31')
 df_oni.set_index('year', inplace=True)
 df_oni.rename(columns={'INDEX': 'ANOM'}, inplace=True)
@@ -155,14 +155,19 @@ piracy_oni_loc2['LOC'] = 'loc2'
 piracy_oni_loc3['LOC'] = 'loc3'
 piracy_oni_loc4['LOC'] = 'loc4'
 
-piracy_oni_loc1['PIRACY_COUNTS'] = (piracy_oni_loc1['PIRACY_COUNTS']-np.mean(piracy_oni_loc1['PIRACY_COUNTS']))/np.std(piracy_oni_loc1['PIRACY_COUNTS'])
-piracy_oni_loc2['PIRACY_COUNTS'] = (piracy_oni_loc2['PIRACY_COUNTS']-np.mean(piracy_oni_loc2['PIRACY_COUNTS']))/np.std(piracy_oni_loc2['PIRACY_COUNTS'])
-piracy_oni_loc3['PIRACY_COUNTS'] = (piracy_oni_loc3['PIRACY_COUNTS']-np.mean(piracy_oni_loc3['PIRACY_COUNTS']))/np.std(piracy_oni_loc3['PIRACY_COUNTS'])
-piracy_oni_loc4['PIRACY_COUNTS'] = (piracy_oni_loc4['PIRACY_COUNTS']-np.mean(piracy_oni_loc4['PIRACY_COUNTS']))/np.std(piracy_oni_loc4['PIRACY_COUNTS'])
+#piracy_oni_loc1['PIRACY_COUNTS'] = (piracy_oni_loc1['PIRACY_COUNTS']-np.mean(piracy_oni_loc1['PIRACY_COUNTS']))/np.std(piracy_oni_loc1['PIRACY_COUNTS'])
+#piracy_oni_loc2['PIRACY_COUNTS'] = (piracy_oni_loc2['PIRACY_COUNTS']-np.mean(piracy_oni_loc2['PIRACY_COUNTS']))/np.std(piracy_oni_loc2['PIRACY_COUNTS'])
+#piracy_oni_loc3['PIRACY_COUNTS'] = (piracy_oni_loc3['PIRACY_COUNTS']-np.mean(piracy_oni_loc3['PIRACY_COUNTS']))/np.std(piracy_oni_loc3['PIRACY_COUNTS'])
+#piracy_oni_loc4['PIRACY_COUNTS'] = (piracy_oni_loc4['PIRACY_COUNTS']-np.mean(piracy_oni_loc4['PIRACY_COUNTS']))/np.std(piracy_oni_loc4['PIRACY_COUNTS'])
 
 # loc_ALL
 dfs = [piracy_oni_loc1, piracy_oni_loc2, piracy_oni_loc3, piracy_oni_loc4]
 data_oni = pd.concat(dfs, axis=0, ignore_index=True)
+
+data_oni.to_csv('/Users/tylerbagwell/Desktop/piracy_counts_ani.csv', index=False)
+
+print(data_oni)
+sys.exit()
 
 cols = list(data_oni.columns) 
 cols[0], cols[1] = cols[1], cols[0]
