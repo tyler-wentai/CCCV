@@ -313,6 +313,39 @@ def compute_annualized_ANI_index(start_year, end_year, save_path=False):
     return index_yrAVG
 
 
+#
+def compute_annualized_EEI_index(start_year, end_year, save_path=False):
+    """
+    Computes the annualized ENSO E-Index via the average of the index of DEC(t-1),JAN(t),FEB(t) inspired by
+    the method of Callahan 2023.
+    """
+    # load index data
+    clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
+    # Compute the year index value as the average of DEC(t-1),JAN(t),FEB(t).
+    clim_ind.index = pd.to_datetime(clim_ind.index)     # Ensure 'date' to datetime and extract year & month
+    clim_ind['year'] = clim_ind.index.year
+    clim_ind['month'] = clim_ind.index.month
+
+    dec_df = clim_ind[clim_ind['month'] == 12].copy() # prepare December data from previous year
+    dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+    dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+
+    jan_feb_df = clim_ind[clim_ind['month'].isin([1, 2])].copy() # prepare January and February data for current year
+    jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+    feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+
+    yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+    yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
+
+    yearly['INDEX'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+    index_yrAVG = yearly[['year', 'INDEX']].sort_values('year').reset_index(drop=True)
+
+    return index_yrAVG
+
+
 
 # start_year = 1989
 # end_year = 2023

@@ -26,7 +26,7 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_precipONLY_NOCOV_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat1 = psi['lat'].values
@@ -56,8 +56,8 @@ fig, ax = plt.subplots(figsize=(10, 6.6))
 # prop = len(vals1)/len(vals2)
 levels = [-4.0,-3.0,-2.0,-1.0,0.0,1.0,2.0,3.0,4.0]
 
-c = ax.contourf(lon1, lat1, variable1, cmap='RdYlBu')
-# gdf2.plot(ax=ax, edgecolor=None, color='white')
+c = ax.contourf(lon1, lat1, variable1, cmap='Reds', vmax=4)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
