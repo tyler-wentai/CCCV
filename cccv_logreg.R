@@ -120,30 +120,34 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Global_NINO3_squaresqrt2_CON1_nocontrols.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
 colnames(dat)
 
+#dat$conflict_binary <- as.factor(dat$conflict_binary)
+#dat$conflict_binary_lag1y <- as.factor(dat$conflict_binary_lag1y)
 dat$SOVEREIGNT <- as.factor(dat$SOVEREIGNT)
 dat$loc_id <- as.factor(dat$loc_id)
 dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
 
-
-
 reg <- lm(conflict_binary ~ conflict_binary_lag1y + 
-            INDEX_lag0y + I(psi*INDEX_lag0y) +
-            INDEX_lag1y + I(psi*INDEX_lag1y) +
+            INDEX_lag0y + I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+            INDEX_lag1y + I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
             loc_id + tropical_year, data=dat)
 summary(reg)
 
 reg <- glm(conflict_binary ~ conflict_binary_lag1y + 
-             INDEX_lag0y + I(psi*INDEX_lag0y) +
+             I(psi*INDEX_lagF1y) + I((psi*INDEX_lagF1y)^2) +
+             I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+             I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
+             poly(t2m_lagF1y, 1) + poly(tp_lagF1y, 1) +
              poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
-             loc_id + tropical_year - 1,
+             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+             loc_id + tropical_year,
            data = dat,
            family = binomial)
 summary(reg)
@@ -152,29 +156,79 @@ summary(reg)
 
 median(dat$psi)
 
-dat_l   <- subset(dat, psi < 1.0)
-dat_m   <- subset(dat, psi > 1.0 & psi < 2.00)
-dat_h   <- subset(dat, psi > 2.0 & psi < 3.00)
-dat_hh  <- subset(dat, psi > 2.5)
+dat_l   <- subset(dat, psi < 0.5)
+dat_m   <- subset(dat, psi > 0.5 & psi < 1.0)
+dat_h   <- subset(dat, psi > 1.0 & psi < 2.00)
+dat_hh  <- subset(dat, psi > 1.5)
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y +
-            INDEX_lag0y + 
-            INDEX_lag1y +
+I(psi*INDEX_lagF1y) + I((psi*INDEX_lagF1y)^2) +
+             I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+             I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
             loc_id + tropical_year, data=dat_weak)
 summary(reg)
 
-reg <- glm(conflict_binary ~ conflict_binary_lag1y + 
-             INDEX_lag0y + 
-             INDEX_lag1y + 
-             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
-             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
-             loc_id + tropical_year:loc_id,
-           data = dat_l,
-           family = binomial)
-summary(reg)
 
+dat_help <- subset(dat, psi >= 0.0)
+
+reg0 <- glm(conflict_binary ~ conflict_binary_lag1y +
+              loc_id + tropical_year - 1,
+            data = dat_help,
+            family = binomial)
+#summary(reg0)
+reg1 <- glm(conflict_binary ~ conflict_binary_lag1y +
+              I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+              I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
+              I(psi*INDEX_lag2y) + I((psi*INDEX_lag2y)^2) +
+              loc_id + tropical_year - 1,
+           data = dat_help,
+           family = binomial)
+#summary(reg1)
+
+
+probabilities0 <- predict(reg0, type = "response")
+probabilities1 <- predict(reg1, type = "response")
+library(pROC)
+library(precrec)
+library(PRROC)
+roc_obj0 <- roc(dat_help$conflict_binary, probabilities0)
+roc_obj1 <- roc(dat_help$conflict_binary, probabilities1)
+auc_value0 <- pROC::auc(roc_obj0)
+auc_value1 <- pROC::auc(roc_obj1)
+plot(roc_obj0)
+lines(roc_obj1, col='red')
+auc_value0
+auc_value1
+legend("bottomright", legend = paste("AUC =", round(auc_value, 4)), bty = "n")
+
+
+precrec_obj1 <- evalmod(scores = probabilities1, labels = dat_help$conflict_binary)
+precrec_obj0 <- evalmod(scores = probabilities0, labels = dat_help$conflict_binary)
+autoplot(precrec_obj0, "PRC")
+autoplot(precrec_obj1, "PRC")
+
+scores_list <- list(Model0 = probabilities0, Model1 = probabilities1)
+labels_list <- list(dat_help$conflict_binary, dat_help$conflict_binary)
+precrec_combined <- evalmod(scores = scores_list, labels = labels_list)
+autoplot(precrec_combined, "PRC") +
+  ggtitle("Comparison of Precision-Recall Curves") +
+  theme_minimal()
+
+
+
+x_span  <- range(dat$INDEX_lag0y)
+xx <- seq(x_span[1], x_span[2], length.out=100)
+x0_high <- -2.285e-01*xx + 9.268e-02*xx^2
+x1_high <- -1.172e-01*xx + 1.020e-01*xx^2
+
+x0_low <- -1.405e-01*xx + 2.094e-01*xx^2
+x1_low <-  1.986e-01*xx -1.006e-01*xx^2
+
+plot(xx, x1_high, type='l', col='red', lwd=3)
+lines(xx, x1_low, type='l', col='blue', lwd=3)
+abline(h=0)
 
 
 library(mgcv)
@@ -184,11 +238,11 @@ dat_strongninoremoved <- subset(dat, INDEX_lag0y<2.0)
 # Fit a GAM with a smooth term for predictor x
 gam_model <- gam(conflict_binary ~ conflict_binary_lag1y + 
                    INDEX_lag0y + s(I(psi*INDEX_lag0y)) +
+                   INDEX_lag1y + s(I(psi*INDEX_lag1y)) +
                    poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
-                   loc_id + tropical_year,
-                 family = binomial, data=dat_strongninoremoved)
-
-# Summary of the GAM model
+                   poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
+                   loc_id + tropical_year:loc_id - 1,
+                 family = binomial, data=dat_m)
 summary(gam_model)
 
 # Plot the smooth term
