@@ -417,6 +417,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         annual_index = compute_annualized_ANI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
+    elif (clim_index == 'EEI'):
+        annual_index = compute_annualized_EEI_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
+    elif (clim_index == 'ECI'):
+        annual_index = compute_annualized_ECI_index(start_year, end_year)
+        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
 
@@ -582,13 +590,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='global', stepsize=1,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=np.sqrt(2),
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'NINO3',
+                                        clim_index = 'DMI',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/Onset_Binary_Global_ANI_square1.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_squaresqrt2.csv', index=False)
 
 

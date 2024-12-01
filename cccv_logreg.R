@@ -2,31 +2,54 @@ library(brms)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/Onset_global_nino3.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_squaresqrt2.csv'
 dat <- read.csv(panel_data_path)
 
-head(dat)
+#head(dat)
 
-dat$country <- as.factor(dat$country)
-dat$year <- dat$year - min(dat$year)
+#dat$country <- as.factor(dat$country)
+dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
+dat$loc_id <- as.factor(dat$loc_id)
 
 
-mod <- lm(conflict_onset ~ INDEX_lag0y + I(INDEX_lag0y*psi) + 
-            INDEX_lag1y + I(INDEX_lag1y*psi) + 
-            INDEX_lag2y + I(INDEX_lag2y*psi) + 
-            year + country + year:country - 1,
+mod <- lm(conflict_binary ~ 
+            I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) +
+            I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
+            I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
+            tropical_year + loc_id - 1,
           dat = dat)
 summary(mod)
 
 
+med_psi <- median(dat$psi)
+dat_l <- subset(dat, psi<med_psi)
+dat_h <- subset(dat, psi>=med_psi)
 
-dat_l <- subset(dat, psi<0.4)
-dat_h <- subset(dat, psi>0.8)
-
-mod <- lm(conflict_onset ~ INDEX_lag0y +
-            year + country + year:country - 1,
-          dat = dat_h)
+mod <- lm(conflict_binary ~ INDEX_lag0y + INDEX_lag1y + INDEX_lag2y +
+            tropical_year + loc_id + tropical_year:loc_id - 1,
+          dat = dat_l)
 summary(mod)
+
+
+
+#
+dat_l <- subset(dat, psi<0.5)
+dat_h <- subset(dat, psi>=2.4)
+
+dat_agg <- dat_h %>%
+  group_by(tropical_year) %>%
+  summarise(
+    conflict_proportion = sum(conflict_binary) / n(),
+    INDEX_lagF1y = first(INDEX_lagF1y), 
+    INDEX_lag0y = first(INDEX_lag0y), 
+    INDEX_lag1y = first(INDEX_lag1y), 
+    INDEX_lag2y = first(INDEX_lag2y), 
+    )
+
+mod <- lm(conflict_proportion ~ INDEX_lagF1y + INDEX_lag0y + INDEX_lag1y + tropical_year,
+          data=dat_agg)
+summary(mod)
+
 
 
 
@@ -120,7 +143,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Global_NINO3_squaresqrt2_CON1_nocontrols.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ANI_square1_CON1_nocontrols.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -162,16 +185,16 @@ dat_h   <- subset(dat, psi > 1.0 & psi < 2.00)
 dat_hh  <- subset(dat, psi > 1.5)
 
 reg <- lm(conflict_binary ~ conflict_binary_lag1y +
-I(psi*INDEX_lagF1y) + I((psi*INDEX_lagF1y)^2) +
-             I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
-             I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
+            I(psi*INDEX_lagF1y) + I((psi*INDEX_lagF1y)^2) +
+            I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
+            I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
             poly(t2m_lag0y, 1) + poly(tp_lag0y, 1) +
             poly(t2m_lag1y, 1) + poly(tp_lag1y, 1) +
             loc_id + tropical_year, data=dat_weak)
 summary(reg)
 
 
-dat_help <- subset(dat, psi >= 0.0)
+dat_help <- subset(dat, psi > 0.6570268)
 
 reg0 <- glm(conflict_binary ~ conflict_binary_lag1y +
               loc_id + tropical_year - 1,
@@ -179,14 +202,17 @@ reg0 <- glm(conflict_binary ~ conflict_binary_lag1y +
             family = binomial)
 #summary(reg0)
 reg1 <- glm(conflict_binary ~ conflict_binary_lag1y +
-              I(psi*INDEX_lag0y) + I((psi*INDEX_lag0y)^2) +
-              I(psi*INDEX_lag1y) + I((psi*INDEX_lag1y)^2) +
-              I(psi*INDEX_lag2y) + I((psi*INDEX_lag2y)^2) +
+              INDEX_lag0y + I(INDEX_lag0y^2) + 
+              INDEX_lag1y + I(INDEX_lag1y^2) + 
+              INDEX_lag2y + I(INDEX_lag2y^2) + 
               loc_id + tropical_year - 1,
            data = dat_help,
            family = binomial)
 #summary(reg1)
+AIC(reg0)
+AIC(reg1)
 
+quantile(dat$psi, c(0.25,0.75))
 
 probabilities0 <- predict(reg0, type = "response")
 probabilities1 <- predict(reg1, type = "response")

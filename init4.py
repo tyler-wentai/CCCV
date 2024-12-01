@@ -546,15 +546,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             legend=True,                   
             legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
             ax=ax,
-            #vmax=500
+            vmin=0.6570268
         )
         ax.set_title(r'Teleconnection strength, $\Psi$ (w/ DMI)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_psi_DMI.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Africa_psi_DMI.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Africa_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -563,14 +563,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=1,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'ECI',
+                                        clim_index = 'ANI',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ECI_square2_CON1_nocontrols.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ANI_square1_CON1_nocontrols.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()

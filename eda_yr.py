@@ -78,7 +78,7 @@ print(df_oni)
 # plt.show()
 
 
-df_oni = compute_annualized_ANI_index(1960, 2023)
+df_oni = compute_annualized_ECI_index(1960, 2023)
 df_oni['year'] = pd.to_datetime(df_oni['year'].astype(str) + '-12-31')
 df_oni.set_index('year', inplace=True)
 df_oni.rename(columns={'INDEX': 'ANOM'}, inplace=True)
@@ -164,7 +164,7 @@ piracy_oni_loc4['LOC'] = 'loc4'
 dfs = [piracy_oni_loc1, piracy_oni_loc2, piracy_oni_loc3, piracy_oni_loc4]
 data_oni = pd.concat(dfs, axis=0, ignore_index=True)
 
-data_oni.to_csv('/Users/tylerbagwell/Desktop/piracy_counts_ani.csv', index=False)
+data_oni.to_csv('/Users/tylerbagwell/Desktop/piracy_counts_eci.csv', index=False)
 
 print(data_oni)
 sys.exit()
