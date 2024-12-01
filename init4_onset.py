@@ -408,22 +408,27 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ANI'):
         annual_index = compute_annualized_ANI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'EEI'):
         annual_index = compute_annualized_EEI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ECI'):
         annual_index = compute_annualized_ECI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
@@ -574,7 +579,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             cmap='Reds',   #turbo    YlOrRd     PRGn
             legend=True,                   
             legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
-            ax=ax,
+            ax=ax
             #vmax=500
         )
         ax.set_title(r'Teleconnection strength, $\Psi$ (NINO3)', fontsize=15)
@@ -590,13 +595,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=np.sqrt(2),
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=2,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'DMI',
+                                        clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_squaresqrt2.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square2.csv', index=False)
 
 

@@ -545,8 +545,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             cmap='Reds',   #turbo    YlOrRd     PRGn
             legend=True,                   
             legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
-            ax=ax,
-            vmin=0.6570268
+            ax=ax
         )
         ax.set_title(r'Teleconnection strength, $\Psi$ (w/ DMI)', fontsize=15)
         ax.set_axis_off()
@@ -563,14 +562,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=1,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'ANI',
+                                        clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ANI_square1_CON1_nocontrols.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1_nocontrols.csv', index=False)
 # panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
