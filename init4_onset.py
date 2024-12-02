@@ -549,59 +549,64 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        total_aggregate.plot(
-            column='conflict_binary',    
-            cmap='turbo',   #turbo    YlOrRd     PRGn
-            legend=True,                   
-            legend_kwds={'label': r"No. of onsets", 'orientation': "horizontal"},
-            ax=ax
-            #vmax=500
-        )
-        ax.set_title(r'No. of conflict onsets', fontsize=15)
-        ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        # total_aggregate.plot(
+        #     column='conflict_binary',    
+        #     cmap='turbo',   #turbo    YlOrRd     PRGn
+        #     legend=True,                   
+        #     legend_kwds={'label': r"No. of onsets", 'orientation': "horizontal"},
+        #     ax=ax
+        #     #vmax=500
+        # )
+        # ax.set_title(r'No. of conflict onsets', fontsize=15)
+        # ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.show()
 
         # plotting
         from matplotlib.colors import TwoSlopeNorm
+        from matplotlib.gridspec import GridSpec
+        import matplotlib as mpl
         psi_min = final_gdf['psi'].min()
         psi_max = final_gdf['psi'].max()
 
-        # max_abs = max(abs(psi_min), abs(psi_max))
-        # vmin = -max_abs
-        # vmax = max_abs
-        # norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+        fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
 
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         final_gdf.plot(
             column='psi',    
             cmap='Reds',   #turbo    YlOrRd     PRGn
             legend=True,                   
-            legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
-            ax=ax
-            #vmax=500
+            legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,},
+            ax=axes[0],
         )
-        ax.set_title(r'Teleconnection strength, $\Psi$ (NINO3)', fontsize=15)
-        ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        polygons_gdf.plot(ax=axes[0], edgecolor='black', facecolor='none', linewidth=0.2, vmin=0.5)
+        axes[0].set_title(r'Teleconnection strength, $\Psi$ (ANI)', fontsize=15)
+        axes[0].set_axis_off()
+        # plt.tight_layout()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.show()
 
-        sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        sns.histplot(mean_psi['psi'], bins=30, stat='count', kde=False, color='gray', ax=axes[1])
+        axes[1].set_xlabel(r'Teleconnection strength, $\Psi$', fontsize=15)
+        axes[1].spines['top'].set_visible(False)
+        axes[1].spines['right'].set_visible(False)
+        axes[1].spines['bottom'].set_visible(True)
+        axes[1].spines['left'].set_visible(True)
+        plt.tight_layout()
+        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='country', localities='Asia', stepsize=2,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'NINO3',
+                                        clim_index = 'ANI',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_cai_0d5.nc',
                                         add_weather_controls=False,
-                                        show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square2.csv', index=False)
+                                        show_grid=False, show_gridded_aggregate=True)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Asia_ANI_country.csv', index=False)
 
 

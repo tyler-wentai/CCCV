@@ -2,24 +2,34 @@ library(brms)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_squaresqrt2.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_ANI_square2.csv'
 dat <- read.csv(panel_data_path)
 
 #head(dat)
 
 #dat$country <- as.factor(dat$country)
+dat$bool1989 <- ifelse(dat$tropical_year<=1989,0,1)
 dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
 dat$loc_id <- as.factor(dat$loc_id)
 
 
-mod <- lm(conflict_binary ~ 
-            I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) +
-            I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
-            I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
-            tropical_year + loc_id - 1,
-          dat = dat)
-summary(mod)
 
+quantile(dat$psi, c(0.20,0.75))
+dat_help <- subset(dat, psi > 1.2274784)
+
+log_mod <- brm(
+  conflict_binary ~ 0 + 
+    INDEX_lag0y + I(INDEX_lag0y^2) +
+    tropical_year + loc_id,
+  data = dat_help, family = bernoulli(link = "logit"), 
+  iter = 4000, chains=2, warmup=500,
+  prior = prior(normal(0, 20), class = b)
+)
+print(summary(log_mod), digits = 4)
+ce <- conditional_effects(log_mod, effects = "INDEX_lag0y", prob = 0.90)
+plot(ce, ask = FALSE)
+
+ce_data <- ce$INDEX_lag0y
 
 med_psi <- median(dat$psi)
 dat_l <- subset(dat, psi<med_psi)
@@ -31,22 +41,25 @@ mod <- lm(conflict_binary ~ INDEX_lag0y + INDEX_lag1y + INDEX_lag2y +
 summary(mod)
 
 
+#
+quantile(dat$psi, c(0.25,0.75))
+dat_help <- subset(dat, psi > 1.227478)
+
 
 #
-dat_l <- subset(dat, psi<0.5)
-dat_h <- subset(dat, psi>=2.4)
-
-dat_agg <- dat_h %>%
+dat_agg <- dat_help %>%
   group_by(tropical_year) %>%
   summarise(
     conflict_proportion = sum(conflict_binary) / n(),
+    bool1989 = first(bool1989), 
     INDEX_lagF1y = first(INDEX_lagF1y), 
     INDEX_lag0y = first(INDEX_lag0y), 
     INDEX_lag1y = first(INDEX_lag1y), 
     INDEX_lag2y = first(INDEX_lag2y), 
-    )
+  )
 
-mod <- lm(conflict_proportion ~ INDEX_lagF1y + INDEX_lag0y + INDEX_lag1y + tropical_year,
+mod <- lm(conflict_proportion ~ INDEX_lag0y + I(INDEX_lag0y^2) + INDEX_lag1y + I(INDEX_lag1y^2) + INDEX_lag2y + I(INDEX_lag2y^2) +
+            tropical_year,
           data=dat_agg)
 summary(mod)
 
@@ -56,18 +69,43 @@ summary(mod)
 ###### BAYESIAN FITS
 # bernoulli model
 fit <- brm(
-  conflict_onset ~  0 + 
-    INDEX_lag0y + I(INDEX_lag0y*psi) +
-    INDEX_lag1y + I(INDEX_lag1y*psi) +
-    INDEX_lag2y + I(INDEX_lag2y*psi) +
-    year + country,
-  data = dat, family = bernoulli(link = "logit"), 
-  iter = 5000, chains=1, warmup=1000,
-  prior = prior(normal(0, 10), class = b)
+  conflict_proportion ~
+    INDEX_lag0y + I(INDEX_lag0y^2) +
+    tropical_year + bool1989,
+  data = dat_agg, family = gaussian(), 
+  iter = 6000, chains=3, warmup=1000,
+  prior = prior(normal(0, 20), class = b)
 )
 
-print(summary(fit), digits = 3)
+print(summary(fit, prob = 0.90), digits = 4)
+#plot(fit)
 
+ce <- conditional_effects(fit, effects = "INDEX_lag0y", prob = 0.90, resolution = 1000)
+plot(ce, ask = FALSE)
+ce_data <- ce$INDEX_lag0y
+write.csv(ce_data, file = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high66.csv", row.names = FALSE)
+
+#
+draws_matrix <- as_draws_matrix(fit)
+colnames(draws_matrix)
+
+climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
+results <- matrix(ncol=5, nrow=0)
+for (i in 1:length(climindex)){
+  climind <- climindex[i]
+  sum_params <- (climind*draws_matrix[, "b_INDEX_lag0y"]) + (climind^2*draws_matrix[, "b_IINDEX_lag0yE2"]) + (draws_matrix[, "b_Intercept"])
+  results <- rbind(results, c(climind,
+                              mean(sum_params), 
+                              sd(sum_params),
+                              quantile(sum_params, 0.05),
+                              quantile(sum_params, 0.95)))
+  
+}
+
+plot(results[,1], results[,2], type='l', col='black', ylim=c(-0.005,0.005), lwd=2)
+lines(results[,1], results[,4], type='l', col='blue', lwd=2)
+lines(results[,1], results[,5], type='l', col='blue', lwd=2)
+abline(h=0)
 
 
 
@@ -82,7 +120,7 @@ psi_range <- seq(min(dat$psi), max(dat$psi), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(psi_range)){
   psi_i <- psi_range[i]
-  sum_params <- exp( draws_matrix[, "b_INDEX_lag2y"] + (psi_i*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) )
+  sum_params <- exp( draws_matrix[, "b_INDEX_lag0y"] + (psi_i*draws_matrix[, "b_IINDEX_lag0yE2"]) )
   results <- rbind(results, c(psi_i,
                               mean(sum_params), 
                               sd(sum_params),
@@ -90,6 +128,10 @@ for (i in 1:length(psi_range)){
                               quantile(sum_params, 0.975)))
   
 }
+plot(results[,1], results[,2], type='l', col='black', ylim=c(0,2.5), lwd=2)
+lines(results[,1], results[,4], type='l', col='blue', lwd=2)
+lines(results[,1], results[,5], type='l', col='blue', lwd=2)
+abline(h=1)
 
 results_0d3 <- results
 results_0d7 <- results
@@ -143,7 +185,7 @@ library(dplyr)
 library(ggplot2)
 
 #panel_data_path <- '/Users/tylerbagwell/Desktop/panel_data_Africa_binary.csv'
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_ANI_square1_CON1_nocontrols.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_NINO3_square2_CON1_nocontrols.csv'
 dat <- read.csv(panel_data_path)
 
 #View(dat)
@@ -206,8 +248,8 @@ reg1 <- glm(conflict_binary ~ conflict_binary_lag1y +
               INDEX_lag1y + I(INDEX_lag1y^2) + 
               INDEX_lag2y + I(INDEX_lag2y^2) + 
               loc_id + tropical_year - 1,
-           data = dat_help,
-           family = binomial)
+            data = dat_help,
+            family = binomial)
 #summary(reg1)
 AIC(reg0)
 AIC(reg1)
@@ -278,33 +320,47 @@ abline(h=0)
 
 ###### BAYESIAN FITS
 # bernoulli model
-tic("Brms Model Fitting")
-fit1_nino_randind <- brm(
+log_mod <- brm(
   conflict_binary ~  0 + conflict_binary_lag1y + 
     I(INDEX_lag0y*psi) + I((INDEX_lag0y*psi)^2) + 
     I(INDEX_lag1y*psi) + I((INDEX_lag1y*psi)^2) +
     I(INDEX_lag2y*psi) + I((INDEX_lag2y*psi)^2) +
-    year + loc_id,
-  data = dat_rand, family = bernoulli(link = "logit"), 
-  iter = 5000, chains=1, warmup=1000,
+    tropical_year + loc_id,
+  data = dat, family = bernoulli(link = "logit"), 
+  iter = 4000, chains=1, warmup=1000,
   prior = prior(normal(0, 10), class = b)
 )
-toc()
 
-print(summary(fit1_nino), digits = 3)
+print(summary(log_mod), digits = 3)
+
+#
+quantile(dat$psi, c(0.33,0.66))
+dat_help <- subset(dat, psi < 0.5488111)
+
+mod_l <- brm(
+  conflict_binary ~  0 + conflict_binary_lag1y + 
+    INDEX_lag0y + I(INDEX_lag0y^2) + 
+    INDEX_lag1y + I(INDEX_lag1y^2) + 
+    INDEX_lag2y + I(INDEX_lag2y^2) + 
+    tropical_year + loc_id,
+  data = dat_help, family = bernoulli(link = "logit"), 
+  iter = 4000, chains=1, warmup=1000,
+  prior = prior(normal(0, 10), class = b)
+)
+
+print(summary(mod_h), digits = 3)
 #plot(fit1_nino)
 
 
-draws_matrix <- as_draws_matrix(fit5)
+draws_matrix <- as_draws_matrix(log_mod)
 colnames(draws_matrix)
 
-psi <- 1.2
+psi <- 1.2787523
 climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
-  sum_params <- (psi*climind*draws_matrix[, "b_IINDEX_lag0yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag0yMUpsiE2"]) +
-    (psi*climind*draws_matrix[, "b_IINDEX_lag1yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag1yMUpsiE2"])
+  sum_params <- exp((psi*climind*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag2yMUpsiE2"]))
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),
@@ -312,25 +368,37 @@ for (i in 1:length(climindex)){
                               quantile(sum_params, 0.975)))
   
 }
-plot(results[,1], results[,2], type='l', col='black', ylim=c(-0.1,3), lwd=2)
+
+plot(results[,1], results[,2], type='l', col='black', ylim=c(0,2.5), lwd=2)
 lines(results[,1], results[,4], type='l', col='blue', lwd=2)
 lines(results[,1], results[,5], type='l', col='blue', lwd=2)
-abline(h=0)
+abline(h=1)
+
+
+results_l <- results
+results_h <- results
+
+plot(results_l[,1], results_l[,2], type='l', col='navy', ylim=c(0,2.5), lwd=2)
+lines(results_l[,1], results_l[,4], type='l', col='blue', lwd=2)
+lines(results_l[,1], results_l[,5], type='l', col='blue', lwd=2)
+#
+lines(results_h[,1], results_h[,2], type='l', col='red', lwd=2)
+lines(results_h[,1], results_h[,4], type='l', col='tomato', lwd=2)
+lines(results_h[,1], results_h[,5], type='l', col='tomato', lwd=2)
+abline(h=1)
 
 
 
 
 
+draws_matrix <- as_draws_matrix(mod_l)
+colnames(draws_matrix)
 
-
-psi <- 0.5
 climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
-  sum_params <- exp((climind*draws_matrix[, "b_INDEX_lag0y"]) + (psi*climind*draws_matrix[, "b_IINDEX_lag0yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag0yMUpsiE2"]) +
-                      (climind*draws_matrix[, "b_INDEX_lag1y"]) + (psi*climind*draws_matrix[, "b_IINDEX_lag1yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag1yMUpsiE2"]) +
-                      (climind*draws_matrix[, "b_INDEX_lag2y"]) + (psi*climind*draws_matrix[, "b_IINDEX_lag2yMUpsi"]) + ((psi^2)*(climind^2)*draws_matrix[, "b_IINDEX_lag2yMUpsiE2"]))
+  sum_params <- exp((climind*draws_matrix[, "b_INDEX_lag0y"]) + ((climind^2)*draws_matrix[, "b_IINDEX_lag0yE2"]))
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),
@@ -338,7 +406,8 @@ for (i in 1:length(climindex)){
                               quantile(sum_params, 0.975)))
   
 }
-plot(results[,1], results[,2], type='l', col='black', ylim=c(0.9,10), lwd=2)
+
+plot(results[,1], results[,2], type='l', col='black', ylim=c(0,2.5), lwd=2)
 lines(results[,1], results[,4], type='l', col='blue', lwd=2)
 lines(results[,1], results[,5], type='l', col='blue', lwd=2)
 abline(h=1)
