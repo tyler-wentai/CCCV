@@ -48,9 +48,9 @@ print('\n\nSTART ---------------------\n')
 
 #############
 
-path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high66.csv'
-path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high90.csv'
-path3 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high99.csv'
+path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_low66.csv'
+path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_low90.csv'
+path3 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_low99.csv'
 
 df1 = pd.read_csv(path1)
 df2 = pd.read_csv(path2)
@@ -80,7 +80,7 @@ df3['lower__'] = df3['lower__'] - val3
 plt.plot(df1['INDEX_lag0y'], df1['estimate__'], color='maroon', label='posterior estimate', linewidth=2.0)
 plt.fill_between(df1['INDEX_lag0y'], df1['lower__'], df1['upper__'], color='r', alpha=0.30, edgecolor=None, label='likely (66% CI)')
 plt.fill_between(df2['INDEX_lag0y'], df2['lower__'], df2['upper__'], color='r', alpha=0.22, edgecolor=None, label='very likely (90% CI)')
-plt.fill_between(df3['INDEX_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
+# plt.fill_between(df3['INDEX_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
 plt.axhline(y=0, color='gray', linestyle='--', linewidth=1, zorder=0)
 plt.axvline(x=0, color='gray', linestyle='--', linewidth=1, zorder=0)
@@ -92,5 +92,5 @@ plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 plt.legend(loc=0, frameon=False)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/Onset_ANI_Asia_high.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/Onset_ANI_Asia_high.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
