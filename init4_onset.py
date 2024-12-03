@@ -600,13 +600,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=8.5,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'DMI',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square2.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square8d5.csv', index=False)
 
 
