@@ -552,15 +552,18 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
         # total_aggregate.plot(
         #     column='conflict_binary',    
-        #     cmap='turbo',   #turbo    YlOrRd     PRGn
+        #     cmap='magma_r',   #turbo    YlOrRd     PRGn
         #     legend=True,                   
-        #     legend_kwds={'label': r"No. of onsets", 'orientation': "horizontal"},
+        #     legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6},
         #     ax=ax
         #     #vmax=500
         # )
-        # ax.set_title(r'No. of conflict onsets', fontsize=15)
+        # colorbar = fig.axes[-1]
+        # colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
+        # polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+        # ax.set_title(r'No. of conflict onsets (1950-2023)', fontsize=15)
         # ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
         # plotting
@@ -569,6 +572,26 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         import matplotlib as mpl
         psi_min = final_gdf['psi'].min()
         psi_max = final_gdf['psi'].max()
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+        final_gdf.plot(
+            column='psi',    
+            cmap='Reds',   #turbo    YlOrRd     PRGn
+            legend=True,                   
+            legend_kwds={'orientation': "vertical", 'shrink': 0.6},
+            ax=ax,
+        )
+        colorbar = fig.axes[-1]
+        colorbar.set_ylabel(r"$\Psi$", rotation=0, fontsize=14)
+        polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+        ax.set_title(r'Teleconnection strength, $\Psi$ (IOD)', fontsize=15)
+        ax.set_axis_off()
+        plt.tight_layout()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_country_DMI_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
+
+        ##
 
         fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
 
@@ -593,20 +616,20 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         axes[1].spines['bottom'].set_visible(True)
         axes[1].spines['left'].set_visible(True)
         plt.tight_layout()
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
 
 
 #
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=8.5,
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa', stepsize=3.7225,
                                         nlag_psi=5, nlag_conflict=1,
                                         clim_index = 'DMI',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square8d5.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
 
 

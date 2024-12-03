@@ -50,15 +50,18 @@ print('\n\nSTART ---------------------\n')
 #######################################
 #######################################
 
-# val_min = -0.0559
-# val_max = +0.1077
+# import seaborn as sns
+# cmap = sns.diverging_palette(220, 20, as_cmap=True)
+# num_colors = 5
+# levels = np.linspace(0, 1, num_colors)
+# colors = [cmap(level) for level in levels]
 
-# val_min = -0.0383
-# val_max = +0.0865
+# val_min = 0
+# val_max = 0
 
-# path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_high66.csv'
-# path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_high90.csv'
-# path3 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE90pct_INDEX_lag0y_Onset_Binary_Global_ANI_country_high99.csv'
+# path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_veryhigh66.csv'
+# path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_veryhigh90.csv'
+# path3 = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_veryhigh99.csv'
 
 # df1 = pd.read_csv(path1)
 # df2 = pd.read_csv(path2)
@@ -85,24 +88,38 @@ print('\n\nSTART ---------------------\n')
 # df3['lower__'] = df3['lower__'] - val3
 
 # # maroon, navy
-# plt.plot(df1['INDEX_lag0y'], df1['estimate__'], color='maroon', label='posterior estimate', linewidth=2.0)
+# plt.figure(figsize=(5, 4))
+# plt.plot(df1['INDEX_lag0y'], df1['estimate__'], color='maroon', label='posterior mean', linewidth=2.0)
 # plt.fill_between(df1['INDEX_lag0y'], df1['lower__'], df1['upper__'], color='r', alpha=0.30, edgecolor=None, label='likely (66% CI)')
 # plt.fill_between(df2['INDEX_lag0y'], df2['lower__'], df2['upper__'], color='r', alpha=0.22, edgecolor=None, label='very likely (90% CI)')
-# # plt.fill_between(df3['INDEX_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
+# plt.fill_between(df3['INDEX_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
-# plt.ylim((val_min-0.005), (val_max+0.005))
 
 # plt.axhline(y=0, color='gray', linestyle='--', linewidth=1, zorder=0)
 # plt.axvline(x=0, color='gray', linestyle='--', linewidth=1, zorder=0)
 
-# plt.title('ACR of STRONGLY teleconnected countries with AN (N=70)')
-# plt.xlabel('ANI (s.d.)')
-# plt.ylabel(r'Change in ACR from neutral phase baseline')
+# plt.title('ACR for very strongly teleconnected\n(top decile) African hex boxes')
+# plt.xlabel('Dipole Mode Index (s.d.)', fontsize=12)
+# plt.ylabel(r'$\Delta$ ACR from neutral phase baseline', fontsize=12)
 # plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 # plt.legend(loc=0, frameon=False)
 
+# plt.axvspan(+1.5, +2.5, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(+0.5, +1.5, color=colors[3], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(-1.5, -0.5, color=colors[1], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(-2.5, -1.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+
+# plt.text(0.0, -0.032, 'Neutral', fontsize=10, color='k', horizontalalignment='center')
+# plt.text(-1., -0.032, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
+# plt.text(+1., -0.032, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
+# plt.text(-2., -0.032, 'Strong', fontsize=10, color='k', horizontalalignment='center')
+# plt.text(+2., -0.032, 'Strong', fontsize=10, color='k', horizontalalignment='center')
+
+# plt.xlim(-2.5,2.5)
+
 # plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/Onset_ANI_high_No99.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/Onset_DMI_Africa_veryhigh.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 # plt.show()
 
 
@@ -274,6 +291,8 @@ print('\n\nSTART ---------------------\n')
 # plt.show()
 
 
+
+
 #######################################
 #######################################
 
@@ -284,9 +303,9 @@ levels = np.linspace(0, 1, num_colors)
 colors = [cmap(level) for level in levels]
 print(colors)
 
-path_A = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_country_low90.csv'
-path_B = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_country_mod90.csv'
-path_C = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_country_high90.csv'
+path_A = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_low90.csv'
+path_B = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_mod90.csv'
+path_C = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Africa_DMI_hex36_high90.csv'
 
 df_A = pd.read_csv(path_A)
 df_B = pd.read_csv(path_B)
@@ -386,9 +405,9 @@ col1 = 'green'
 col2 = 'orange'
 col3 = 'red'
 
-plt.scatter(xA, A_est, color=col1, linewidth=2.0, marker='o', zorder=2, label='Weak')
-plt.scatter(xB, B_est, color=col2, linewidth=2.0, marker='v', zorder=2, label='Moderate')
-plt.scatter(xC, C_est, color=col3, linewidth=2.0, marker='s', zorder=2, label='Strong')
+plt.scatter(xA, A_est, color=col1, linewidth=2.0, marker='o', zorder=2, label='Weak (lowest quartile)')
+plt.scatter(xB, B_est, color=col2, linewidth=2.0, marker='v', zorder=2, label='Moderate (everything else)')
+plt.scatter(xC, C_est, color=col3, linewidth=2.0, marker='s', zorder=2, label='Strong (highest quartile)')
 
 plt.plot(xA, A_est, color=col1, linewidth=2.0, marker='o', zorder=0, alpha=0.1)
 plt.plot(xB, B_est, color=col2, linewidth=2.0, marker='v', zorder=0, alpha=0.1)
@@ -416,8 +435,8 @@ plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 plt.axhline(y=0, color='gray', linestyle='--', linewidth=1, zorder=0)
 plt.axvline(x=0, color='gray', linestyle='--', linewidth=1, zorder=0)
 plt.legend(loc=2, frameon=False, title=r'Teleconnection strength, $\Psi$')
-plt.xlabel('DMI (s.d.)', fontsize=12)
-plt.ylabel(r'Change in ACR from neutral phase baseline', fontsize=12)
+plt.xlabel('Dipole Mode Index (s.d.)', fontsize=12)
+plt.ylabel(r'$\Delta$ ACR from neutral phase baseline', fontsize=12)
 plt.xticks(fontsize=10)
 plt.yticks(fontsize=10)
 
@@ -427,17 +446,17 @@ plt.axvspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth
 plt.axvspan(-1.5, -0.5, color=colors[1], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
 plt.axvspan(-2.5, -1.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
 
-plt.text(0.0, -0.09, 'Neutral', fontsize=10, color='k', horizontalalignment='center')
-plt.text(-1., -0.09, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
-plt.text(+1., -0.09, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
-plt.text(-2., -0.09, 'Strong', fontsize=10, color='k', horizontalalignment='center')
-plt.text(+2., -0.09, 'Strong', fontsize=10, color='k', horizontalalignment='center')
+plt.text(0.0, -0.03, 'Neutral', fontsize=10, color='k', horizontalalignment='center')
+plt.text(-1., -0.03, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
+plt.text(+1., -0.03, 'Moderate', fontsize=10, color='k', horizontalalignment='center')
+plt.text(-2., -0.03, 'Strong', fontsize=10, color='k', horizontalalignment='center')
+plt.text(+2., -0.03, 'Strong', fontsize=10, color='k', horizontalalignment='center')
 
-plt.text(+1., +0.12, r'$90\%$ credible intervals', fontsize=10, color='k', horizontalalignment='center')
+plt.text(+1., +0.08, r'$90\%$ credible intervals', fontsize=10, color='k', horizontalalignment='center')
 
 plt.xlim(-2.5,2.5)
-plt.title('IOD effects on conflict onset\nfor African countries', horizontalalignment='center')
+plt.title('IOD effects on conflict onset\nfor African hex boxes', horizontalalignment='center')
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/panel_datasets/results/Onset_Africa_DMI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/panel_datasets/results/Onset_Africa_DMI_hex.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
