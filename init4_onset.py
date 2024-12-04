@@ -549,22 +549,23 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
         # plotting
-        # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        # total_aggregate.plot(
-        #     column='conflict_binary',    
-        #     cmap='magma_r',   #turbo    YlOrRd     PRGn
-        #     legend=True,                   
-        #     legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6},
-        #     ax=ax
-        #     #vmax=500
-        # )
-        # colorbar = fig.axes[-1]
-        # colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
-        # polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
-        # ax.set_title(r'No. of conflict onsets (1950-2023)', fontsize=15)
-        # ax.set_axis_off()
-        # # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        # plt.show()
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        total_aggregate.plot(
+            column='conflict_binary',    
+            cmap='turbo',   #turbo    YlOrRd     PRGn
+            legend=True,                   
+            legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,
+                         'ticks': [0, 3, 6, 9, 12, 15, 18]},
+            ax=ax
+            #vmax=500
+        )
+        colorbar = fig.axes[-1]
+        colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
+        polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+        ax.set_title(r'No. of conflict onsets (1950-2023)', fontsize=15)
+        ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
 
         # plotting
         from matplotlib.colors import TwoSlopeNorm
@@ -630,6 +631,6 @@ panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
 
 
