@@ -409,24 +409,29 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         # align to tropical year
         filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
         filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year #- (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ANI'):
         annual_index = compute_annualized_ANI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'EEI'):
         annual_index = compute_annualized_EEI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ECI'):
         annual_index = compute_annualized_ECI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
+        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
@@ -540,16 +545,18 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        final_gdf.plot(
-            column='psi',    
-            cmap='Reds',   #turbo    YlOrRd     PRGn
+        total_aggregate.plot(
+            column='conflict_binary',    
+            cmap='turbo',   #turbo    YlOrRd     PRGn
             legend=True,                   
-            legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
-            ax=ax
+            legend_kwds={'orientation': "vertical", 'shrink': 0.6},
+            ax=ax,
         )
-        ax.set_title(r'Teleconnection strength, $\Psi$ (w/ DMI)', fontsize=15)
+        colorbar = fig.axes[-1]
+        colorbar.set_ylabel(r"Count-years", rotation=90, fontsize=14)
+        ax.set_title(r'Conflict presence count-years', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_conflict_presence.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
