@@ -555,16 +555,16 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
             cmap='turbo',   #turbo    YlOrRd     PRGn
             legend=True,                   
             legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,
-                         'ticks': [0, 3, 6, 9, 12, 15, 18]},
+                         'ticks': [0, 5, 10, 15, 20, 25, 30]},
             ax=ax
             #vmax=500
         )
         colorbar = fig.axes[-1]
         colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
         polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
-        ax.set_title(r'No. of conflict onsets (1950-2023)', fontsize=15)
+        ax.set_title(r'No. of state-based conflict onsets (1950-2023)', fontsize=15)
         ax.set_axis_off()
-        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_onsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount_hex.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         # plotting
@@ -586,10 +586,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         colorbar = fig.axes[-1]
         colorbar.set_ylabel(r"$\Psi$", rotation=0, fontsize=14)
         polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
-        ax.set_title(r'Teleconnection strength, $\Psi$ (IOD)', fontsize=15)
+        ax.set_title(r'Teleconnection strength, $\Psi$ (ENSO)', fontsize=15)
         ax.set_axis_off()
         plt.tight_layout()
-        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_country_DMI_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_hex_NINO3_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
@@ -623,14 +623,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     return final_gdf
 
 
-#
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa', stepsize=3.7225,
+# 3.7225
+panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Global', stepsize=2.635,
                                         nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'DMI',
+                                        clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
 
 

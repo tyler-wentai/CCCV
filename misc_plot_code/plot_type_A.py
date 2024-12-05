@@ -26,7 +26,7 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc')
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat1 = psi['lat'].values
@@ -56,16 +56,24 @@ fig, ax = plt.subplots(figsize=(10, 6.6))
 # prop = len(vals1)/len(vals2)
 levels = [-4.0,-3.0,-2.0,-1.0,0.0,1.0,2.0,3.0,4.0]
 
-c = ax.contourf(lon1, lat1, variable1, cmap='Reds', vmax=4)
-# gdf2.plot(ax=ax, edgecolor=None, color='white')
+c = ax.contourf(lon1, lat1, variable1, cmap='Reds', vmax=5)
+cc = ax.imshow(variable1, cmap='Reds', vmin=0, vmax=5)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
-ax.set_title('Teleconnection strength with the IOD')
-fig.colorbar(c, ax=ax, orientation='horizontal', fraction=0.1, pad=0.1, aspect=30)
-# ax.set_title(r'spi6-land, t400')
+# ax.set_title('Teleconnection strength, $\Psi$ (ENSO)')
+c.set_clim(0, 5)
+cbar = fig.colorbar(cc, ax=ax, orientation='vertical', fraction=0.1, pad=0.1, shrink=0.6)
+cbar.set_label(r"$\Psi$", rotation=0, fontsize=14)
 
-# plt.savefig('/Users/tylerbagwell/Desktop/teleconnection_global_IOD.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+for spine in ax.spines.values():
+    spine.set_visible(False)
+ax.set_xticks([])
+ax.set_yticks([])
+
+
+plt.savefig('/Users/tylerbagwell/Desktop/teleconnection_global_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
