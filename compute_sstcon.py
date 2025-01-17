@@ -31,8 +31,8 @@ ds = xr.open_dataset(file_path_sst)
 lon1 = ds['longitude']
 lat1 = ds['latitude']
 
-lat_int_mask = (lat1 % 1.0 == 0)
-lon_int_mask = (lon1 % 1.0 == 0)
+lat_int_mask = (lat1 % 2.0 == 0)
+lon_int_mask = (lon1 % 2.0 == 0)
 ds = ds.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 
 # Function to convert longitude from 0-360 to -180 to 180
@@ -71,17 +71,36 @@ print("sst_aligned shape:", sst_aligned.shape)
 print("ts_aligned shape:   ", ts_aligned.shape)
 n_time, n_lat, n_long = sst_aligned.shape
 
-def pearsonr_func(a, b):
-    return pearsonr(a, b)
+# print(ts_aligned)
+# valid_time = ts_aligned['valid_time']
+# month_mask = np.where()
 
-corr_map, pval_map = xr.apply_ufunc(
-    pearsonr_func,
-    sst_aligned,           # first input
-    ts_aligned,            # second input
-    input_core_dims=[["valid_time"], ["valid_time"]],  # dimension(s) over which to compute
-    output_core_dims=[[], []],             # correlation, p-value are scalars per grid
-    vectorize=True,                        # run function for each (lat, lon) point
-)
+m = 3  # target month
+valid_time = pd.to_datetime(ts_aligned['valid_time'])  # Convert numpy datetime64 array to pandas DatetimeIndex
+mask = valid_time.month == m
+
+ts_month = ts_aligned.sel(valid_time=valid_time[mask])
+
+sst_month, ts_month = xr.align(ds[var_str], ts_month, join="inner")
+
+
+
+
+
+
+
+
+# def pearsonr_func(a, b):
+#     return pearsonr(a, b)
+
+# corr_map, pval_map = xr.apply_ufunc(
+#     pearsonr_func,
+#     sst_month,           # first input
+#     ts_month,            # second input
+#     input_core_dims=[["valid_time"], ["valid_time"]],   # dimension(s) over which to compute
+#     output_core_dims=[[], []],                          # correlation, p-value are scalars per grid
+#     vectorize=True,                                     # run function for each (lat, lon) point
+# )
 
 
 
@@ -91,7 +110,7 @@ corr_map, pval_map = xr.apply_ufunc(
 
 # corr_map = xr.corr(sst_aligned, ts_aligned, dim="valid_time")
 
-print(corr_map)
+# print(corr_map)
 
 # corr_map = np.abs(corr_map)
 
