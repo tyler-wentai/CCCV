@@ -17,8 +17,8 @@ print('\n\nSTART ---------------------\n')
 start_year  = 1980
 end_year    = 2023
 
-file_path_sst = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_sst_raw.nc'
-var_str = 'sst'
+file_path_sst = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_si10_raw.nc'
+var_str = 'si10'
 
 ds = xr.open_dataset(file_path_sst)
 
