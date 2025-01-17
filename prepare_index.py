@@ -36,6 +36,37 @@ def prepare_NINO3(file_path, start_date, end_date):
 
     return df_nino3
 
+#
+def prepare_NINO34(file_path, start_date, end_date):
+    """
+    Prepare NINO3.4 index data as pd.Data.Frame from Standard PSL Format (https://psl.noaa.gov/gcos_wgsp/Timeseries/Nino34/)
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    nino34 = pd.read_csv(file_path, sep=r'\s+', skiprows=1, skipfooter=7, header=None, engine='python')
+    year_start = int(nino34.iloc[0,0])
+    nino34 = nino34.iloc[:,1:nino34.shape[1]].values.flatten()
+    df_nino34 = pd.DataFrame(nino34)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=df_nino34.shape[0], freq='MS')
+    df_nino34.index = date_range
+    df_nino34.rename_axis('date', inplace=True)
+    df_nino34.columns = ['ANOM']
+
+    start_ts_l = np.where(df_nino34.index == start_date)[0]
+    end_ts_l = np.where(df_nino34.index == end_date)[0]
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of NINO3.4 index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of NINO3.4 index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_nino34 = df_nino34.iloc[start_ts_ind:end_ts_ind]
+
+    return df_nino34
+
 
 #
 def prepare_DMI(file_path, start_date, end_date):

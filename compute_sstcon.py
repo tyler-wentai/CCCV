@@ -47,9 +47,12 @@ if lon1.max() > 180:
     ds = convert_longitude(ds)
 ds = ds.sortby('longitude')
 
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -59,6 +62,7 @@ clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+
 
 ts = xr.DataArray(
     clim_ind["ANOM"],
@@ -75,19 +79,55 @@ n_time, n_lat, n_long = sst_aligned.shape
 # valid_time = ts_aligned['valid_time']
 # month_mask = np.where()
 
-m = 3  # target month
-valid_time = pd.to_datetime(ts_aligned['valid_time'])  # Convert numpy datetime64 array to pandas DatetimeIndex
-mask = valid_time.month == m
+# m1, m2, m3 = 12, 1, 2
+# ts_time = pd.to_datetime(ts_aligned['valid_time'])  # Convert numpy datetime64 array to pandas DatetimeIndex
+# mask = ts_time.month.isin([m1, m2, m3])
 
-ts_month = ts_aligned.sel(valid_time=valid_time[mask])
+# ts_month = ts_aligned.sel(valid_time=ts_time[mask])
 
-sst_month, ts_month = xr.align(ds[var_str], ts_month, join="inner")
-
-
+# sst_month, ts_month = xr.align(ds[var_str], ts_month, join="inner")
 
 
+# valid_time = pd.to_datetime(ts_aligned['valid_time'])
+# i_start = np.where(valid_time.month == 12)
 
 
+
+
+# m1, m2, m3 = 12, 1, 2
+# ts_time = pd.to_datetime(ts_aligned['valid_time'])
+# mask = ts_time.month.isin([m1, m2, m3])
+
+# index_avg = ts_aligned.sel(valid_time = ts_time[mask])
+
+
+
+# 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
+clim_ind['year'] = clim_ind.index.year
+clim_ind['month'] = clim_ind.index.month
+clim_ind['DJF_year'] = clim_ind.index.year
+clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
+
+# 2) Filter for only DJF months (12, 1, 2)
+djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
+
+# 3) Group by 'DJF_year' and compute the mean anomaly to obtain annualized index values
+ann_ind = djf.groupby('DJF_year').ANOM.agg(['mean', 'count']).reset_index()
+ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
+ann_ind = ann_ind.drop(['count'], axis=1)
+
+print(ann_ind)
+
+# print(index_avg)
+
+# annual_index_ts = xr.DataArray(
+#     index_avg["avg_ANOM"],
+#     coords=pd.to_datetime(index_avg['year']),   # use the pandas DatetimeIndex as the coords
+#     dims=["valid_time"]        # name the dimension 'time'
+# )
+
+# print(annual_index_ts)
 
 
 # def pearsonr_func(a, b):
@@ -114,15 +154,15 @@ sst_month, ts_month = xr.align(ds[var_str], ts_month, join="inner")
 
 # corr_map = np.abs(corr_map)
 
-pval_map.plot(
-    x="longitude", 
-    y="latitude",
-    cmap="coolwarm",  # a diverging colormap is nice for correlations
-    vmin=0.0,
-    vmax=0.05
-)
-plt.title("Correlation Map")
-plt.show()
+# pval_map.plot(
+#     x="longitude", 
+#     y="latitude",
+#     cmap="coolwarm",  # a diverging colormap is nice for correlations
+#     vmin=0.0,
+#     vmax=0.05
+# )
+# plt.title("Correlation Map")
+# plt.show()
 
 
 sys.exit()
