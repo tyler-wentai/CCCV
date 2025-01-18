@@ -17,8 +17,8 @@ print('\n\nSTART ---------------------\n')
 start_year  = 1980
 end_year    = 2023
 
-file_path_sst = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc'
-var_str = 't2m'
+file_path_sst = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'
+var_str = 'tp'
 
 ds = xr.open_dataset(file_path_sst)
 
@@ -31,8 +31,8 @@ ds = ds.rename({'date': 'valid_time'})
 lon1 = ds['longitude']
 lat1 = ds['latitude']
 
-lat_int_mask = (lat1 % 4.0 == 0)
-lon_int_mask = (lon1 % 4.0 == 0)
+lat_int_mask = (lat1 % 0.25 == 0)
+lon_int_mask = (lon1 % 0.25 == 0)
 ds = ds.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 
 # Function to convert longitude from 0-360 to -180 to 180
@@ -124,8 +124,7 @@ ann_ind = ann_ind.drop(['count'], axis=1)
 #####
 n_months = 12
 
-corr_results = np.empty((n_months, n_lat, n_long))
-pval_results = np.empty((n_months, n_lat, n_long))
+corr_monthly = np.empty((n_months, n_lat, n_long))
 
 def pearsonr_func(a, b):
     return pearsonr(a, b)
@@ -175,10 +174,37 @@ for i in range(1,n_months+1):
         vectorize=True,                                     # run function for each (lat, lon) point
     )
 
-    corr_results[(i-1),:,:] = corr_map
-    pval_results[(i-1),:,:] = pval_map
+    # set all correlations to zero if its p-value is less than the threshold
+    threshold = 0.05
+    pval_mask = pval_map < threshold
+    pval_mask = pval_mask.values
 
-print(corr_results)
+    corr_results = corr_map.values
+    corr_results = np.where(pval_mask, corr_results, 0)
+
+    # save to corr_final
+    corr_monthly[(i-1),:,:] = corr_results
+
+
+
+
+
+print(type(corr_monthly))
+
+corr_final = np.abs(corr_monthly)
+corr_final = np.sum(corr_final, axis=0)
+
+
+psi_var = xr.DataArray(corr_final,
+                       coords = {
+                           "latitude":  ds['latitude'],
+                           "longitude": ds['longitude']
+                        },
+                        dims = ["latitude", "longitude"]
+                        )
+
+print(psi_var)
+
 
 
 # corr_map = xr.corr(sst_aligned, ts_aligned, dim="valid_time")
@@ -187,15 +213,13 @@ print(corr_results)
 
 # corr_map = np.abs(corr_map)
 
-# corr_results.plot(
-#     x="longitude", 
-#     y="latitude",
-#     cmap="coolwarm",  # a diverging colormap is nice for correlations
-#     vmin=-1.0,
-#     vmax=+1.0
-# )
-# plt.title("Correlation Map")
-# plt.show()
+psi_var.plot(
+    x="longitude", 
+    y="latitude",
+    cmap="Reds",  # a diverging colormap is nice for correlations
+)
+plt.title("Psi Map")
+plt.show()
 
 
 sys.exit()
