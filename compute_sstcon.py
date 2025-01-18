@@ -16,11 +16,14 @@ print('\n\nSTART ---------------------\n')
 
 start_year  = 1980
 end_year    = 2023
-
+climate_index = 'dmi'
 file_path_sst = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'
-var_str = 'tp'
+
 
 ds = xr.open_dataset(file_path_sst)
+var_str = list(ds.data_vars)[0]
+print("Data varibale accessed is: ", var_str)
+
 
 # change dates to time format:
 dates = pd.to_datetime(ds['date'].astype(str), format='%Y%m%d')
@@ -31,8 +34,8 @@ ds = ds.rename({'date': 'valid_time'})
 lon1 = ds['longitude']
 lat1 = ds['latitude']
 
-lat_int_mask = (lat1 % 0.25 == 0)
-lon_int_mask = (lon1 % 0.25 == 0)
+lat_int_mask = (lat1 % 1.0 == 0)
+lon_int_mask = (lon1 % 1.0 == 0)
 ds = ds.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 
 # Function to convert longitude from 0-360 to -180 to 180
@@ -47,28 +50,35 @@ if lon1.max() > 180:
     ds = convert_longitude(ds)
 ds = ds.sortby('longitude')
 
-clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
-                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+if (climate_index == 'nino34'):
+    clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (climate_index == 'nino3'):
+    clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (climate_index == 'eci'):
+    clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (climate_index == 'dmi'):
+    clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
+elif (climate_index == 'ani'):
+    clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
+                             start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                             end_date=datetime(end_year, 12, 1, 0, 0, 0))
+else:
+    raise ValueError("Specified 'climate_index' not found...")
 
 
-ts = xr.DataArray(
-    clim_ind["ANOM"],
-    coords=[clim_ind.index],   # use the pandas DatetimeIndex as the coords
-    dims=["valid_time"]        # name the dimension 'time'
-)
+# ts = xr.DataArray(
+#     clim_ind["ANOM"],
+#     coords=[clim_ind.index],   # use the pandas DatetimeIndex as the coords
+#     dims=["valid_time"]        # name the dimension 'time'
+# )
 
 # sst_aligned, ts_aligned = xr.align(ds[var_str], ts, join="inner")
 # print("sst_aligned shape:", sst_aligned.shape)
@@ -102,28 +112,52 @@ n_time, n_lat, n_long = ds[var_str].shape
 
 # index_avg = ts_aligned.sel(valid_time = ts_time[mask])
 
-
-### NINO3.4
-# 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
 clim_ind['year'] = clim_ind.index.year
 clim_ind['month'] = clim_ind.index.month
-clim_ind['DJF_year'] = clim_ind.index.year
-clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
+if (climate_index == 'nino3' or climate_index == 'nino34'): ### NINO3 or NINO3.4
+    # 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
+    clim_ind['DJF_year'] = clim_ind.index.year
+    clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
 
-# 2) Filter for only DJF months (12, 1, 2)
-djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
+    # 2) Filter for only DJF months (12, 1, 2)
+    djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
 
-# 3) Group by 'DJF_year' and compute the mean anomaly to obtain annualized index values
-ann_ind = djf.groupby('DJF_year').ANOM.agg(['mean', 'count']).reset_index()
-ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
-ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
-ann_ind = ann_ind.drop(['count'], axis=1)
+    # 3) Group by 'DJF_year' and compute the mean anomaly to obtain annualized index values
+    ann_ind = djf.groupby('DJF_year').ANOM.agg(['mean', 'count']).reset_index()
+    ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+    ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
+    ann_ind = ann_ind.drop(['count'], axis=1)
+elif (climate_index == 'dmi'): ### DMI
+    # 1) Add a 'SON_year' column
+    clim_ind['SON_year'] = clim_ind.index.year
+
+    # 2) Filter for only SON months (9, 10, 11)
+    son = clim_ind[clim_ind.index.month.isin([9, 10, 11])]
+
+    # 3) Group by 'SON_year' and compute the mean anomaly to obtain annualized index values
+    ann_ind = son.groupby('SON_year').ANOM.agg(['mean', 'count']).reset_index()
+    ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+    ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
+    ann_ind = ann_ind.drop(['count'], axis=1)
+elif (climate_index == 'ani'): ### ANI
+    # 1) Add a 'JJA_year' column
+    clim_ind['JJA_year'] = clim_ind.index.year
+
+    # 2) Filter for only JJA months (6, 7, 8)
+    jja = clim_ind[clim_ind.index.month.isin([6, 7, 8])]
+
+    # 3) Group by 'JJA_year' and compute the mean anomaly to obtain annualized index values
+    ann_ind = jja.groupby('JJA_year').ANOM.agg(['mean', 'count']).reset_index()
+    ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+    ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'JJA_year': 'year'})
+    ann_ind = ann_ind.drop(['count'], axis=1)
+else:
+    raise ValueError("Specified 'climate_index' not found...")
 
 
 
 #####
 n_months = 12
-
 corr_monthly = np.empty((n_months, n_lat, n_long))
 
 def pearsonr_func(a, b):
@@ -131,12 +165,34 @@ def pearsonr_func(a, b):
 
 for i in range(1,n_months+1):
     print("\n...Starting compute of tropical month:", i, "of", n_months)
-    if (i<=7): 
-        m = i + 5
-        y = 1
+    if (climate_index == 'nino3' or climate_index == 'nino34'): 
+        ### NINO3 or NINO3.4 (tropical year from June y_{t-1} to May y_{t})
+        if (i<=7): 
+            m = i + 5
+            y = 1
+        else:
+            m = i - 7
+            y = 0
+    elif (climate_index == 'dmi'):
+        ### DMI (tropical year from March y_{t} to February y_{t+1})
+        if (i<=10): 
+            m = i + 2
+            y = 0
+        else:
+            m = i - 10
+            y = -1
+    elif (climate_index == 'ani'): 
+        ### ANI (tropical year from March y_{t} to February y_{t+1})
+        if (i<=10): 
+            m = i + 2
+            y = 0
+        else:
+            m = i - 10
+            y = -1
     else:
-        m = i - 7
-        y = 0
+        raise ValueError("Specified 'climate_index' not found...")
+    
+    print(m, y)
 
     # Convert "year" + month to a DatetimeIndex (assuming day=1)
     ann_help = ann_ind.copy()
@@ -146,15 +202,13 @@ for i in range(1,n_months+1):
         'day': 1
     })
 
-
     ann_help.set_index('date', inplace=True)
     ann_help.drop(columns='year', inplace=True)
 
     ann_ind_ts = xr.DataArray(
         ann_help["ann_ind"],
         coords=[ann_help.index],   # use the pandas DatetimeIndex as the coords
-        dims=["valid_time"]        # name the dimension 'time'
-    )
+        dims=["valid_time"])        # name the dimension 'time'
 
     var_aligned, ind_aligned = xr.align(ds[var_str], ann_ind_ts, join="inner")
 
