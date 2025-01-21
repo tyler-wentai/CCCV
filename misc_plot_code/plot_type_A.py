@@ -26,7 +26,7 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.5_19702023maydec_pv0.01.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.5_19502023_pv0.01_ensoremovedv2.nc')
 psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
 psi = psi.sortby('longitude')
 lat1 = psi['latitude'].values
@@ -64,7 +64,7 @@ gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 # ax.set_title('Teleconnection strength, $\Psi$ (ENSO)')
-c.set_clim(0, maxval)
+c.set_clim(0, 6)
 cbar = fig.colorbar(cc, ax=ax, orientation='vertical', fraction=0.1, pad=0.1, shrink=0.6)
 cbar.set_label(r"$\Psi$", rotation=0, fontsize=14)
 

@@ -83,7 +83,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
     return ann_ind
 
 #
-def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_index):
+def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_index, enso_index):
     var1_str = list(ds1_in.data_vars)[0]
     var2_str = list(ds2_in.data_vars)[0]
 
@@ -94,24 +94,31 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
     n_months = 12
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
-    def partial_corr_func(a, b, c):
+    def partial_corr_func(x, y, z1, z2):
         """
         Computes partial correlation between arrays a and b, controlling for array c.
         Returns (r, pval).
         """
         # Convert arrays to a DataFrame for pingouin
         df = pd.DataFrame({
-            'a': a,
-            'b': b,
-            'c': c
+            'x': x,
+            'y': y,
+            'z1': z1,
+            'z2': z2
         })
         # Compute partial correlation with pingouin
-        result = partial_corr(data=df, x='a', y='b', covar='c', method='pearson')
+        result = partial_corr(data=df, x='x', y='y', covar=['z1', 'z2'], method='pearson')
         # Extract r and p-values (first row, since partial_corr returns a DataFrame)
         r_val = result['r'].iloc[0]
         p_val = result['p-val'].iloc[0]
         
         return r_val, p_val
+    
+    # compute regression residuals (to remove ENSO signal)
+    def linear_regression_residuals(x, y):
+        A = np.vstack([x, np.ones(len(x))]).T
+        beta, alpha = np.linalg.lstsq(A, y, rcond=None)[0]
+        return y - (alpha + beta*x)
 
     for i in range(1,n_months+1):
         print("...(var:", var1_str, ", covar:", var2_str, "] Computing tropical month:", i, "of", n_months)
@@ -157,9 +164,27 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             ann_help["ann_ind"],
             coords=[ann_help.index],   # use the pandas DatetimeIndex as the coords
             dims=["valid_time"])        # name the dimension 'time'
+        
+        # compute NINO3.4 index time series
+        enso_help = enso_index.copy()
+        enso_help['date'] = pd.to_datetime({
+            'year': enso_index['year'] + y,        # Note: + y is here to help with computing corr's of months in the previous tropical year or present year
+            'month': m,
+            'day': 1
+        })
 
-        var1_aligned, ind_aligned = xr.align(var1, ann_ind_ts, join="inner")
-        var2_aligned, ind_aligned = xr.align(var2, ann_ind_ts, join="inner")
+        enso_help.set_index('date', inplace=True)
+        enso_help.drop(columns='year', inplace=True)
+
+        enso_ind_ts = xr.DataArray(
+            enso_help["ann_ind"],
+            coords=[enso_help.index],   # use the pandas DatetimeIndex as the coords
+            dims=["valid_time"])        # name the dimension 'time'
+        
+        # ensure data are aligned
+        ind_aligned, enso_aligned = xr.align(ann_ind_ts, enso_ind_ts, join="inner")
+        var1_aligned, ind_aligned = xr.align(var1, ind_aligned, join="inner")
+        var2_aligned, ind_aligned = xr.align(var2, ind_aligned, join="inner")
 
         # standardize the aligned variable data
         mean1_data           = var1_aligned.mean(dim='valid_time', skipna=True)
@@ -176,13 +201,35 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         print("......", var2_standardized.shape)
         print("......", ind_aligned.shape)
 
+        # remove ENSO signal from variables
+        # residuals1 = xr.apply_ufunc(
+        #     linear_regression_residuals,
+        #     enso_aligned,           # x (independent) variable, enso time series
+        #     var1_standardized,      # y (dependent) variable, variable 1
+        #     input_core_dims=[["valid_time"], ["valid_time"]],
+        #     output_core_dims=[["valid_time"]],
+        #     vectorize=True,
+        #     output_dtypes=[var1_standardized.dtype],
+        #     )
+        
+        # residuals2 = xr.apply_ufunc(
+        #     linear_regression_residuals,
+        #     enso_aligned,           # x (independent) variable, enso time series
+        #     var2_standardized,      # y (dependent) variable, variable 2
+        #     input_core_dims=[["valid_time"], ["valid_time"]],
+        #     output_core_dims=[["valid_time"]],
+        #     vectorize=True,
+        #     output_dtypes=[var2_standardized.dtype],
+        #     )
+
         # compute correlations and their p-values
         corr_map, pval_map = xr.apply_ufunc(
             partial_corr_func,
-            var1_standardized,      # first input (x), the variable
-            ind_aligned,            # second input (y), the climate index
-            var2_standardized,      # third input (z), the covariate to control for
-            input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"]],
+            ind_aligned,                    # first  input (x),  the variable
+            var1_standardized,              # second input (y),  the climate index
+            var2_standardized,              # third  input (z1), the first covariate to control for
+            enso_aligned,                   # fourth input (z2), the second covariate to control for
+            input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"], ["valid_time"]],
             output_core_dims=[[], []],  # both correlation and p-value are scalars per lat/lon
             vectorize=True
         )
@@ -256,10 +303,11 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 
     ### COMPUTE ANNUALIZED CLIMATE INDEX
     annualized_index = compute_annualized_index(climate_index, start_year, end_year)
+    enso_index       = compute_annualized_index("nino34", start_year, end_year)
 
     ### COMPUTE MONTHLY CORRELATION MAPS FOR VAR1 and VAR2
-    corr_array1 = compute_bymonth_partialcorr_map(ds1_aligned, ds2_aligned, climate_index, annualized_index)
-    corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index)
+    corr_array1 = compute_bymonth_partialcorr_map(ds1_aligned, ds2_aligned, climate_index, annualized_index, enso_index)
+    corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index, enso_index)
 
     ### COMPUTE TELECONNECTION STRENGTH
     telecon_var1 = np.abs(corr_array1)
@@ -285,7 +333,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pv0.01.nc"
+        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv2.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -298,7 +346,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
             x="longitude", 
             y="latitude",
             ax=ax,
-            cmap="Reds"
+            cmap="YlOrRd",
+            vmax=5.5
         )
         gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
         ax.set_title("Teleconnection with Country Outlines")
@@ -312,8 +361,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 0.25,
-                       climate_index = 'nino34', 
+                       resolution = 0.5,
+                       climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
