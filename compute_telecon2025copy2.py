@@ -95,7 +95,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
     n_months = 12
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
-    def partial_corr_func(x, y, z1, z2):
+    def partial_corr_func(x, y, z1, z_enso, climate_index):
         """
         Computes partial correlation between arrays a and b, controlling for array c.
         Returns (r, pval).
@@ -105,21 +105,19 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             'x': x,
             'y': y,
             'z1': z1,
-            'z2': z2
+            'z_enso': z_enso
         })
-        # Compute partial correlation with pingouin
-        result = partial_corr(data=df, x='x', y='y', covar=['z1', 'z2'], method='pearson')
+        if (climate_index == 'nino3' or climate_index == 'nino34'): 
+            result = partial_corr(data=df, x='x', y='y', covar='z1', method='pearson')
+        else:
+            # Compute partial correlation with pingouin
+            result = partial_corr(data=df, x='x', y='y', covar=['z1', 'z_enso'], method='pearson')
+
         # Extract r and p-values (first row, since partial_corr returns a DataFrame)
         r_val = result['r'].iloc[0]
         p_val = result['p-val'].iloc[0]
         
         return r_val, p_val
-    
-    # compute regression residuals (to remove ENSO signal)
-    def linear_regression_residuals(x, y):
-        A = np.vstack([x, np.ones(len(x))]).T
-        beta, alpha = np.linalg.lstsq(A, y, rcond=None)[0]
-        return y - (alpha + beta*x)
 
     for i in range(1,n_months+1):
         print("...(var:", var1_str, ", covar:", var2_str, "] Computing tropical month:", i, "of", n_months)
@@ -202,34 +200,13 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         print("......", var2_standardized.shape)
         print("......", ind_aligned.shape)
 
-        # remove ENSO signal from variables
-        # residuals1 = xr.apply_ufunc(
-        #     linear_regression_residuals,
-        #     enso_aligned,           # x (independent) variable, enso time series
-        #     var1_standardized,      # y (dependent) variable, variable 1
-        #     input_core_dims=[["valid_time"], ["valid_time"]],
-        #     output_core_dims=[["valid_time"]],
-        #     vectorize=True,
-        #     output_dtypes=[var1_standardized.dtype],
-        #     )
-        
-        # residuals2 = xr.apply_ufunc(
-        #     linear_regression_residuals,
-        #     enso_aligned,           # x (independent) variable, enso time series
-        #     var2_standardized,      # y (dependent) variable, variable 2
-        #     input_core_dims=[["valid_time"], ["valid_time"]],
-        #     output_core_dims=[["valid_time"]],
-        #     vectorize=True,
-        #     output_dtypes=[var2_standardized.dtype],
-        #     )
-
         # compute correlations and their p-values
         corr_map, pval_map = xr.apply_ufunc(
             partial_corr_func,
             ind_aligned,                    # first  input (x),  the variable
             var1_standardized,              # second input (y),  the climate index
             var2_standardized,              # third  input (z1), the first covariate to control for
-            enso_aligned,                   # fourth input (z2), the second covariate to control for
+            enso_aligned,                   # fourth input (z_enso), the second covariate to control for
             input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"], ["valid_time"]],
             output_core_dims=[[], []],  # both correlation and p-value are scalars per lat/lon
             vectorize=True
@@ -334,7 +311,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv3.nc"
+        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv3_maydec.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -362,8 +339,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 0.5,
-                       climate_index = 'ani', 
+                       resolution = 1.0,
+                       climate_index = 'nino34', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
