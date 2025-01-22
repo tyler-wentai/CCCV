@@ -46,11 +46,12 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
 
         # 2) Filter for only DJF months (12, 1, 2)
-        djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
+        # djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
+        djf = clim_ind[clim_ind.index.month.isin([5, 6, 7, 8, 9, 10, 11, 12])]
 
         # 3) Group by 'DJF_year' and compute the mean anomaly to obtain annualized index values
         ann_ind = djf.groupby('DJF_year').ANOM.agg(['mean', 'count']).reset_index()
-        ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+        ann_ind = ann_ind[ann_ind['count'] == 8]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'dmi'): ### DMI
@@ -333,7 +334,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv2.nc"
+        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv3.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -362,7 +363,7 @@ compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
                        resolution = 0.5,
-                       climate_index = 'dmi', 
+                       climate_index = 'ani', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
