@@ -203,13 +203,14 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         # compute correlations and their p-values
         corr_map, pval_map = xr.apply_ufunc(
             partial_corr_func,
-            ind_aligned,                    # first  input (x),  the variable
-            var1_standardized,              # second input (y),  the climate index
+            ind_aligned,                    # first  input (x),  the climate index
+            var1_standardized,              # second input (y),  the variable
             var2_standardized,              # third  input (z1), the first covariate to control for
             enso_aligned,                   # fourth input (z_enso), the second covariate to control for
             input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"], ["valid_time"]],
             output_core_dims=[[], []],  # both correlation and p-value are scalars per lat/lon
-            vectorize=True
+            vectorize=True,
+            kwargs={"climate_index": climate_index} # the climate index string
         )
 
         # set all correlations to zero if its p-value is less than the threshold
@@ -339,8 +340,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 1.0,
-                       climate_index = 'nino34', 
-                       start_year = 1950,
+                       resolution = 1.5,
+                       climate_index = 'dmi', 
+                       start_year = 1980,
                        end_year = 2023,
                        plot_psi = True)
