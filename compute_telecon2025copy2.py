@@ -214,7 +214,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         )
 
         # set all correlations to zero if its p-value is less than the threshold
-        threshold = 0.01
+        threshold = 0.05
         pval_mask = pval_map < threshold
         pval_mask = pval_mask.values
 
@@ -312,7 +312,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pv0.01_ensoremovedv3_maydec.nc"
+        str(start_year) + str(end_year) + "_pval0.05.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -340,8 +340,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 1.5,
+                       resolution = 0.25,
                        climate_index = 'dmi', 
-                       start_year = 1980,
+                       start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
