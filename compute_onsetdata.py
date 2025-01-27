@@ -51,11 +51,13 @@ for i in range(2, 10):
         1,
         0
     )
+df_final["primary_onset"] = np.where((df_final["year_diff"] == -10),1,0)
 
 # 7. SAVE FILE
 df_final.to_csv('/Users/tylerbagwell/Desktop/UcdpPrioRice_GeoArmedConflictOnset_v1.csv', index=False)
 
 print(df_final)
+
 
 
 ###### PLOT: conflictdiffyearshist.png
@@ -66,5 +68,29 @@ print(df_final)
 # plt.title('UcdpPrioConflict_v24_1 (N=2686)')
 # plt.text(+15, 1900, "conflict-years corresponding\nto onset coded as -10")
 # # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/prelim_plots/conflictdiffyearshist.png', dpi=300)
+# plt.show()
+
+###### PLOT: onseticountsbar.png
+# onset_counts = []
+# for i in range(2, 10):
+#     col_name = f"onset_{i}"
+#     onset_sum = df_final[col_name].sum()
+#     onset_counts.append(onset_sum)
+#     print(f"{col_name} sum: {onset_sum}")
+# onset_counts.append(df_final["primary_onset"].sum())
+
+# xx = list(range(2, 10))
+# xx.append(99)
+
+# from brokenaxes import brokenaxes
+# plt.figure(figsize=(5.25, 4))
+# bax = brokenaxes(xlims=((1,10), (98,100)), hspace=0.05)
+# bax.bar(xx, onset_counts, color='tomato')
+# bax.set_xlabel('i')
+# bax.set_ylabel('Count')
+# bax.set_title('Onset_i (UcdpPrioConflict_v24_1)')
+# bax.axs[0].set_xticks([2,3,4,5,6,7,8,9])
+# bax.axs[1].set_xticks([99])
+# plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/prelim_plots/onseticountsbar.png', dpi=300)
 # plt.show()
 
