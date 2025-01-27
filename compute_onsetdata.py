@@ -18,6 +18,8 @@ print("...There are", n_conflicts, "unique conflicts.")
 print("......", df.shape)
 
 # 1. ADD ADDITIONAL COLUMNS
+df["onset_lat"]             = None
+df["onset_lon"]             = None
 df["onset_loc"]             = None
 df["onset_loc_prec"]        = None
 df["onset_loc_sovereignty"] = None
