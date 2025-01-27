@@ -26,7 +26,7 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.2_19502023_pval0.05.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.2_19502023_pval0.05_maydec.nc')
 psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
 psi = psi.sortby('longitude')
 lat1 = psi['latitude'].values
@@ -59,7 +59,7 @@ levels = np.arange(0,maxval,1)
 
 c = ax.contourf(lon1, lat1, variable1, cmap='Reds', vmax=6)
 cc = ax.imshow(variable1, cmap='Reds', vmin=0, vmax=6)
-# gdf2.plot(ax=ax, edgecolor=None, color='white')
+gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])

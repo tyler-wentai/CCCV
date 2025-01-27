@@ -92,7 +92,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
 
     n_time, n_lat, n_long = var1.shape
 
-    n_months = 12
+    # n_months = 12
+    n_months = 8
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
     def partial_corr_func(x, y, z1, z_enso, climate_index):
@@ -132,7 +133,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         elif (climate_index == 'dmi'):
             ### DMI (tropical year from March y_{t} to February y_{t+1})
             if (i<=10): 
-                m = i + 2
+                # m = i + 2
+                m = i + 4
                 y = 0
             else:
                 m = i - 10
@@ -214,7 +216,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         )
 
         # set all correlations to zero if its p-value is less than the threshold
-        threshold = 0.05
+        threshold = 0.01
         pval_mask = pval_map < threshold
         pval_mask = pval_mask.values
 
@@ -312,7 +314,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05.nc"
+        str(start_year) + str(end_year) + "_pval0.05_maydec.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
