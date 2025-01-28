@@ -46,9 +46,9 @@ df["year_diff"] = (
 df_final = df[df['year_diff'] != 1]
 df_final.reset_index(drop=True, inplace=True)
 
-# 6. COMPUTE onset_i i=2,3,...9 VARIABLE COLUMNS
+# 6. COMPUTE onsetX X=2,3,...9 VARIABLE COLUMNS
 for i in range(2, 10):
-    df_final[f"onset_{i}"] = np.where(
+    df_final[f"onset{i}"] = np.where(
         (df_final["year_diff"] >= i) | (df_final["year_diff"] == -10),
         1,
         0
@@ -75,7 +75,7 @@ print(df_final)
 ###### PLOT: onseticountsbar.png
 # onset_counts = []
 # for i in range(2, 10):
-#     col_name = f"onset_{i}"
+#     col_name = f"onset{i}"
 #     onset_sum = df_final[col_name].sum()
 #     onset_counts.append(onset_sum)
 #     print(f"{col_name} sum: {onset_sum}")
@@ -88,9 +88,9 @@ print(df_final)
 # plt.figure(figsize=(5.25, 4))
 # bax = brokenaxes(xlims=((1,10), (98,100)), hspace=0.05)
 # bax.bar(xx, onset_counts, color='tomato')
-# bax.set_xlabel('i')
+# bax.set_xlabel('X')
 # bax.set_ylabel('Count')
-# bax.set_title('Onset_i (UcdpPrioConflict_v24_1)')
+# bax.set_title('OnsetX (UcdpPrioConflict_v24_1)')
 # bax.axs[0].set_xticks([2,3,4,5,6,7,8,9])
 # bax.axs[1].set_xticks([99])
 # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/prelim_plots/onseticountsbar.png', dpi=300)
