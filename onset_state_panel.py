@@ -22,35 +22,17 @@ gdf = gpd.read_file(shape_path)
 # need to compute the weighted population grid for each country
 # import rasterio
 
-# with rasterio.open('data/gl_gpwv3_pcount_90_ascii_quar/glp90ag15.asc') as src:
-#     # Read the first band of the dataset as a numpy array
-#     array = src.read(1)
-#     print(src.meta)
+path = '/Users/tylerbagwell/Downloads/gpw-v4-population-count-rev11_totpop_30_min_nc/gpw_v4_population_count_rev11_30_min.nc'
+# pop = xr.open_dataarray(path)
 
-import rasterio
-from rasterio.features import shapes
-import geopandas as gpd
-import numpy as np
+ds = xr.open_dataset(path)
 
-# Open the ASCII raster file with rasterio
-with rasterio.open('data/gl_gpwv3_pcount_90_ascii_quar/glp90ag15.asc') as src:
-    # Read the first band of the raster
-    image = src.read(1)
-    
-    # Create a mask to exclude nodata values (if nodata is defined)
-    mask = image != src.nodata if src.nodata is not None else None
 
-    # Extract shapes (polygons) and their associated values from the raster
-    results = (
-        {'properties': {'value': value}, 'geometry': geometry}
-        for geometry, value in shapes(image, mask=mask, transform=src.transform)
-    )
+# Print a summary of the dataset to inspect dimensions and variables
+# print(ds)
 
-    # Convert the generator to a list
-    geoms = list(results)
+# # Example: List all data variables and coordinates
+# print("Data Variables:", list(ds.data_vars))
+# print("Coordinates:", list(ds.coords))
 
-# Create a GeoDataFrame from the list of features, setting the CRS from the source raster
-gdf = gpd.GeoDataFrame.from_features(geoms, crs=src.crs)
-
-# Display the first few rows of the GeoDataFrame
-print(gdf.head())
+print(ds['raster'])
