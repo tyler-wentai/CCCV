@@ -83,15 +83,48 @@ panel_gdf.crs = "EPSG:4326"
 panel_gdf = panel_gdf[['year','cntry_n','gwcode','fid','geometry']]
 
 
-######## B. COMPUTE COUNTRY-YEAR TELECONNECTION STRENGTH
+
+
+
+
+
+######## B. COMPUTE COUNTRY-YEAR TELECONNECTION STRENGTH (POPUlATION WEIGHTED)
 telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ani_res0.5_19502023_pv0.01_ensoremovedv3.nc'
+pop_path = '/Users/tylerbagwell/Desktop/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc'
 
 print('Computing gdf for psi...')
 psi = xr.open_dataarray(telecon_path)
+pop = xr.open_dataarray(pop_path)
+pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
-# Ensure that the DataArray has 'lat' and 'longitude' coordinates
+# Ensure that the DataArray's has 'latitude' and 'longitude' coordinates
 if 'latitude' not in psi.coords or 'longitude' not in psi.coords:
-    raise ValueError("DataArray must have 'latitude' and 'longitude' coordinates.")
+    raise ValueError("psi dataArray must have 'latitude' and 'longitude' coordinates.")
+if 'latitude' not in pop2000.coords or 'longitude' not in pop2000.coords:
+    raise ValueError("pop2000 dataArray must have 'latitude' and 'longitude' coordinates.")
+
+# Interpolate the population dataArray onto the grid of the psi dataArray.
+pop2000_interp = pop2000.interp(
+    latitude=psi.latitude,
+    longitude=psi.longitude,
+    method="linear"
+)
+
+
+df_pop2000_interp = pop2000_interp.to_dataframe(name='pop2000').reset_index()
+df_pop2000_interp['geometry'] = df_pop2000_interp.apply(lambda row: shapely.geometry.Point(row['longitude'], row['latitude']), axis=1)
+pop2000_gdf = gpd.GeoDataFrame(df_pop2000_interp, geometry='geometry', crs='EPSG:4326')
+pop2000_gdf = pop2000_gdf[['latitude', 'longitude', 'pop2000', 'geometry']]
+
+ax = pop2000_gdf.plot(column='pop2000', cmap='gist_ncar_r', legend=True, markersize=0.25)
+plt.show()
+
+print(pop2000_gdf)
+
+sys.exit()
+
+
+#####
 
 df_psi = psi.to_dataframe(name='psi').reset_index()
 df_psi['geometry'] = df_psi.apply(lambda row: shapely.geometry.Point(row['longitude'], row['latitude']), axis=1)
@@ -119,6 +152,6 @@ panel_gdf = panel_gdf.merge(avg_psi, on='fid', how='left')
 last_obs = panel_gdf.loc[panel_gdf.groupby('cntry_n')['year'].idxmax()]
 
 # Plot the geometries, coloring them by the psi value.
-ax = last_obs.plot(column='psi', cmap='Reds', legend=True, figsize=(10, 6), edgecolor='black', linewidth=0.25)
-plt.title("Psi")
-plt.show()
+# ax = last_obs.plot(column='psi', cmap='Reds', legend=True, figsize=(10, 6), edgecolor='black', linewidth=0.25)
+# plt.title("Psi")
+# plt.show()
