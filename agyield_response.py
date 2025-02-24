@@ -57,9 +57,9 @@ print(ag_df)
 
 panel = initalize_state_onset_panel(panel_start_year=ag_df['year'].min(),
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_res0.2_19502023.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_Hsiang2011_nino3.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino34',
+                                    clim_index='nino3',
                                     plot_telecon=True)
 
 panel = panel.merge(ag_df, on=['country', 'year'], how='left')
@@ -87,4 +87,4 @@ panel = panel[panel['country'] != 'Yugoslavia']
 panel = panel[panel['country'] != 'Serbia']
 panel = panel[panel['country'] != 'Czechoslovakia']
 
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/ag_panels/UNNA_agrivalueadded_nino34.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/ag_panels/UNNA_agrivalueadded_nino3_hsiang.csv', index=False)
