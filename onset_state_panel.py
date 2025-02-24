@@ -83,6 +83,19 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     pop = xr.open_dataarray(pop_path)
     pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
+    psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
+
+    def convert_longitude(ds):
+        longitude = ds['longitude']
+        longitude = ((longitude + 180) % 360) - 180
+        ds = ds.assign_coords(longitude=longitude)
+        return ds
+
+    lon1 = psi['longitude']
+    if lon1.max() > 180:
+        psi = convert_longitude(psi)
+    psi = psi.sortby('longitude')
+    
     # Calculate the spacing for psi's coordinates
     psi_lat_spacing = np.diff(psi.latitude.values).mean()
     psi_lon_spacing = np.diff(psi.longitude.values).mean()
@@ -157,7 +170,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
 
-    #annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
+    annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
     annual_index['cindex_lag1y'] = annual_index['cindex'].shift(+1)
     annual_index['cindex_lag2y'] = annual_index['cindex'].shift(+2)
 
@@ -191,11 +204,11 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     return(panel_gdf)
 
 
-panel = initalize_state_onset_panel(panel_start_year=1950,
-                                    panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_res0.2_19502023.nc',
-                                    pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino34',
-                                    plot_telecon=True)
+# panel = initalize_state_onset_panel(panel_start_year=1950,
+#                                     panel_end_year=2023,
+#                                     telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_res0.2_19502023.nc',
+#                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
+#                                     clim_index='nino34',
+#                                     plot_telecon=False)
 
-print(panel)
+# print(set(panel['country']))

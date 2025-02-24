@@ -248,15 +248,15 @@ def compute_annualized_index(climate_index, start_year, end_year):
     if (climate_index == 'nino3' or climate_index == 'nino34'): ### NINO3 or NINO3.4
         # 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
         clim_ind['DJF_year'] = clim_ind.index.year
-        clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
+        # clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
 
         # 2) Filter for only DJF months (12, 1, 2)
-        djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
-        #djf = clim_ind[clim_ind.index.month.isin([5, 6, 7, 8, 9, 10, 11, 12])]
+        # djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
+        djf = clim_ind[clim_ind.index.month.isin([5, 6, 7, 8, 9, 10, 11, 12])]
 
         # 3) Group by 'DJF_year' and compute the mean anomaly to obtain annualized index values
         ann_ind = djf.groupby('DJF_year').ANOM.agg(['mean', 'count']).reset_index()
-        ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+        ann_ind = ann_ind[ann_ind['count'] == 8]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'dmi'): ### DMI
