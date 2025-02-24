@@ -160,7 +160,6 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     #annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
     annual_index['cindex_lag1y'] = annual_index['cindex'].shift(+1)
     annual_index['cindex_lag2y'] = annual_index['cindex'].shift(+2)
-    print(annual_index)
 
     panel_gdf = panel_gdf.merge(annual_index, on='year', how='left')
 
@@ -172,11 +171,21 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     ########
     if (plot_telecon==True):
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
-        print(last_obs)
 
-        #Plot the geometries, coloring them by the psi value.
-        ax = last_obs.plot(column='pop_avg_psi', cmap='Reds', legend=True, figsize=(10, 6), edgecolor='black', linewidth=0.25)
-        plt.title("Psi")
+        var_in = 'pop_avg_psi'
+        ## plot 1
+        # Plot the geometries, coloring them by the psi value.
+        ax = last_obs.plot(column=var_in, cmap='Reds', legend=True, figsize=(10, 6), edgecolor='black', linewidth=0.25)
+        plt.title(var_in)
+        plt.show()
+
+        ## plot 2
+        median_val = last_obs[var_in].median()
+        plt.hist(last_obs[var_in], bins='scott', color='red', edgecolor='black')
+        plt.axvline(median_val, color='black', linestyle='dashed')
+        x_center = (plt.xlim()[0] + plt.xlim()[1]) / 2; ymax = plt.ylim()[1]
+        plt.text(x_center, ymax*0.9, f'Median: {median_val:.2f}', color='black', ha='center', va='center', backgroundcolor='white')
+        plt.title(var_in)
         plt.show()
 
     return(panel_gdf)
@@ -187,6 +196,6 @@ panel = initalize_state_onset_panel(panel_start_year=1950,
                                     telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_res0.2_19502023.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='nino34',
-                                    plot_telecon=False)
+                                    plot_telecon=True)
 
 print(panel)
