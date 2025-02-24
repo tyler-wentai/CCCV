@@ -83,18 +83,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     pop = xr.open_dataarray(pop_path)
     pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
-    psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
-
-    def convert_longitude(ds):
-        longitude = ds['longitude']
-        longitude = ((longitude + 180) % 360) - 180
-        ds = ds.assign_coords(longitude=longitude)
-        return ds
-
-    lon1 = psi['longitude']
-    if lon1.max() > 180:
-        psi = convert_longitude(psi)
-    psi = psi.sortby('longitude')
+    # psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
     
     # Calculate the spacing for psi's coordinates
     psi_lat_spacing = np.diff(psi.latitude.values).mean()
