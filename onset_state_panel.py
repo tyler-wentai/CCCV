@@ -83,7 +83,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     pop = xr.open_dataarray(pop_path)
     pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
-    psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
+    # psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
     # lon1 = psi['longitude']
     # def convert_longitude(ds):
     #     longitude = ds['longitude']
@@ -163,7 +163,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     panel_gdf = panel_gdf.drop(['pop_weighted_psi'], axis=1)
 
     ######## C. COMPUTE CLIMATE INDEX (t and t-1 and t-2) AND MERGE W/ PANEL
-    start_year  = int(panel_start_year - 3) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
+    start_year  = int(panel_start_year - 5) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
     end_year    = int(panel_end_year)
 
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
@@ -171,6 +171,8 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
     annual_index['cindex_lag1y'] = annual_index['cindex'].shift(+1)
     annual_index['cindex_lag2y'] = annual_index['cindex'].shift(+2)
+    annual_index['cindex_lag3y'] = annual_index['cindex'].shift(+3)
+    annual_index['cindex_lag4y'] = annual_index['cindex'].shift(+4)
 
     panel_gdf = panel_gdf.merge(annual_index, on='year', how='left')
 
@@ -188,9 +190,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         # Plot the geometries, coloring them by the psi value.
         ax = last_obs.plot(column=var_in,
                            cmap='Reds',
-                           legend=True, 
-                           scheme='NaturalBreaks',  # or 'quantiles', 'equalinterval', etc.
-                           k=12,                     # number of classes
+                           legend=True,
                            figsize=(10, 6), 
                            edgecolor='black',
                            linewidth=0.25)

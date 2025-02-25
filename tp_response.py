@@ -15,9 +15,9 @@ resolution = 0.25
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ani_res0.25_19502023_pval0.05.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='dmi',
+                                    clim_index='ani',
                                     plot_telecon=True)
 
 
@@ -110,4 +110,4 @@ panel = panel.merge(result_df, on=['year', 'fid'], how='left')
 print(panel)
 
 panel = panel.drop('geometry', axis=1)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/ag_panels/validation_t2m_dmi_OLD.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/ag_panels/validation_t2m_ani.csv', index=False)
