@@ -198,16 +198,30 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         var2_standardized    = (var2_aligned - mean2_data) / std2_data
         var2_standardized    = var2_standardized.where(std2_data != 0, 0) # handle the special case: if std == 0 at a grid cell, set all times there to 0
 
-        print("......", var1_standardized.shape)
-        print("......", var2_standardized.shape)
+        # detrend the aligned variable data
+        degree = 1
+        var1_aligned = var1_aligned.assign_coords(
+            time_numeric=(var1_aligned.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+        fit1 = var1_aligned.polyfit(dim='time_numeric', deg=degree)
+        trend1 = xr.polyval(var1_aligned.time_numeric, fit1.polyfit_coefficients)
+        detrended1 = var1_aligned - trend1
+
+        var2_aligned = var2_aligned.assign_coords(
+            time_numeric=(var2_aligned.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+        fit2 = var2_aligned.polyfit(dim='time_numeric', deg=degree)
+        trend2 = xr.polyval(var2_aligned.time_numeric, fit2.polyfit_coefficients)
+        detrended2 = var2_aligned - trend2
+
+        print("......", detrended1.shape)
+        print("......", detrended2.shape)
         print("......", ind_aligned.shape)
 
         # compute correlations and their p-values
         corr_map, pval_map = xr.apply_ufunc(
             partial_corr_func,
             ind_aligned,                    # first  input (x),  the climate index
-            var1_standardized,              # second input (y),  the variable
-            var2_standardized,              # third  input (z1), the first covariate to control for
+            detrended1,              # second input (y),  the variable
+            detrended2,              # third  input (z1), the first covariate to control for
             enso_aligned,                   # fourth input (z_enso), the second covariate to control for
             input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"], ["valid_time"]],
             output_core_dims=[[], []],  # both correlation and p-value are scalars per lat/lon
@@ -291,11 +305,17 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
     corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index, enso_index)
 
     ### COMPUTE TELECONNECTION STRENGTH
-    telecon_var1 = np.abs(corr_array1)
-    telecon_var1 = np.sum(telecon_var1, axis=0)
+    # telecon_var1 = np.abs(corr_array1)
+    # telecon_var1 = np.sum(telecon_var1, axis=0)
 
-    telecon_var2 = np.abs(corr_array2)
-    telecon_var2 = np.sum(telecon_var2, axis=0)
+    # telecon_var2 = np.abs(corr_array2)
+    # telecon_var2 = np.sum(telecon_var2, axis=0)
+
+    telecon_var1 = np.sum(corr_array1, axis=0)
+    telecon_var1 = np.abs(telecon_var1)
+
+    telecon_var2 = np.sum(corr_array2, axis=0)
+    telecon_var2 = np.abs(telecon_var2)
 
     telecon_total = telecon_var1 + telecon_var2
 
@@ -314,7 +334,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1_abslast.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -336,14 +356,12 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 
 
 
-
-
-
+#
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 0.25,
-                       climate_index = 'ani', 
+                       resolution = 1.0,
+                       climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
