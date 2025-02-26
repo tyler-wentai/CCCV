@@ -201,16 +201,18 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         # detrend the aligned variable data
         degree = 1
         var1_standardized = var1_standardized.assign_coords(
-            time_numeric=(var1_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+            time_numeric=(var1_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's')).swap_dims({'valid_time': 'time_numeric'})
         fit1 = var1_standardized.polyfit(dim='time_numeric', deg=degree)
         trend1 = xr.polyval(var1_standardized.time_numeric, fit1.polyfit_coefficients)
         detrended1 = var1_standardized - trend1
+        detrended1 = detrended1.swap_dims({'time_numeric':'valid_time'})
 
         var2_standardized = var2_standardized.assign_coords(
-            time_numeric=(var2_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+            time_numeric=(var2_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's')).swap_dims({'valid_time': 'time_numeric'})
         fit2 = var2_standardized.polyfit(dim='time_numeric', deg=degree)
         trend2 = xr.polyval(var2_standardized.time_numeric, fit2.polyfit_coefficients)
         detrended2 = var2_standardized - trend2
+        detrended2 = detrended2.swap_dims({'time_numeric':'valid_time'})
 
         print("......", detrended1.shape)
         print("......", detrended2.shape)
@@ -319,6 +321,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 
     telecon_total = telecon_var1 + telecon_var2
 
+    ### SAVE TELECONNECTION STRENGTH TO NETCDF
     psi_str = "Teleconnection strength (psi) for" + climate_index + "with" +\
         var1_str + "and" + var2_str + "computed by partial correlation."
     psi = xr.DataArray(telecon_total,
@@ -333,9 +336,47 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             climate_index_used = climate_index)
                             )
     
-    save_path = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+    save_path_help = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
         str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
-    psi.to_netcdf(save_path)
+    psi.to_netcdf(save_path_help)
+
+    ### SAVE MONTHLY VARIABLE TELECONNECTION STRENGTHS TO NETCDF
+    psi_1 = xr.DataArray(corr_array1,
+                       coords = {"month":  np.arange(1, int(corr_array1.shape[0])+1),
+                                 "latitude":  ds1['latitude'],
+                                 "longitude":  ds1['longitude']
+                                 },
+                        dims = ["month", "latitude", "longitude"],
+                        attrs=dict(
+                            variable=var1_str,
+                            description=psi_str,
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = climate_index)
+                            )
+    
+    save_path_help = save_path + "/psi_of_" + var1_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
+    psi_1.to_netcdf(save_path_help)
+
+    psi_2 = xr.DataArray(corr_array2,
+                       coords = {"month":  np.arange(1, int(corr_array2.shape[0])+1),
+                                 "latitude":  ds1['latitude'],
+                                 "longitude":  ds1['longitude']
+                                 },
+                        dims = ["month", "latitude", "longitude"],
+                        attrs=dict(
+                            variable=var2_str,
+                            description=psi_str,
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = climate_index)
+                            )
+    
+    save_path_help = save_path + "/psi_of_" + var2_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
+    psi_2.to_netcdf(save_path_help)
+
     
     ### PLOT TELECONNECTION
     if (plot_psi == True):
@@ -360,7 +401,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 1.0,
+                       resolution = 0.25,
                        climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
