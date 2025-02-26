@@ -43,7 +43,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
     if (climate_index == 'nino3' or climate_index == 'nino34'): ### NINO3 or NINO3.4
         # 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
         clim_ind['DJF_year'] = clim_ind.index.year
-        clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
+        # clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
 
         # 2) Filter for only DJF months (12, 1, 2)
         # djf = clim_ind[clim_ind.index.month.isin([12, 1, 2])]
@@ -200,17 +200,17 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
 
         # detrend the aligned variable data
         degree = 1
-        var1_aligned = var1_aligned.assign_coords(
-            time_numeric=(var1_aligned.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
-        fit1 = var1_aligned.polyfit(dim='time_numeric', deg=degree)
-        trend1 = xr.polyval(var1_aligned.time_numeric, fit1.polyfit_coefficients)
-        detrended1 = var1_aligned - trend1
+        var1_standardized = var1_standardized.assign_coords(
+            time_numeric=(var1_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+        fit1 = var1_standardized.polyfit(dim='time_numeric', deg=degree)
+        trend1 = xr.polyval(var1_standardized.time_numeric, fit1.polyfit_coefficients)
+        detrended1 = var1_standardized - trend1
 
-        var2_aligned = var2_aligned.assign_coords(
-            time_numeric=(var2_aligned.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
-        fit2 = var2_aligned.polyfit(dim='time_numeric', deg=degree)
-        trend2 = xr.polyval(var2_aligned.time_numeric, fit2.polyfit_coefficients)
-        detrended2 = var2_aligned - trend2
+        var2_standardized = var2_standardized.assign_coords(
+            time_numeric=(var2_standardized.valid_time - np.datetime64('1940-01-01')) / np.timedelta64(1, 's'))
+        fit2 = var2_standardized.polyfit(dim='time_numeric', deg=degree)
+        trend2 = xr.polyval(var2_standardized.time_numeric, fit2.polyfit_coefficients)
+        detrended2 = var2_standardized - trend2
 
         print("......", detrended1.shape)
         print("......", detrended2.shape)
@@ -305,17 +305,17 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
     corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index, enso_index)
 
     ### COMPUTE TELECONNECTION STRENGTH
-    # telecon_var1 = np.abs(corr_array1)
-    # telecon_var1 = np.sum(telecon_var1, axis=0)
+    telecon_var1 = np.abs(corr_array1)
+    telecon_var1 = np.sum(telecon_var1, axis=0)
 
-    # telecon_var2 = np.abs(corr_array2)
-    # telecon_var2 = np.sum(telecon_var2, axis=0)
+    telecon_var2 = np.abs(corr_array2)
+    telecon_var2 = np.sum(telecon_var2, axis=0)
 
-    telecon_var1 = np.sum(corr_array1, axis=0)
-    telecon_var1 = np.abs(telecon_var1)
+    # telecon_var1 = np.sum(corr_array1, axis=0)
+    # telecon_var1 = np.abs(telecon_var1)
 
-    telecon_var2 = np.sum(corr_array2, axis=0)
-    telecon_var2 = np.abs(telecon_var2)
+    # telecon_var2 = np.sum(corr_array2, axis=0)
+    # telecon_var2 = np.abs(telecon_var2)
 
     telecon_total = telecon_var1 + telecon_var2
 
@@ -334,7 +334,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1_abslast.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
