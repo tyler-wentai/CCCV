@@ -84,7 +84,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'JJA_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
-    elif (climate_index == 'iod_cai'): ### IOD via Cai et al. (2011) method
+    elif (climate_index == 'iod_cai'): ### IOD via Cai et al. (2011) method computed by Xinyue
         clim_ind = clim_ind.rename(columns={'ANOM': 'ann_ind'})
         clim_ind.reset_index(drop=True, inplace=True)
         ann_ind = clim_ind.copy()
