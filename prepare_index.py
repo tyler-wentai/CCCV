@@ -138,6 +138,54 @@ def prepare_ANI(file_path, start_date, end_date):
 
     return df_ani
 
+#
+def prepare_IOD_CAI(file_path, start_date, end_date):
+    """
+    Prepare Indian Ocean Dipole data using Cai et al. method as pd.Data.Frame from csv file with
+    start_date and end_date must be formatted as datetime(some_year, 1, 1, 0, 0, 0)
+    """
+    # Read in data files
+    iod = pd.read_csv(file_path)
+    iod['time'] = pd.to_datetime(
+        iod['time'],
+        format='%Y', 
+        )
+    # iod['time'] = iod['time'].apply(lambda dt: dt.replace(day=1))
+    iod['time'] = iod['time'].dt.floor('D')
+    # iod = iod.drop('month', axis=1)
+    year_start = int(iod['time'].dt.year.min())
+    # iod = iod.iloc[:,1:iod.shape[1]].values.flatten()
+    df_iod = pd.DataFrame(iod)
+    date_range = pd.date_range(start=f'{year_start}-01-01', periods=iod.shape[0], freq='YS')
+
+    df_iod.index = date_range
+    df_iod.rename_axis('date', inplace=True)
+    df_iod.drop('time', axis=1, inplace=True)
+    df_iod.columns = ['ANOM_LD', 'ANOM_QD']  # LD: Linearly detrended, QD: Quadratically detrended
+
+    start_ts_l = np.where(df_iod.index == start_date)[0]
+    end_ts_l = np.where(df_iod.index == end_date)[0]
+
+    # Test if index list is empty, i.e., start_date or end_date are outside time series range
+    if not start_ts_l:
+        raise ValueError("start_ts_l is empty, start_date is outside range of IOD index time series.")
+    if not end_ts_l:
+        raise ValueError("end_ts_l is empty, end_date is outside range of IOD index time series.")
+    
+    start_ts_ind = int(start_ts_l[0])
+    end_ts_ind = int(int(end_ts_l[0])+1)
+
+    df_iod = df_iod.iloc[start_ts_ind:end_ts_ind]
+
+    print('NOTE: prepare_IOD_CAI is returning the QUADRATICALLY DETRENDED IOD index.')
+    df_iod.drop('ANOM_LD', axis=1, inplace=True)
+    df_iod.rename(columns={'ANOM_QD': 'ANOM'}, inplace=True)
+
+    # print('NOTE: prepare_IOD_CAI is returning the LINEARLY DETRENDED IOD index.')
+    # df_iod.drop('ANOM_QD', axis=1, inplace=True)
+    # df_iod.rename(columns={'ANOM_LD': 'ANOM'}, inplace=True)
+
+    return df_iod
 
 #
 def prepare_Eindex(file_path, start_date, end_date):

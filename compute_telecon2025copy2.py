@@ -34,13 +34,17 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
                                 start_date=datetime(start_year, 1, 1, 0, 0, 0),
                                 end_date=datetime(end_year, 12, 1, 0, 0, 0))
+    elif (climate_index == 'iod_cai'):
+        clim_ind = prepare_IOD_CAI(file_path='data/IOD_index_Cai.csv',
+                                start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                                end_date=datetime(end_year, 1, 1, 0, 0, 0)) # Note: iod_cai end_date must start at January 1st unlike other indices.
     else:
         raise ValueError("Specified 'climate_index' not found...")
     
     clim_ind['year'] = clim_ind.index.year
-    clim_ind['month'] = clim_ind.index.month
 
     if (climate_index == 'nino3' or climate_index == 'nino34'): ### NINO3 or NINO3.4
+        clim_ind['month'] = clim_ind.index.month
         # 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
         clim_ind['DJF_year'] = clim_ind.index.year
         # clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
@@ -55,6 +59,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'DJF_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'dmi'): ### DMI
+        clim_ind['month'] = clim_ind.index.month
         # 1) Add a 'SON_year' column
         clim_ind['SON_year'] = clim_ind.index.year
 
@@ -67,6 +72,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'ani'): ### ANI
+        clim_ind['month'] = clim_ind.index.month
         # 1) Add a 'JJA_year' column
         clim_ind['JJA_year'] = clim_ind.index.year
 
@@ -78,6 +84,10 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'JJA_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
+    elif (climate_index == 'iod_cai'): ### IOD via Cai et al. (2011) method
+        clim_ind = clim_ind.rename(columns={'ANOM': 'ann_ind'})
+        clim_ind.reset_index(drop=True, inplace=True)
+        ann_ind = clim_ind.copy()
     else:
         raise ValueError("Specified 'climate_index' not found...")
     
@@ -130,7 +140,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             else:
                 m = i - 7
                 y = 0
-        elif (climate_index == 'dmi'):
+        elif (climate_index == 'dmi' or climate_index == 'iod_cai'):
             ### DMI (tropical year from March y_{t} to February y_{t+1})
             if (i<=10): 
                 # m = i + 2
@@ -157,7 +167,6 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             'month': m,
             'day': 1
         })
-
         ann_help.set_index('date', inplace=True)
         ann_help.drop(columns='year', inplace=True)
 
@@ -337,7 +346,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
     psi.to_netcdf(save_path_help)
 
     ### SAVE MONTHLY VARIABLE TELECONNECTION STRENGTHS TO NETCDF
@@ -356,7 +365,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_of_" + var1_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
     psi_1.to_netcdf(save_path_help)
 
     psi_2 = xr.DataArray(corr_array2,
@@ -374,7 +383,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_of_" + var2_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
     psi_2.to_netcdf(save_path_help)
 
     
@@ -401,8 +410,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 0.25,
-                       climate_index = 'dmi', 
+                       resolution = 0.50,
+                       climate_index = 'iod_cai', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
