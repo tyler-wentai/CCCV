@@ -13,45 +13,6 @@ from prepare_index import *
 print('\n\nSTART ---------------------\n')
 
 #
-# path1 = '/Users/tylerbagwell/Downloads/AVHRR-Land_v005_AVH13C1_NOAA-07_19820101_c20170610044559.nc'
-# ds1 = xr.open_dataset(path1, mask_and_scale=False)
-
-# path2 = '/Users/tylerbagwell/Downloads/AVHRR-Land_v005_AVH13C1_NOAA-07_19820201_c20170610130529.nc'
-# ds2 = xr.open_dataset(path2, mask_and_scale=False)
-
-# combined_ds = xr.concat([ds1, ds2], dim='time')
-
-# print(ds1['NDVI'])
-# print(ds2['NDVI'])
-
-# print(combined_ds)
-
-# Define the file name pattern with a placeholder for the date
-file_pattern = '/Users/tylerbagwell/Downloads/AVHRR-Land_v005_AVH13C1_NOAA-07_{date}.nc'
-
-# Create a date range for the months you want (adjust start, end, and frequency as needed)
-dates = pd.date_range(start='1982-01-01', end='1982-2-01', freq='MS')
-
-# List to store each monthly dataset
-datasets = []
-
-for dt in dates:
-    # Format the date as yyyymmdd
-    date_str = dt.strftime("%Y%m%d")
-    # Construct the full file path
-    file_path = file_pattern.format(date=date_str)
-    # Open the dataset and append to the list
-    ds = xr.open_dataset(file_path, mask_and_scale=False)
-    datasets.append(ds)
-
-# Concatenate along the 'time' dimension
-combined_ds = xr.concat(datasets, dim='time')
-
-print(combined_ds)
-
-sys.exit()
-
-#
 def compute_annualized_index(climate_index, start_year, end_year):
     if (climate_index == 'nino34'):
         clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
