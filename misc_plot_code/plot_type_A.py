@@ -11,6 +11,7 @@ import xarray as xr
 import seaborn as sns
 import matplotlib.image as mpimg
 import geopandas as gpd
+from matplotlib.colors import ListedColormap
 
 print('\n\nSTART ---------------------\n')
 
@@ -26,45 +27,45 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.2_19502023_pval0.05_maydec.nc')
-psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
-psi = psi.sortby('longitude')
-lat1 = psi['latitude'].values
-lon1 = psi['longitude'].values
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat1 = psi['lat'].values
+lon1 = psi['lon'].values
 variable1 = psi.values[:,:]
-vals1 = variable1.flatten()
 
-# psi2 = xr.open_dataset('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
-# lat2 = psi2['lat'].values
-# lon2 = psi2['lon'].values
-# variable2 = psi2['spei6'].values[0,:,:]
-# vals2 = variable2.flatten()
+#variable1 = psi.values[7,:,:]
+# variable1 = np.sum(np.abs(psi), axis=0)
 
+# print(variable1.values.flatten())
+# # val = variable1.flatten()
+# plt.hist(variable1.values.flatten(), bins=100)
+# plt.show()
 
-
-
-
-
+#####
 path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
 path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
 gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
 fig, ax = plt.subplots(figsize=(10, 6.6))
-# fig.suptitle(r'Global land-based teleconnection strength, $\Psi^{DMI}$', fontsize=16)
 
-# prop = len(vals1)/len(vals2)
+reds = plt.cm.Reds(np.linspace(0, 1, 256))
+reds[0] = [1, 1, 1, 1]  # Set the lowest color (for zero values) to white
+custom_cmap = ListedColormap(reds)
+variable1_masked = np.ma.masked_where(variable1 == 0, variable1)
+
 maxval = np.max(variable1)
 levels = np.arange(0,maxval,1)
 
-c = ax.contourf(lon1, lat1, variable1, cmap='Reds', vmax=6)
-cc = ax.imshow(variable1, cmap='Reds', vmin=0, vmax=6)
+c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto', vmin=0, vmax=4)
+cc = ax.imshow(variable1_masked, cmap='Reds', vmin=0, vmax=4)
 gdf2.plot(ax=ax, edgecolor=None, color='white')
-gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 # ax.set_title('Teleconnection strength, $\Psi$ (ENSO)')
-c.set_clim(0, 6)
+c.set_clim(0, 4)
 cbar = fig.colorbar(cc, ax=ax, orientation='vertical', fraction=0.1, pad=0.1, shrink=0.6)
 cbar.set_label(r"$\Psi$", rotation=0, fontsize=14)
 

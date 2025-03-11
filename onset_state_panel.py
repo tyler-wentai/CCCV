@@ -185,7 +185,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     if (plot_telecon==True):
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
 
-        var_in = 'psi'
+        var_in = 'pop_avg_psi'
         ## plot 1
         # Plot the geometries, coloring them by the psi value.
         ax = last_obs.plot(column=var_in,
@@ -211,7 +211,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_iod_cai_res0.50_19502023_pval0.05_detrended1_iodquad.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res1.00_19502023_pval0.05_detrended1_iodquad.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='dmi',
                                     plot_telecon=True)

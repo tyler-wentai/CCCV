@@ -346,7 +346,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi.to_netcdf(save_path_help)
 
     ### SAVE MONTHLY VARIABLE TELECONNECTION STRENGTHS TO NETCDF
@@ -365,7 +365,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_of_" + var1_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi_1.to_netcdf(save_path_help)
 
     psi_2 = xr.DataArray(corr_array2,
@@ -383,9 +383,9 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path_help = save_path + "/psi_of_" + var2_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pval0.05_detrended1_iodquad.nc"
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi_2.to_netcdf(save_path_help)
-
+    print(save_path_help)
     
     ### PLOT TELECONNECTION
     if (plot_psi == True):
@@ -411,7 +411,7 @@ compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
                        resolution = 0.50,
-                       climate_index = 'iod_cai', 
+                       climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
