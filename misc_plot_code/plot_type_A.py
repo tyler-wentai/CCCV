@@ -27,20 +27,20 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc')
-psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
-psi = psi.sortby('lon')
-lat1 = psi['lat'].values
-lon1 = psi['lon'].values
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_LAND_nskip5.0_19502023.nc')
+psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
+psi = psi.sortby('longitude')
+lat1 = psi['latitude'].values
+lon1 = psi['longitude'].values
 variable1 = psi.values[:,:]
 
 #variable1 = psi.values[7,:,:]
 # variable1 = np.sum(np.abs(psi), axis=0)
 
-# print(variable1.values.flatten())
-# # val = variable1.flatten()
-# plt.hist(variable1.values.flatten(), bins=100)
-# plt.show()
+print(variable1.flatten())
+# val = variable1.flatten()
+plt.hist(variable1.flatten(), bins=50)
+plt.show()
 
 #####
 path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
@@ -58,14 +58,14 @@ variable1_masked = np.ma.masked_where(variable1 == 0, variable1)
 maxval = np.max(variable1)
 levels = np.arange(0,maxval,1)
 
-c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto', vmin=0, vmax=4)
-cc = ax.imshow(variable1_masked, cmap='Reds', vmin=0, vmax=4)
+c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto')
+cc = ax.imshow(variable1_masked, cmap='Reds')
 gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
 # ax.set_title('Teleconnection strength, $\Psi$ (ENSO)')
-c.set_clim(0, 4)
+# c.set_clim(0, 4)
 cbar = fig.colorbar(cc, ax=ax, orientation='vertical', fraction=0.1, pad=0.1, shrink=0.6)
 cbar.set_label(r"$\Psi$", rotation=0, fontsize=14)
 

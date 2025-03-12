@@ -9,8 +9,33 @@ import numpy as np
 print('\n\nSTART ---------------------\n')
 
 
-var1_path = '/Users/tylerbagwell/Desktop/cccv_data/ndvi_data/ndvi_annual_avg_1990.nc'
-ds = xr.open_dataset(var1_path, mask_and_scale=False)
+var1_path = '/Users/tylerbagwell/Downloads/data_stream-moda.nc'
+ds1 = xr.open_dataset(var1_path)
+
+
+
+lon1 = ds1['longitude']
+lat1 = ds1['latitude']
+
+resolution = 0.5
+
+# lat_int_mask1 = (lat1 % resolution == 0)
+# lon_int_mask1 = (lon1 % resolution == 0)
+# ds1 = ds1.sel(latitude=lat1[lat_int_mask1], longitude=lon1[lon_int_mask1])
+
+nskip = 10
+
+ds1 = ds1.isel(latitude=slice(0, None, nskip), longitude=slice(0, None, nskip))
+
+
+var1 = ds1['t2m'].isel(valid_time=0)
+
+print(var1)
+
+var1.plot()
+plt.show()
+sys.exit()
+
 
 ndvi = ds['NDVI']
 
