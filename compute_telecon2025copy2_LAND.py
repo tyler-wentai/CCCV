@@ -102,8 +102,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
 
     n_time, n_lat, n_long = var1.shape
 
-    # n_months = 12
-    n_months = 8
+    n_months = 12
+    # n_months = 8
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
     def partial_corr_func(x, y, z1, z_enso, climate_index):
@@ -150,8 +150,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         elif (climate_index == 'dmi' or climate_index == 'iod_cai'):
             ### DMI (tropical year from March y_{t} to February y_{t+1})
             if (i<=10): 
-                # m = i + 2
-                m = i + 4
+                m = i + 2
+                # m = i + 4
                 y = 0
             else:
                 m = i - 10
@@ -346,7 +346,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + ".nc"
+        str(start_year) + str(end_year) + "_12months.nc"
     psi.to_netcdf(save_path_help)
     print(save_path_help)
 
@@ -366,7 +366,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_" + var1_str + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + ".nc"
+        str(start_year) + str(end_year) + "_12months.nc"
     psi_1.to_netcdf(save_path_help)
 
     psi_2 = xr.DataArray(corr_array2,
@@ -384,7 +384,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_" + var2_str + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + ".nc"
+        str(start_year) + str(end_year) + "_12months.nc"
     psi_2.to_netcdf(save_path_help)
     
     ### PLOT TELECONNECTION
@@ -408,7 +408,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
 #
 compute_teleconnection(nc_path = '/Users/tylerbagwell/Downloads/data_stream-moda.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       nskip = 5,
+                       nskip = 2,
                        climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
