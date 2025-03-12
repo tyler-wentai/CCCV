@@ -346,7 +346,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + "_12months.nc"
+        str(start_year) + str(end_year) + ".nc"
     psi.to_netcdf(save_path_help)
     print(save_path_help)
 
