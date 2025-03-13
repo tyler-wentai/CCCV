@@ -102,8 +102,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
 
     n_time, n_lat, n_long = var1.shape
 
-    n_months = 12
-    # n_months = 8
+    # n_months = 12
+    n_months = 8
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
     def partial_corr_func(x, y, z1, z_enso, climate_index):
@@ -202,6 +202,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         ind_aligned, enso_aligned = xr.align(ann_ind_ts, enso_ind_ts, join="inner")
         var1_aligned, ind_aligned = xr.align(var1, ind_aligned, join="inner")
         var2_aligned, ind_aligned = xr.align(var2, ind_aligned, join="inner")
+        ind_aligned, enso_aligned = xr.align(ind_aligned, enso_aligned, join="inner")
 
         # standardize the aligned variable data
         mean1_data           = var1_aligned.mean(dim='valid_time', skipna=True)
@@ -346,7 +347,7 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             )
     
     save_path_help = save_path + "/psi_" + climate_index + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + ".nc"
+        str(start_year) + str(end_year) + "_12months.nc"
     psi.to_netcdf(save_path_help)
     print(save_path_help)
 
@@ -408,8 +409,8 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
 #
 compute_teleconnection(nc_path = '/Users/tylerbagwell/Downloads/data_stream-moda.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       nskip = 2,
-                       climate_index = 'dmi', 
+                       nskip = 5,
+                       climate_index = 'ani', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)

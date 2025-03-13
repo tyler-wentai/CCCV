@@ -195,6 +195,7 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         ind_aligned, enso_aligned = xr.align(ann_ind_ts, enso_ind_ts, join="inner")
         var1_aligned, ind_aligned = xr.align(var1, ind_aligned, join="inner")
         var2_aligned, ind_aligned = xr.align(var2, ind_aligned, join="inner")
+        ind_aligned, enso_aligned = xr.align(ind_aligned, enso_aligned, join="inner")
 
         # standardize the aligned variable data
         mean1_data           = var1_aligned.mean(dim='valid_time', skipna=True)
