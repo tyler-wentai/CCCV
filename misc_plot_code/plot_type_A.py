@@ -27,7 +27,7 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ani_LAND_nskip5.0_19502023_12months.nc')
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_LAND_nskip3.0_19502023_12months.nc')
 psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
 psi = psi.sortby('longitude')
 lat1 = psi['latitude'].values

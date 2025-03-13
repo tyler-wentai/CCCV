@@ -427,8 +427,8 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
 #
 compute_teleconnection(nc_path = '/Users/tylerbagwell/Downloads/data_stream-moda.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       nskip = 2,
-                       climate_index = 'dmi', 
+                       nskip = 3,
+                       climate_index = 'nino34', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)
