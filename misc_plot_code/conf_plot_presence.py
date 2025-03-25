@@ -72,5 +72,5 @@ plt.text(-2., -0.62, 'Strong', fontsize=10, color='k', horizontalalignment='cent
 plt.xlim(-2.5, +2.5)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/panel_datasets/presence_results/Presence_DMI_Africa_lag0_subset.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/panel_datasets/presence_results/Presence_DMI_Africa_lag0_subset.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
