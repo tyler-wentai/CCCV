@@ -43,7 +43,7 @@ m.drawmeridians(meridians, labels=[0,0,0,1], fontsize=8, linewidth=0.4)
 # Project points and plot them
 x, y = m(gdf['onset_lon'].values, gdf['onset_lat'].values)
 xy = np.vstack([x, y])
-kde = gaussian_kde(xy)
+kde = gaussian_kde(xy, bw_method=0.175)
 
 # Create a grid for contouring
 xi, yi = np.mgrid[x.min():x.max():500j, y.min():y.max():500j]
@@ -59,8 +59,8 @@ xi_masked = np.where(zi > density_threshold, xi, np.nan)
 yi_masked = np.where(zi > density_threshold, yi, np.nan)
 
 # Plot density contours (masked)
-contour = m.contourf(xi_masked, yi_masked, zi_masked, levels=6, cmap='Greys', alpha=0.4)
-contour = m.contour(xi_masked, yi_masked, zi_masked, levels=6, cmap='Greys', alpha=0.8, linewidths=0.5)
+contour = m.contourf(xi_masked, yi_masked, zi_masked, levels=6, cmap='Greens', alpha=0.9)
+# contour = m.contour(xi_masked, yi_masked, zi_masked, levels=5, cmap='Greens', alpha=1.0, linewidths=1)
 
 m.scatter(x, y, color='red', marker='o', s=0.2, alpha=1)
 
