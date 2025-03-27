@@ -7,6 +7,15 @@ import sys
 
 print('\n\nSTART ---------------------\n')
 
+
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import matplotlib.ticker as mticker
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+
+
 onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
 df = pd.read_csv(onset_path)
 
@@ -20,51 +29,73 @@ gdf = gpd.GeoDataFrame(
 
 
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+# Create a figure with the desired size
+fig = plt.figure(figsize=(6, 4))
 
-# Set figure size
-plt.figure(figsize=(6, 4))
+# Set up an axes with the Robinson projection
+ax = plt.axes(projection=ccrs.Robinson())
+ax.set_global()
 
-# Initialize Basemap with a global view
-m = Basemap(projection='robin',lon_0=0,resolution='c')
+# Fill the map with ocean color (this acts like the map boundary fill)
+ax.add_feature(cfeature.OCEAN, facecolor='#E0FFFB')
 
-# Draw map boundaries and fill continents
-m.drawcoastlines(linewidth=0.75)
-# m.drawcountries(linewidth=0.45)
-m.fillcontinents(color='antiquewhite', lake_color='aliceblue')
-m.drawmapboundary(fill_color='aliceblue')
+# Add land (continents) with the chosen color
+ax.add_feature(cfeature.LAND, facecolor='#E0ECBA')
 
-parallels = range(-60, 91, 30)  # Latitude lines every 30 degrees
-meridians = range(-180, 181, 60)  # Longitude lines every 60 degrees
-m.drawparallels(parallels, labels=[1,0,0,0], fontsize=8, linewidth=0.4)
-m.drawmeridians(meridians, labels=[0,0,0,1], fontsize=8, linewidth=0.4)
+# Draw coastlines with a specified linewidth
+ax.coastlines(linewidth=0.75)
 
-# Project points and plot them
-x, y = m(gdf['onset_lon'].values, gdf['onset_lat'].values)
+# Set up gridlines with custom tick locations
+gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
+gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
+gl.xlabel_style = {'size': 8}
+gl.ylabel_style = {'size': 8}
+gl.xformatter = LONGITUDE_FORMATTER
+gl.yformatter = LATITUDE_FORMATTER
+
+# Adjust gridline label positions:
+# - For parallels (latitude) we want labels on the left only.
+# - For meridians (longitude) we want labels on the right.
+# By default, Cartopy labels latitudes on the left and longitudes on the bottom.
+# To mimic Basemap:
+# gl.left_labels      = False
+# gl.right_labels     = False   
+# gl.bottom_labels    = True  
+gl.top_labels       = False 
+
+x, y = gdf['onset_lon'].values, gdf['onset_lat'].values
+ax.scatter(x, y, color='red', s=0.2, marker='o', transform=ccrs.PlateCarree(), zorder=5)
+
+# ------------------------------------------------------------------------------
+
+
+# Transform the lat/lon coordinates to the map projection coordinates.
+# This is similar to using Basemap's m() function.
+points = ax.projection.transform_points(ccrs.PlateCarree(), x, y)
+x = points[:, 0]
+y = points[:, 1]
+
+# Stack x and y to feed into the Gaussian KDE
 xy = np.vstack([x, y])
-kde = gaussian_kde(xy, bw_method=0.175)
+kde = gaussian_kde(xy, bw_method=0.15)
 
-# Create a grid for contouring
+# Create a grid over the extent of the projected points
 xi, yi = np.mgrid[x.min():x.max():500j, y.min():y.max():500j]
 zi = kde(np.vstack([xi.flatten(), yi.flatten()]))
-
-# Reshape zi back to grid shape
 zi = zi.reshape(xi.shape)
 
-# Set very low density values to NaN (not plotted)
-density_threshold = np.percentile(zi, 70)  # adjust percentile as needed (e.g., bottom 5%)
+# Mask low-density values so they won't be plotted
+density_threshold = np.percentile(zi, 70)  # adjust the percentile as needed
 zi_masked = np.where(zi > density_threshold, zi, np.nan)
 xi_masked = np.where(zi > density_threshold, xi, np.nan)
 yi_masked = np.where(zi > density_threshold, yi, np.nan)
 
-# Plot density contours (masked)
-contour = m.contourf(xi_masked, yi_masked, zi_masked, levels=6, cmap='Greens', alpha=0.9)
-# contour = m.contour(xi_masked, yi_masked, zi_masked, levels=5, cmap='Greens', alpha=1.0, linewidths=1)
+# Plot the density contours.
+# Since xi, yi, and zi are in the projection coordinate system, no additional transform is needed.
+ax.contourf(xi_masked, yi_masked, zi_masked, levels=4, cmap='Greys', alpha=1)
 
-m.scatter(x, y, color='red', marker='o', s=0.2, alpha=1)
 
-# Set title
 plt.title('Conflict Onset Locations (1950-2023)', fontsize=11)
 
 # Show plot
