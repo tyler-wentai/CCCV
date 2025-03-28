@@ -86,7 +86,7 @@ zi = kde(np.vstack([xi.flatten(), yi.flatten()]))
 zi = zi.reshape(xi.shape)
 
 # Mask low-density values so they won't be plotted
-density_threshold = np.percentile(zi, 70)  # adjust the percentile as needed
+density_threshold = np.percentile(zi, 90)  # adjust the percentile as needed
 zi_masked = np.where(zi > density_threshold, zi, np.nan)
 xi_masked = np.where(zi > density_threshold, xi, np.nan)
 yi_masked = np.where(zi > density_threshold, yi, np.nan)
