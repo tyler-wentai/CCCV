@@ -11,6 +11,7 @@ import seaborn as sns
 from shapely.geometry import mapping
 import statsmodels.api as sm
 from prepare_index import *
+from utils.calc_annual_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -232,6 +233,72 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     return gdf_final
 
 
+
+# 
+def compute_agg_lai(start_year, end_year, polygons_gdf, nskip):
+    """
+    Computes the annualized ans spatially averaged leaf area index average for 
+    each geometry contained in the polygons_gdf for years start_year to end_year.
+    """
+    print("Compute averaged leaf area index...")
+
+    # Function to convert longitude from 0-360 to -180 to 180
+    def convert_longitude(ds):
+        longitude = ds['longitude']
+        longitude = ((longitude + 180) % 360) - 180
+        ds = ds.assign_coords(longitude=longitude)
+        return ds
+    
+    # Function to perform standardization of variables
+    def standardize_group(x):
+        std = x.std()
+        if std == 0:
+            return x * 0  # Assign zero or any other constant value
+        else:
+            return (x - x.mean()) / std
+
+    # LOAD IN LEAF AREA INDEX DATA
+    lai_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_LeafAreaIndex_data.nc'
+    ds = xr.open_dataset(lai_path)
+    ds = ds.isel(latitude=slice(0, None, int(nskip)), longitude=slice(0, None, int(nskip)))
+    ds = ds['lai_lv']
+
+    # change dates to time format:
+    ds = ds.assign_coords(valid_time=ds.valid_time.dt.floor('D'))
+    ds = ds.rio.write_crs("EPSG:4326")                    # Ensure the dataset has a CRS
+    ds = ds.sel(valid_time=slice(f"{start_year}-01-01", f"{end_year}-12-31"))   # Select data within the specified year range
+
+    lon1 = ds['longitude']
+    if lon1.max() > 180:
+        ds = convert_longitude(ds)
+    ds = ds.sortby('longitude')
+
+    polygons_gdf = polygons_gdf.to_crs(ds.rio.crs)         # Reproject polygons_gdf to match the dataset's CRS
+    ds_yearly = ds.groupby('valid_time.year').mean()             # Group data by year and compute annual mean
+
+    # Iterate over each polygon and compute the average lai_lv for each year
+    results_list = []
+    for idx, row in polygons_gdf.iterrows():
+        print(f"lai_lv: processing polygon {idx+1}/{len(polygons_gdf)}")
+        geometry = [mapping(row['geometry'])]
+
+        ds_clipped = ds_yearly.rio.clip(geometry, ds.rio.crs, drop=False)  # Clip the dataset to the polygon
+
+        mean_temp = ds_clipped.mean(dim=('latitude', 'longitude'))   # Compute spatial mean over the clipped area
+
+        df = mean_temp.to_dataframe().reset_index() # Convert to DataFrame
+        df['loc_id'] = row['loc_id']  # Use the loc_id from polygons_gdf
+        results_list.append(df)
+
+    results = pd.concat(results_list, ignore_index=True)    # Concatenate all results into a single DataFrame
+    results = results.drop(columns=['number', 'spatial_ref'])
+    results['lai_lv'] = results.groupby('loc_id')['lai_lv'].transform(standardize_group)    # standardize residuals over all years for each loc_id
+
+    return results
+
+
+
+#
 def gridded_panel_lai_data(grid_polygon, localities, stepsize, year_start, year_end, nlag_clim_index, clim_index, telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
@@ -244,44 +311,96 @@ def gridded_panel_lai_data(grid_polygon, localities, stepsize, year_start, year_
     if polygons_gdf.crs is None or polygons_gdf.crs.to_string() != 'EPSG:4326':
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
-    
+
+    ###### --- COMPUTE AGGREGATED TELECONNECTION STRENGTH FOR EACH SPATIAL UNIT
+    if telecon_path is not None:
+        # Match all gridded psi values to a polygon via loc_id and then aggregate psi values
+        # in each Polygon by taking the MAX psi value.
+        print('Computing gdf for psi...')
+        psi = xr.open_dataarray(telecon_path)
+
+        # Ensure that the DataArray has 'lat' and 'lon' coordinates
+        if 'latitude' not in psi.coords or 'longitude' not in psi.coords:
+            raise ValueError("DataArray must have 'latitude' and 'longitude' coordinates.")
+
+        df_psi = psi.to_dataframe(name='psi').reset_index()
+        df_psi['geometry'] = df_psi.apply(lambda row: shapely.geometry.Point(row['longitude'], row['latitude']), axis=1)
+        psi_gdf = gpd.GeoDataFrame(df_psi, geometry='geometry', crs='EPSG:4326')
+        psi_gdf = psi_gdf[['latitude', 'longitude', 'psi', 'geometry']]
+
+        # check crs
+        if psi_gdf.crs != polygons_gdf.crs:
+            psi_gdf = psi_gdf.to_crs(polygons_gdf.crs)
+            print("Reprojected gdf to match final_gdf CRS.")
+
+        joined_gdf = gpd.sjoin(psi_gdf, polygons_gdf, how='left', predicate='within')
+
+        cleaned_gdf = joined_gdf.dropna(subset=['loc_id'])
+        cleaned_gdf = cleaned_gdf.reset_index(drop=True)
+
+        grouped = joined_gdf.groupby('loc_id')
+        mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
+
+        polygons_gdf = polygons_gdf.merge(mean_psi, on='loc_id', how='left')
+
+    polygons_gdf = polygons_gdf.dropna(subset=['psi']) # remove all locations that do not have a psi value
+
+    ##
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+    polygons_gdf.plot(
+        column='psi',    
+        cmap='YlOrRd',   #turbo    YlOrRd     PRGn
+        legend=True,                   
+        legend_kwds={'orientation': "vertical", 'shrink': 0.6},
+        ax=ax,
+    )
+    colorbar = fig.axes[-1]
+    colorbar.set_ylabel(r"", rotation=90, fontsize=14)
+    ax.set_title(r'', fontsize=15)
+    ax.set_axis_off()
+    plt.show()
 
     # filter desired years! WILL CHANGE LETTER TO ALLOW FOR USER SPECIFIED YEARS
     start_year  = year_start - nlag_clim_index - 1
     end_year    = year_end
 
-    if (clim_index == 'NINO3'):
-        annual_index = compute_annualized_NINO3_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-    elif (clim_index == 'DMI'):
-        annual_index = compute_annualized_DMI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-    elif (clim_index == 'ANI'):
-        annual_index = compute_annualized_ANI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-    elif (clim_index == 'EEI'):
-        annual_index = compute_annualized_EEI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-    elif (clim_index == 'ECI'):
-        annual_index = compute_annualized_ECI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-    else:
-        raise ValueError("Specified 'clim_index' not found...")
+    annual_index = compute_annualized_index(clim_index, start_year, end_year)
+    annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
 
     # combine the polygons and annual index dataframes to create a panel data set
-    panel_df = polygons_gdf.merge(annual_index, how='cross')
+
+    for i in range(nlag_clim_index+1):
+        lag_string = 'INDEX_lag' + str(i) + 'y'
+        annual_index[lag_string] = annual_index['cindex'].shift(i)
+    annual_index['INDEX_lagF1y'] = annual_index['cindex'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
+    annual_index.drop('cindex', axis=1, inplace=True)
+
+    ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
+    panel = polygons_gdf.merge(annual_index, how='cross')
+    panel = panel.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
+    panel = panel.dropna(subset=['INDEX_lag0y','INDEX_lag1y','INDEX_lagF1y']) # need to remove NANs 
+
+    ###### --- ADD ANNUALIZED LEAF AREA INDEX VALUES TO PANEL
+    lai_agg_data = compute_agg_lai(start_year = np.min(panel['year']),
+                                   end_year = np.max(panel['year']), 
+                                   polygons_gdf = polygons_gdf,
+                                   nskip = 10.0)
+    
+    panel = panel.merge(lai_agg_data, on=['loc_id', 'year'], how='left')
+
+    return panel
+
     
 
-gridded_panel_lai_data(grid_polygon = 'SQUARE', 
-                       localities = 'Asia', 
-                       stepsize = 2.0, 
-                       year_start = 1950, 
-                       year_end = 2023, 
-                       nlag_clim_index = 1, 
-                       clim_index = 'NINO3',
-                       show_grid=False)
+lai_panel = gridded_panel_lai_data( grid_polygon = 'SQUARE', 
+                                    localities = 'Africa', 
+                                    stepsize = 6.0, 
+                                    year_start = 1950, 
+                                    year_end = 2023, 
+                                    nlag_clim_index = 1, 
+                                    clim_index = 'nino34',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_LAND_nskip3.0_19502023_12months.nc',
+                                    show_grid=False)
+
+lai_panel = lai_panel.drop(columns=['geometry'])
+lai_panel.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
