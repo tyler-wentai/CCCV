@@ -11,6 +11,7 @@ import seaborn as sns
 from shapely.geometry import mapping
 import statsmodels.api as sm
 from prepare_index import *
+from utils.calc_annual_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -370,7 +371,7 @@ def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
     return results
 
 #
-def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, nlag_conflict, clim_index, response_var='count', telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -387,11 +388,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/ONSETS_ONLY_withLOCS.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
-        geometry=gpd.points_from_xy(conflict_df.longitude, conflict_df.latitude),
+        geometry=gpd.points_from_xy(conflict_df.onset_lon, conflict_df.onset_lat),
         crs='EPSG:4326'
         )
 
@@ -402,80 +403,54 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     desired_years = list(set(conflict_df['year']))
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
-    start_year  = np.min(desired_years)-nlag_psi-1 #need the -1 because DEC(t-1)
+    start_year  = np.min(desired_years)-nlag_cindex-1 #need the -1 because DEC(t-1)
     end_year    = np.max(desired_years) #+ 1
 
-    if (clim_index == 'NINO3'):
-        annual_index = compute_annualized_NINO3_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'DMI'):
-        annual_index = compute_annualized_DMI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'ANI'):
-        annual_index = compute_annualized_ANI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'EEI'):
-        annual_index = compute_annualized_EEI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'ECI'):
-        annual_index = compute_annualized_ECI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    else:
-        raise ValueError("Specified 'clim_index' not found...")
+    annual_index = compute_annualized_index(clim_index, start_year, end_year)
+    annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
 
     # group by polygon (loc_id) and year and then count number of conflicts for each grouping
-    count_df = filtered_gdf.groupby(['loc_id', 'tropical_year']).size().reset_index(name='conflict_count')
+    count_df = filtered_gdf.groupby(['loc_id', 'year']).size().reset_index(name='conflict_count')
 
     # create complete grid, necessary to also get 0 counts for polygon,year pairs with no conflicts
     polygon_ids = polygons_gdf['loc_id'].unique()
     years = desired_years
-    complete_index = pd.MultiIndex.from_product([polygon_ids, years], names=['loc_id', 'tropical_year'])
-    count_complete_df = count_df.set_index(['loc_id', 'tropical_year']).reindex(complete_index, fill_value=0).reset_index()
+    complete_index = pd.MultiIndex.from_product([polygon_ids, years], names=['loc_id', 'year'])
+    count_complete_df = count_df.set_index(['loc_id', 'year']).reindex(complete_index, fill_value=0).reset_index()
 
     # merge conflict counts back to polygons to retain geometry
     final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
-    final_gdf = final_gdf[['loc_id', 'tropical_year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
+    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
 
     ###### --- COMPUTE WEATHER (AIR TEMP and PRECIP) CONTROLS
     if add_weather_controls==True:
         weather_controls = compute_weather_controls((start_year+1), end_year, polygons_gdf, annual_index)
 
-        for i in range(nlag_psi+1):
+        for i in range(nlag_cindex+1):
             lag_string_var1 = 't2m_lag' + str(i) + 'y'
             weather_controls[lag_string_var1] = weather_controls['t2m'].shift(i)
         weather_controls['t2m_lagF1y'] = weather_controls['t2m'].shift(-1)
         weather_controls.drop('t2m', axis=1, inplace=True)
-        for i in range(nlag_psi+1):
+        for i in range(nlag_cindex+1):
             lag_string_var2 = 'tp_lag' + str(i) + 'y'
             weather_controls[lag_string_var2] = weather_controls['tp'].shift(i)
         weather_controls['tp_lagF1y'] = weather_controls['tp'].shift(-1)
         weather_controls.drop('tp', axis=1, inplace=True)
         # print(weather_controls)
 
-        final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'tropical_year'], how='left')
+        final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'year'], how='left')
     # print(final_gdf)
 
     ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
-    for i in range(nlag_psi+1):
-        lag_string = 'INDEX_lag' + str(i) + 'y'
-        annual_index[lag_string] = annual_index['INDEX'].shift(i)
-    annual_index['INDEX_lagF1y'] = annual_index['INDEX'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
-    # annual_index['INDEX_lagF2y'] = annual_index['INDEX'].shift((-2)) # Include one forward, i.e., future lag to test for spurious results
-    annual_index.drop('INDEX', axis=1, inplace=True)
+    for i in range(nlag_cindex+1):
+        lag_string = 'cindex_lag' + str(i) + 'y'
+        annual_index[lag_string] = annual_index['cindex'].shift(i)
+    annual_index['cindex_lagF1y'] = annual_index['cindex'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
+    annual_index.drop('cindex', axis=1, inplace=True)
 
-    final_gdf = final_gdf.merge(annual_index, on='tropical_year', how='left')
-    final_gdf = final_gdf.sort_values(['loc_id', 'tropical_year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
-    final_gdf = final_gdf.dropna(subset=['INDEX_lagF1y']) # need to remove NANs 
+    final_gdf = final_gdf.merge(annual_index, on='year', how='left')
+    final_gdf = final_gdf.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
+    final_gdf = final_gdf.dropna(subset=['cindex_lagF1y']) # need to remove NANs 
 
     for i in range(nlag_conflict):
         lag_string = 'conflict_count_lag' + str(i+1) + 'y'
@@ -594,43 +569,46 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
         ##
 
-        fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
+        # fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
 
-        final_gdf.plot(
-            column='psi',    
-            cmap='Reds',   #turbo    YlOrRd     PRGn
-            legend=True,                   
-            legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,},
-            ax=axes[0],
-        )
-        polygons_gdf.plot(ax=axes[0], edgecolor='black', facecolor='none', linewidth=0.2, vmin=0.5)
-        axes[0].set_title(r'Teleconnection strength, $\Psi$ (ANI)', fontsize=15)
-        axes[0].set_axis_off()
+        # final_gdf.plot(
+        #     column='psi',    
+        #     cmap='Reds',   #turbo    YlOrRd     PRGn
+        #     legend=True,                   
+        #     legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,},
+        #     ax=axes[0],
+        # )
+        # polygons_gdf.plot(ax=axes[0], edgecolor='black', facecolor='none', linewidth=0.2, vmin=0.5)
+        # axes[0].set_title(r'Teleconnection strength, $\Psi$ (ANI)', fontsize=15)
+        # axes[0].set_axis_off()
+        # # plt.tight_layout()
+        # # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # # plt.show()
+
+        # sns.histplot(mean_psi['psi'], bins=30, stat='count', kde=False, color='gray', ax=axes[1])
+        # axes[1].set_xlabel(r'Teleconnection strength, $\Psi$', fontsize=15)
+        # axes[1].spines['top'].set_visible(False)
+        # axes[1].spines['right'].set_visible(False)
+        # axes[1].spines['bottom'].set_visible(True)
+        # axes[1].spines['left'].set_visible(True)
         # plt.tight_layout()
-        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-        sns.histplot(mean_psi['psi'], bins=30, stat='count', kde=False, color='gray', ax=axes[1])
-        axes[1].set_xlabel(r'Teleconnection strength, $\Psi$', fontsize=15)
-        axes[1].spines['top'].set_visible(False)
-        axes[1].spines['right'].set_visible(False)
-        axes[1].spines['bottom'].set_visible(True)
-        axes[1].spines['left'].set_visible(True)
-        plt.tight_layout()
-        # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+    cols = [col for col in final_gdf.columns if col != 'geometry']
+    final_gdf = final_gdf[cols]
 
     return final_gdf
 
 
 # 3.7225
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Global', stepsize=2.635,
-                                        nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'NINO3',
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=4,
+                                        nlag_cindex=3, nlag_conflict=1,
+                                        clim_index = 'dmi',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_country.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square4.csv', index=False)
 
 

@@ -28,7 +28,6 @@ gdf = gpd.GeoDataFrame(
 )
 
 
-
 # Create a figure with the desired size
 fig = plt.figure(figsize=(6, 4))
 

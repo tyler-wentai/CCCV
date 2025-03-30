@@ -2,64 +2,60 @@ library(brms)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_ANI_square2.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square4.csv'
 dat <- read.csv(panel_data_path)
 
 #head(dat)
 
 #dat$country <- as.factor(dat$country)
-dat$bool1989 <- ifelse(dat$tropical_year<=1989,0,1)
-dat$tropical_year <- dat$tropical_year - min(dat$tropical_year)
+dat$bool1989 <- ifelse(dat$year<=1989,0,1)
+dat$year <- dat$year - min(dat$year)
 dat$loc_id <- as.factor(dat$loc_id)
 
 
 
-quantile(dat$psi, c(0.20,0.75))
-dat_help <- subset(dat, psi > 1.2274784)
+quantile(dat$psi, c(0.25,0.50,0.90))
+dat_help <- subset(dat, psi > 2.5279172)
 
 log_mod <- brm(
   conflict_binary ~ 0 + 
-    INDEX_lag0y + I(INDEX_lag0y^2) +
-    tropical_year + loc_id,
+    cindex_lag0y + I(cindex_lag0y^2) +
+    cindex_lag1y + I(cindex_lag1y^2) + 
+    year:loc_id + loc_id,
   data = dat_help, family = bernoulli(link = "logit"), 
-  iter = 4000, chains=2, warmup=500,
+  iter = 4000, chains=2, warmup=500, cores=2,
   prior = prior(normal(0, 20), class = b)
 )
-print(summary(log_mod), digits = 4)
-ce <- conditional_effects(log_mod, effects = "INDEX_lag0y", prob = 0.90)
+print(summary(log_mod, prob = 0.95), digits = 4)
+ce <- conditional_effects(log_mod, effects = "cindex_lag0y", prob = 0.95)
 plot(ce, ask = FALSE)
 
-ce_data <- ce$INDEX_lag0y
+ce_data <- ce$cindex_lag0y
 
 med_psi <- median(dat$psi)
 dat_l <- subset(dat, psi<med_psi)
 dat_h <- subset(dat, psi>=med_psi)
 
-mod <- lm(conflict_binary ~ INDEX_lag0y + INDEX_lag1y + INDEX_lag2y +
-            tropical_year + loc_id + tropical_year:loc_id - 1,
-          dat = dat_l)
+mod <- lm(conflict_binary ~ conflict_binary_lag1y + cindex_lag0y + I(cindex_lag0y^2) + loc_id + year:loc_id + bool1989 - 1,
+          dat = dat_help)
 summary(mod)
 
-
-#
-quantile(dat$psi, c(0.25,0.75))
-dat_help <- subset(dat, psi > 1.227478)
 
 
 #
 dat_agg <- dat_help %>%
-  group_by(tropical_year) %>%
+  group_by(year) %>%
   summarise(
     conflict_proportion = sum(conflict_binary) / n(),
     bool1989 = first(bool1989), 
-    INDEX_lagF1y = first(INDEX_lagF1y), 
-    INDEX_lag0y = first(INDEX_lag0y), 
-    INDEX_lag1y = first(INDEX_lag1y), 
-    INDEX_lag2y = first(INDEX_lag2y), 
+    cindex_lagF1y = first(cindex_lagF1y), 
+    cindex_lag0y = first(cindex_lag0y), 
+    cindex_lag1y = first(cindex_lag1y), 
+    cindex_lag2y = first(cindex_lag2y), 
   )
 
-mod <- lm(conflict_proportion ~ INDEX_lag0y + I(INDEX_lag0y^2) + INDEX_lag1y + I(INDEX_lag1y^2) + INDEX_lag2y + I(INDEX_lag2y^2) +
-            tropical_year,
+mod <- lm(conflict_proportion ~ cindex_lag0y + I(cindex_lag0y^2) +
+            year + bool1989,
           data=dat_agg)
 summary(mod)
 
@@ -70,30 +66,30 @@ summary(mod)
 # bernoulli model
 fit <- brm(
   conflict_proportion ~
-    INDEX_lag0y + I(INDEX_lag0y^2) +
-    tropical_year + bool1989,
+    cindex_lag0y + I(cindex_lag0y^2) +
+    year + bool1989,
   data = dat_agg, family = gaussian(), 
-  iter = 6000, chains=3, warmup=1000,
+  iter = 10000, chains=2, warmup=1000, cores=2,
   prior = prior(normal(0, 20), class = b)
 )
 
-print(summary(fit, prob = 0.90), digits = 4)
+print(summary(fit, prob = 0.95), digits = 4)
 #plot(fit)
 
-ce <- conditional_effects(fit, effects = "INDEX_lag0y", prob = 0.90, resolution = 1000)
+ce <- conditional_effects(fit, effects = "cindex_lag0y", prob = 0.95, resolution = 1000)
 plot(ce, ask = FALSE)
-ce_data <- ce$INDEX_lag0y
-write.csv(ce_data, file = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high66.csv", row.names = FALSE)
+ce_data <- ce$cindex_lag0y
+#write.csv(ce_data, file = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high66.csv", row.names = FALSE)
 
 #
 draws_matrix <- as_draws_matrix(fit)
 colnames(draws_matrix)
 
-climindex <- seq(min(dat$INDEX_lag0y), max(dat$INDEX_lag0y), length.out=100)
+climindex <- seq(min(dat$cindex_lag0y), max(dat$cindex_lag0y), length.out=100)
 results <- matrix(ncol=5, nrow=0)
 for (i in 1:length(climindex)){
   climind <- climindex[i]
-  sum_params <- (climind*draws_matrix[, "b_INDEX_lag0y"]) + (climind^2*draws_matrix[, "b_IINDEX_lag0yE2"]) + (draws_matrix[, "b_Intercept"])
+  sum_params <- (climind*draws_matrix[, "b_cindex_lag0y"]) + (climind^2*draws_matrix[, "b_Icindex_lag0yE2"]) + (draws_matrix[, "b_Intercept"])
   results <- rbind(results, c(climind,
                               mean(sum_params), 
                               sd(sum_params),
