@@ -606,11 +606,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 # grids we can use a grid size of 4 degrees (444 km) to get a good number of grid boxes.
 panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4,
                                         nlag_cindex=3, nlag_conflict=1,
-                                        clim_index = 'nino3',
+                                        clim_index = 'dmi',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_square4.csv', index=False)
 
 

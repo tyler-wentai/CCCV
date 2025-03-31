@@ -53,20 +53,20 @@ print('\n\nSTART ---------------------\n')
 
 import seaborn as sns
 cmap = sns.diverging_palette(220, 20, as_cmap=True)
-num_colors = 6
+num_colors = 7
 levels = np.linspace(0, 1, num_colors)
 colors = [cmap(level) for level in levels]
 
 val_min = 0
 val_max = 0
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low90.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low95.csv'
-path3_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low99.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low90.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low95.csv'
+path3_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low99.csv'
 
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high90.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high95.csv'
-path3_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high99.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
+path3_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
 
 df1_l = pd.read_csv(path1_l)
 df2_l = pd.read_csv(path2_l)
@@ -117,55 +117,56 @@ df2_h['lower__'] = df2_h['lower__'] - val2_h
 
 # maroon, navy
 plt.figure(figsize=(5, 4))
-plt.plot(df1_l['cindex_lag0y'], df1_l['estimate__'], color='navy', label='posterior mean', linewidth=2.0)
+# plt.plot(df1_l['cindex_lag0y'], df1_l['estimate__'], color='navy', label='Weakly, posterior mean', linewidth=2.0)
 # plt.fill_between(df1_l['cindex_lag0y'], df1_l['lower__'], df1_l['upper__'], color='b', alpha=0.30, edgecolor=None, label='likely (90% CI)')
-plt.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='b', alpha=0.20, edgecolor=None, label='very likely (95% CI)')
+# plt.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='b', alpha=0.20, edgecolor=None)#, label='very likely (95% CI)')
 # plt.fill_between(df3['cindex_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
-plt.plot(df1_h['cindex_lag0y'], df1_h['estimate__'], color='maroon', label='posterior mean', linewidth=2.0)
+plt.plot(df1_h['cindex_lag0y'], df1_h['estimate__'], color='maroon', label='Strongly, posterior mean', linewidth=2.0)
 # plt.fill_between(df1_h['cindex_lag0y'], df1_h['lower__'], df1_h['upper__'], color='r', alpha=0.30, edgecolor=None, label='likely (90% CI)')
-plt.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='r', alpha=0.20, edgecolor=None, label='very likely (95% CI)')
+plt.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='r', alpha=0.20, edgecolor=None)#, label='very likely (95% CI)')
 # plt.fill_between(df3['cindex_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
-import matplotlib.lines as mlines
-import matplotlib.patches as mpatches
-gray_line_high = mlines.Line2D([], [], color='0.4', linewidth=2.0, label='posterior mean')
-gray_patch_high = mpatches.Patch(facecolor='0.7', edgecolor='0.5', alpha=0.33, label='95% CI')
+# import matplotlib.lines as mlines
+# import matplotlib.patches as mpatches
+# gray_line_high = mlines.Line2D([], [], color='0.4', linewidth=2.0, label='posterior mean')
+# gray_patch_high = mpatches.Patch(facecolor='0.7', edgecolor='0.5', alpha=0.33, label='95% CI')
 
-# Combine the handles in a list; adjust the list order to control the legend ordering
-handles = [gray_line_high, gray_patch_high]
+# # Combine the handles in a list; adjust the list order to control the legend ordering
+# handles = [gray_line_high, gray_patch_high]
 
-plt.legend(handles=handles, loc=2, frameon=False)
+# plt.legend(handles=handles, loc=2, frameon=False)
 
 
 plt.axhline(y=0, color='gray', linestyle='--', linewidth=1.5, zorder=0)
 plt.axvline(x=0, color='gray', linestyle='--', linewidth=1.5, zorder=0)
 
-plt.title('ACR for weakly teleconnected\n Global grid boxes (N=70)')
-plt.xlabel('NINO3 index (s.d.)', fontsize=12)
+plt.title('ACR for very strongly teleconnected\n Global grid boxes (N=70)')
+plt.xlabel('Dipole Mode Index (s.d.)', fontsize=12)
 plt.ylabel(r'$\Delta$ ACR from neutral phase', fontsize=12)
 plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
-# plt.legend(loc=2, frameon=False)
+plt.legend(loc=2, frameon=False)
 
-plt.axvspan(+2.5, +3.5, color=colors[5], alpha=0.25, edgecolor='none', linewidth=0.0, zorder=0)
-plt.axvspan(+1.5, +2.5, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
-plt.axvspan(+0.5, +1.5, color=colors[3], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
-plt.axvspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
-plt.axvspan(-1.5, -0.5, color=colors[1], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
-plt.axvspan(-2.5, -1.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(+2.5, +3.5, color=colors[6], alpha=0.25, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(+1.5, +2.5, color=colors[5], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(+0.5, +1.5, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(-0.5, +0.5, color=colors[3], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(-1.5, -0.5, color=colors[2], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(-2.5, -1.5, color=colors[1], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+plt.axvspan(-2.5, -3.5, color=colors[0], alpha=0.25, edgecolor='none', linewidth=0.0, zorder=0)
 
 plt.text(0.0, -0.0055, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
 plt.text(-1., -0.0055, 'Moderate', fontsize=9, color='k', horizontalalignment='center')
 plt.text(+1., -0.0055, 'Moderate', fontsize=9, color='k', horizontalalignment='center')
 plt.text(-2., -0.0055, 'Strong', fontsize=9, color='k', horizontalalignment='center')
 plt.text(+2., -0.0055, 'Strong', fontsize=9, color='k', horizontalalignment='center')
-plt.text(+3., -0.0055, 'Very\nStrong', fontsize=9, color='k', horizontalalignment='center')
+# plt.text(+3., -0.0055, 'Very\nStrong', fontsize=9, color='k', horizontalalignment='center')
 
-plt.xlim(-2.5,3.5)
-plt.ylim(-0.006,0.008)
+plt.xlim(-3.0,2.5)
+plt.ylim(-0.003,0.01)
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/Onset_NINO3_Global_low_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/Onset_DMI_Global_verystrongly_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 sys.exit()
 
