@@ -2,7 +2,7 @@ library(brms)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square4.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv'
 dat <- read.csv(panel_data_path)
 
 #head(dat)
@@ -15,19 +15,19 @@ dat$loc_id <- as.factor(dat$loc_id)
 
 
 quantile(dat$psi, c(0.25,0.50,0.90))
-dat_help <- subset(dat, psi > 2.5279172)
+dat_help <- subset(dat, psi > 2.1095696)
 
-log_mod <- brm(
-  conflict_binary ~ 0 + 
-    cindex_lag0y + I(cindex_lag0y^2) +
-    cindex_lag1y + I(cindex_lag1y^2) + 
-    year:loc_id + loc_id,
+mveryhigh <- brm(
+  conflict_binary ~ 
+    cindex_lag0y +
+    (1 + year || loc_id), #year:loc_id + loc_id,
   data = dat_help, family = bernoulli(link = "logit"), 
   iter = 4000, chains=2, warmup=500, cores=2,
-  prior = prior(normal(0, 20), class = b)
+  prior = prior(normal(0, 3), class = b)
 )
-print(summary(log_mod, prob = 0.95), digits = 4)
-ce <- conditional_effects(log_mod, effects = "cindex_lag0y", prob = 0.95)
+plot(mveryhigh)
+print(summary(mveryhigh, prob = 0.95), digits = 4)
+ce <- conditional_effects(mveryhigh, effects = "cindex_lag0y", prob = 0.90)
 plot(ce, ask = FALSE)
 
 ce_data <- ce$cindex_lag0y
@@ -36,10 +36,18 @@ med_psi <- median(dat$psi)
 dat_l <- subset(dat, psi<med_psi)
 dat_h <- subset(dat, psi>=med_psi)
 
-mod <- lm(conflict_binary ~ conflict_binary_lag1y + cindex_lag0y + I(cindex_lag0y^2) + loc_id + year:loc_id + bool1989 - 1,
+mod0 <- lm(conflict_binary ~ conflict_binary_lag1y + loc_id + year:loc_id + bool1989 - 1,
           dat = dat_help)
-summary(mod)
+summary(mod0)
+mod1 <- lm(conflict_binary ~ conflict_binary_lag1y + cindex_lag0y + I(cindex_lag0y^2) + loc_id + year:loc_id + bool1989 - 1,
+          dat = dat_help)
+summary(mod1)
 
+AIC(mod0)
+AIC(mod1)
+
+BIC(mod0)
+BIC(mod1)
 
 
 #
@@ -54,32 +62,49 @@ dat_agg <- dat_help %>%
     cindex_lag2y = first(cindex_lag2y), 
   )
 
-mod <- lm(conflict_proportion ~ cindex_lag0y + I(cindex_lag0y^2) +
-            year + bool1989,
-          data=dat_agg)
-summary(mod)
+mod0 <- lm(conflict_proportion ~ year + bool1989, data=dat_agg)
+mod1 <- lm(conflict_proportion ~ I(cindex_lag0y^1) + year + bool1989, data=dat_agg)
 
+AIC(mod0)
+AIC(mod1)
 
+BIC(mod0)
+BIC(mod1)
 
 
 ###### BAYESIAN FITS
-# bernoulli model
-fit <- brm(
+fit1 <- brm(
   conflict_proportion ~
-    cindex_lag0y + I(cindex_lag0y^2) +
-    year + bool1989,
+    cindex_lag0y,
   data = dat_agg, family = gaussian(), 
   iter = 10000, chains=2, warmup=1000, cores=2,
-  prior = prior(normal(0, 20), class = b)
+  prior = c(
+    prior(normal(0, 2.5), class = "b"),                # regression coefficients
+    prior(normal(0, 5), class = "Intercept"),          # intercept term
+    prior(exponential(1), class = "sigma")             # residual standard deviation
+  )
 )
 
-print(summary(fit, prob = 0.95), digits = 4)
-#plot(fit)
+print(summary(fit1, prob = 0.95), digits = 4)
+#plot(fit1)
 
-ce <- conditional_effects(fit, effects = "cindex_lag0y", prob = 0.95, resolution = 1000)
+ce <- conditional_effects(fit1, effects = "cindex_lag0y", prob = 0.95, resolution = 1000)
 plot(ce, ask = FALSE)
 ce_data <- ce$cindex_lag0y
-#write.csv(ce_data, file = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_INDEX_lag0y_Onset_Binary_Asia_ANI_country_high66.csv", row.names = FALSE)
+write.csv(ce_data, file = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_mod95.csv", row.names = FALSE)
+
+loo_compare(loo(fit0), loo(fit1))
+pp_check(fit1, ndraws=100)
+
+library(bridgesampling)
+bridge_fit0 <- bridge_sampler(fit0, silent = TRUE)
+bridge_fit1 <- bridge_sampler(fit1, silent = TRUE)
+bridge_fit2 <- bridge_sampler(fit2, silent = TRUE)
+bf_result <- bayes_factor(bridge_fit1, bridge_fit2)
+print(bf_result)
+
+waic(fit0)
+waic(fit1)
 
 #
 draws_matrix <- as_draws_matrix(fit)
