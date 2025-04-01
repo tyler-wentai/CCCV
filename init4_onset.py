@@ -54,6 +54,7 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
                      'Nicaragua','Costa Rica','Honduras','El Salvador','Guatemala','Belize']
     
     remove_sovereignty = ['Antarctica']
+    #remove_sovereignty = ['Antarctica','Monaco','Vatican City','San Marino','Taiwan','Western Sahara','Somaliland','Northern Cyprus','Marshall Islands','San Marino','Kashmir'] #used to determine median area of countries
     
     # Check that supplied grid_polygon is valid.
     allowed_polygons = ['square', 'hex', 'hexagon','country','Country','first_admin']
@@ -86,6 +87,7 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     exploded_polygons = [gdf1.iloc[i].geometry for i in range(gdf1.shape[0])]
 
     gdf_countries = gdf1 # copy of gdf1 used later to find cell's dominant country.
+
 
     # Combine all individual polygons into a single multipolygon to ease the computation of the centroid,
     # centroid is used to form the grid around
@@ -227,8 +229,19 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
                                     #        'markerscale' : 0.5
                                     #        })
         gdf1.plot(ax=ax, facecolor='none', zorder=2, edgecolor='k', linewidth=0.75)
-        # plt.savefig('/Users/tylerbagwell/Desktop/grid_with_dom_country_Asia.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        if (localities=='Global'):
+            xticks = np.linspace(-180, 180, 5)
+            yticks = np.linspace(-60, 60, 5)
+            ax.set_xticks(xticks)
+            ax.set_yticks(yticks)
+            ax.set_xticklabels([f"{tick:.2f}" for tick in xticks])
+            ax.set_yticklabels([f"{tick:.2f}" for tick in yticks])
+            ax.grid(True, linestyle='--', linewidth=0.5)
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
+        # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/plots_results/global_grid_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
+        sys.exit()
 
     return gdf_final
 
@@ -445,17 +458,17 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     for i in range(nlag_cindex+1):
         lag_string = 'cindex_lag' + str(i) + 'y'
         annual_index[lag_string] = annual_index['cindex'].shift(i)
-    annual_index['cindex_lagF1y'] = annual_index['cindex'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
+    #annual_index['cindex_lagF1y'] = annual_index['cindex'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
     annual_index.drop('cindex', axis=1, inplace=True)
 
     final_gdf = final_gdf.merge(annual_index, on='year', how='left')
     final_gdf = final_gdf.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
-    final_gdf = final_gdf.dropna(subset=['cindex_lagF1y']) # need to remove NANs 
+    #final_gdf = final_gdf.dropna(subset=['cindex_lagF1y']) # need to remove NANs 
 
-    for i in range(nlag_conflict):
-        lag_string = 'conflict_count_lag' + str(i+1) + 'y'
-        final_gdf[lag_string] = final_gdf.groupby('loc_id')['conflict_count'].shift((i+1))
-        final_gdf = final_gdf.dropna(subset=[lag_string])
+    # for i in range(nlag_conflict):
+    #     lag_string = 'conflict_count_lag' + str(i+1) + 'y'
+    #     final_gdf[lag_string] = final_gdf.groupby('loc_id')['conflict_count'].shift((i+1))
+    #     final_gdf = final_gdf.dropna(subset=[lag_string])
 
     final_gdf.reset_index(drop=True, inplace=True)
 
@@ -513,7 +526,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     ###### --- TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
     if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
         final_gdf['conflict_count'] = (final_gdf['conflict_count'] > 0).astype(int)
-        final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
+        # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
         final_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
 
     # plot
@@ -602,15 +615,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 
 # 3.7225
-# Median area of all countries in the world is about 150,000 km², comes out to a square with side length of about 400 km, so for global square
-# grids we can use a grid size of 4 degrees (444 km) to get a good number of grid boxes.
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4,
-                                        nlag_cindex=3, nlag_conflict=1,
-                                        clim_index = 'dmi',
+# stepsize=3.5
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
+                                        nlag_cindex=3, nlag_conflict=0,
+                                        clim_index = 'nino3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_DMI_square4.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv', index=False)
 
 
