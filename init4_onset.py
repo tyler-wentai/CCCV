@@ -243,7 +243,6 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
             ax.set_ylabel("Latitude")
         # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/plots_results/global_grid_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
-        sys.exit()
 
     return gdf_final
 
@@ -533,29 +532,29 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
     # plot
     if (show_gridded_aggregate==True):
-        total_aggregate = final_gdf.groupby(['loc_id'])['conflict_binary'].sum().reset_index()
-        total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
-        # total_aggregate = mean_psi
+        # total_aggregate = final_gdf.groupby(['loc_id'])['conflict_binary'].sum().reset_index()
         # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
+        # # total_aggregate = mean_psi
+        # # total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
-        # plotting
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        total_aggregate.plot(
-            column='conflict_binary',    
-            cmap='turbo',   #turbo    YlOrRd     PRGn
-            legend=True,                   
-            legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,
-                         'ticks': [0, 5, 10, 15, 20, 25, 30]},
-            ax=ax
-            #vmax=500
-        )
-        colorbar = fig.axes[-1]
-        colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
-        polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
-        ax.set_title(r'No. of state-based conflict onsets (1950-2023)', fontsize=15)
-        ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount_hex.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        # # plotting
+        # fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        # total_aggregate.plot(
+        #     column='conflict_binary',    
+        #     cmap='turbo',   #turbo    YlOrRd     PRGn
+        #     legend=True,                   
+        #     legend_kwds={'label': r"$\Psi$", 'orientation': "vertical", 'shrink': 0.6,
+        #                  'ticks': [0, 5, 10, 15, 20, 25, 30]},
+        #     ax=ax
+        #     #vmax=500
+        # )
+        # colorbar = fig.axes[-1]
+        # colorbar.set_ylabel(r"Count", rotation=90, fontsize=14)
+        # polygons_gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5, vmin=0.5)
+        # ax.set_title(r'No. of state-based conflict onsets (1950-2023)', fontsize=15)
+        # ax.set_axis_off()
+        # plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_onsetcount_hex.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.show()
 
         # plotting
         from matplotlib.colors import TwoSlopeNorm
@@ -582,13 +581,59 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_hex_NINO3_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
-        ##
-        print(polygons_gdf)
+        #####
+        #####
+
+        total_aggregate = final_gdf.groupby(['loc_id'])['psi'].mean().reset_index()
+        total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
+
+        import cartopy.feature as cfeature
+        import matplotlib.ticker as mticker
+        from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
         # Define a polygon with lat/lon coordinates
-        polygon = Polygon([(-100, 40), (-90, 45), (-80, 40), (-100, 40)])
-        fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={'projection': ccrs.Robinson()})
-        ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='blue')
+        fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
+        gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+        gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
+        gl.xlabel_style = {'size': 8}
+        gl.ylabel_style = {'size': 8}
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
+
+        # create a custom colormap
+        import matplotlib.colors as mcolors
+        import matplotlib.patches as mpatches
+        # bounds = [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
+        # cmap = mcolors.ListedColormap(["gainsboro", "darkorange", "firebrick"])
+        # norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+        index_box = mpatches.Rectangle((-150, -5), 60, 10, 
+                              fill=None, edgecolor='darkviolet', linewidth=1.5,
+                              transform=ccrs.PlateCarree())
+
+        gl.top_labels       = False 
+        ax.set_global()
+        gdf_plot = total_aggregate.plot(
+            column='psi',    
+            cmap='OrRd', #'tab20c_r',             norm=norm,   
+            legend=True,                   
+            legend_kwds={
+                'label': "Teleconnection percentile", 
+                'orientation': "vertical", 
+                'shrink': 0.6,
+                'ticks': [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
+            },
+            ax=ax,
+            transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
+        )
+        ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
         ax.coastlines()
+        ax.add_patch(index_box)
+        # cbar = gdf_plot.get_figure().axes[-1]
+        # cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
+        plt.title('NINO3 Teleconnection', fontsize=11)
+        plt.tight_layout()
+        # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
