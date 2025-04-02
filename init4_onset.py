@@ -243,6 +243,7 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
             ax.set_ylabel("Latitude")
         # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/plots_results/global_grid_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
+        sys.exit()
 
     return gdf_final
 
@@ -603,9 +604,9 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        # bounds = [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
-        # cmap = mcolors.ListedColormap(["gainsboro", "darkorange", "firebrick"])
-        # norm = mcolors.BoundaryNorm(bounds, cmap.N)
+        bounds = [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
+        cmap = mcolors.ListedColormap(["gainsboro", "darkorange", "firebrick"])
+        norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
                               fill=None, edgecolor='darkviolet', linewidth=1.5,
@@ -615,7 +616,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_global()
         gdf_plot = total_aggregate.plot(
             column='psi',    
-            cmap='OrRd', #'tab20c_r',             norm=norm,   
+            cmap=cmap, #'tab20c_r',
+            norm=norm,   
             legend=True,                   
             legend_kwds={
                 'label': "Teleconnection percentile", 
@@ -629,11 +631,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
         ax.coastlines()
         ax.add_patch(index_box)
-        # cbar = gdf_plot.get_figure().axes[-1]
-        # cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
+        cbar = gdf_plot.get_figure().axes[-1]
+        cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
         plt.title('NINO3 Teleconnection', fontsize=11)
         plt.tight_layout()
-        # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
