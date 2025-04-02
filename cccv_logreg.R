@@ -5,6 +5,8 @@ library(ggplot2)
 panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv'
 dat <- read.csv(panel_data_path)
 
+
+
 #head(dat)
 
 #dat$country <- as.factor(dat$country)
@@ -12,22 +14,22 @@ dat$bool1989 <- ifelse(dat$year<=1989,0,1)
 dat$year <- dat$year - min(dat$year)
 dat$loc_id <- as.factor(dat$loc_id)
 
+quantile(dat$psi, c(0.33,0.80,0.90))
+dat_help <- subset(dat, psi > 1.4415020 & psi < 2.1095696)
 
 
-quantile(dat$psi, c(0.25,0.50,0.90))
-dat_help <- subset(dat, psi > 2.1095696)
 
-mveryhigh <- brm(
+m8090fe <- brm(
   conflict_binary ~ 
     cindex_lag0y +
-    (1 + year || loc_id), #year:loc_id + loc_id,
+  (1 + year + I(year^2) || loc_id), #year:loc_id + loc_id, #    
   data = dat_help, family = bernoulli(link = "logit"), 
   iter = 4000, chains=2, warmup=500, cores=2,
   prior = prior(normal(0, 3), class = b)
 )
-plot(mveryhigh)
-print(summary(mveryhigh, prob = 0.95), digits = 4)
-ce <- conditional_effects(mveryhigh, effects = "cindex_lag0y", prob = 0.90)
+plot(m8090fe)
+print(summary(m8090fe, prob = 0.95), digits = 4)
+ce <- conditional_effects(m, effects = "cindex_lag0y", prob = 0.90)
 plot(ce, ask = FALSE)
 
 ce_data <- ce$cindex_lag0y
@@ -37,10 +39,10 @@ dat_l <- subset(dat, psi<med_psi)
 dat_h <- subset(dat, psi>=med_psi)
 
 mod0 <- lm(conflict_binary ~ conflict_binary_lag1y + loc_id + year:loc_id + bool1989 - 1,
-          dat = dat_help)
+           dat = dat_help)
 summary(mod0)
-mod1 <- lm(conflict_binary ~ conflict_binary_lag1y + cindex_lag0y + I(cindex_lag0y^2) + loc_id + year:loc_id + bool1989 - 1,
-          dat = dat_help)
+mod1 <- lm(conflict_binary ~ cindex_lag0y + loc_id + bool1989 - 1,
+           dat = dat_help)
 summary(mod1)
 
 AIC(mod0)
@@ -49,14 +51,19 @@ AIC(mod1)
 BIC(mod0)
 BIC(mod1)
 
+dat_psi <- dat %>%
+  group_by(loc_id) %>%
+  summarise(psi = first(psi))
+hist(dat_psi$psi, breaks='scott')
+abline(v=1.4415020)
+
 
 #
 dat_agg <- dat_help %>%
   group_by(year) %>%
   summarise(
     conflict_proportion = sum(conflict_binary) / n(),
-    bool1989 = first(bool1989), 
-    cindex_lagF1y = first(cindex_lagF1y), 
+    bool1989 = first(bool1989),
     cindex_lag0y = first(cindex_lag0y), 
     cindex_lag1y = first(cindex_lag1y), 
     cindex_lag2y = first(cindex_lag2y), 
@@ -64,6 +71,7 @@ dat_agg <- dat_help %>%
 
 mod0 <- lm(conflict_proportion ~ year + bool1989, data=dat_agg)
 mod1 <- lm(conflict_proportion ~ I(cindex_lag0y^1) + year + bool1989, data=dat_agg)
+summary(mod1)
 
 AIC(mod0)
 AIC(mod1)
@@ -75,7 +83,7 @@ BIC(mod1)
 ###### BAYESIAN FITS
 fit1 <- brm(
   conflict_proportion ~
-    cindex_lag0y,
+    cindex_lag0y + year + bool1989,
   data = dat_agg, family = gaussian(), 
   iter = 10000, chains=2, warmup=1000, cores=2,
   prior = c(
@@ -85,7 +93,7 @@ fit1 <- brm(
   )
 )
 
-print(summary(fit1, prob = 0.95), digits = 4)
+print(summary(fit1, prob = 0.95), digits = 5)
 #plot(fit1)
 
 ce <- conditional_effects(fit1, effects = "cindex_lag0y", prob = 0.95, resolution = 1000)

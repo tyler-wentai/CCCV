@@ -413,7 +413,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     joined_gdf = gpd.sjoin(conflict_gdf, polygons_gdf, how='inner', predicate='within')
 
     # filter desired years! WILL CHANGE LETTER TO ALLOW FOR USER SPECIFIED YEARS
-    desired_years = list(set(conflict_df['year']))
+    desired_years = np.arange(np.min(conflict_df['year']), np.max(conflict_df['year'])+1)
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
     start_year  = np.min(desired_years)-nlag_cindex-1 #need the -1 because DEC(t-1)

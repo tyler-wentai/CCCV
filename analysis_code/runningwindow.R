@@ -5,14 +5,22 @@ library(ggplot2)
 panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv'
 dat <- read.csv(panel_data_path)
 
+# just for missing years (there should not be any)
 years_list <- sort(unique(dat$year))
+full_years <- seq(min(years_list), max(years_list))
+missing_years <- setdiff(full_years, years_list)
+if (length(missing_years) == 0) {
+  cat("All years from", min(years_list), "to", max(years_list), "are present.\n")
+} else {
+  cat("Missing years:", paste(missing_years, collapse = ", "), "\n")
+}
 
 dat$bool1989 <- ifelse(dat$year<=1989,0,1)
 dat$year <- dat$year - min(dat$year)
 dat$loc_id <- as.factor(dat$loc_id)
 
-quantile(dat$psi, c(0.25,0.50,0.75))
-dat_help <- subset(dat, psi > 1.2302902)
+quantile(dat$psi, c(0.33,0.80,0.90))
+dat_help <- subset(dat, psi > 1.4415020)
 
 #
 dat_agg <- dat_help %>%
@@ -58,10 +66,11 @@ for (i in 1:as.integer(n-nn)){
 
 
 cindex_summary_df <- as.data.frame(cindex_summary_mat)
-plot(cindex_summary_df$Estimate, ylim=c(0,0.0025))
+plot(cindex_summary_df$Estimate, ylim=c(0,max(cindex_summary_df$Estimate)))
+abline(h=0, lwd=2)
 
-write.csv(cindex_summary_df, '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high_ratio0.6.csv')
-
+write.csv(cindex_summary_df, '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_geq80_ratio0.60.csv')
+ 
 
 
 
