@@ -12,6 +12,8 @@ from shapely.geometry import mapping
 import statsmodels.api as sm
 from prepare_index import *
 from utils.calc_annual_index import *
+import cartopy.crs as ccrs
+from shapely.geometry import Polygon
 
 print('\n\nSTART ---------------------\n')
 
@@ -578,6 +580,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_axis_off()
         plt.tight_layout()
         plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_hex_NINO3_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
+
+        ##
+        print(polygons_gdf)
+        # Define a polygon with lat/lon coordinates
+        polygon = Polygon([(-100, 40), (-90, 45), (-80, 40), (-100, 40)])
+        fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={'projection': ccrs.Robinson()})
+        ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='blue')
+        ax.coastlines()
         plt.show()
 
         ##

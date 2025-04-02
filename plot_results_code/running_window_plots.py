@@ -7,6 +7,11 @@ from matplotlib.colors import ListedColormap
 import numpy as np
 import sys
 
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+from shapely.geometry import Polygon
+
+
 path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_leq80_ratio0.60.csv'
 path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_geq80_ratio0.60.csv'
 df1 = pd.read_csv(path1)
@@ -83,8 +88,9 @@ for i, ax in enumerate(axs):
     if i == 0:
         ax.set_ylabel('ENSO effect on ACR (per s.d.)')
         ax.legend(loc=0, frameon=False, fontsize=9)
-plt.suptitle('ENSO effect over time, global grid4\nRunning regressions (N = 45)', fontsize=12)
+plt.suptitle('ENSO effect over time\nRunning regressions (N = 45), grouped aggregate, global grid4', fontsize=12)
 plt.tight_layout()
+plt.savefig('/Users/tylerbagwell/Desktop/rollling_regression_Onset_NINO3_Global_square4_grouped.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
