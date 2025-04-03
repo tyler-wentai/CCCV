@@ -110,6 +110,7 @@ gdf_agg.set_crs(gdf.crs, inplace=True)
 psi_quants = gdf_agg['psi'].quantile([0.0,0.2,0.4,0.6,0.8,1.0])
 print(psi_quants)
 psi_quants = psi_quants.round(3).tolist()
+psi_quants = [0.000, 0.370, 0.965, 1.280, 2.050, 5.037]
 
 
 # Define a polygon with lat/lon coordinates
@@ -124,7 +125,7 @@ gl.yformatter = LATITUDE_FORMATTER
 
 # create a custom colormap
 bounds = psi_quants
-cmap = mcolors.ListedColormap(["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000"])
+cmap = mcolors.ListedColormap(["#648FFF", "#785EF0", "#FFB000", "#FE6100", "#DC267F"])
 norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
 index_box = mpatches.Rectangle((-150, -5), 60, 10, 
@@ -139,7 +140,7 @@ gdf_plot = gdf_agg.plot(
     norm=norm,   
     legend=True,                   
     legend_kwds={
-        'label': "Teleconnection strength\n(Percentile)", 
+        'label': "Equi-onset-count teleconnection\nstrength quintile", 
         'orientation': "vertical", 
         'shrink': 0.6,
         'ticks': psi_quants
@@ -154,5 +155,5 @@ cbar = gdf_plot.get_figure().axes[-1]
 cbar.set_yticklabels(['0%', '20%', '40%', '60%', '80%', '100%'])
 plt.title('NINO3 Teleconnection', fontsize=11)
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_square4_NINO3_psi_equionsetcount.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()

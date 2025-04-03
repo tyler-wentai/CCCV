@@ -12,8 +12,8 @@ import cartopy.crs as ccrs
 from shapely.geometry import Polygon
 
 
-path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_leq80_ratio0.60.csv'
-path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_geq80_ratio0.60.csv'
+path1 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_leq80_ratio0.60_logitpanel.csv'
+path2 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/runningwindow_cindex_lag0y_Onset_Binary_Global_NINO3_square4_geq80_ratio0.60_logitpanel.csv'
 df1 = pd.read_csv(path1)
 df2 = pd.read_csv(path2)
 
@@ -60,9 +60,9 @@ titles = [
     'Strongly teleconnected\ngrid boxes'
 ]
 colors = ['blue', 'red']
-post_mean_full  = [+0.00011, 0.00188]
-post_lower_full = [-0.00036, 0.00080]
-post_upper_full = [+0.00058, 0.00297]
+post_mean_full  = [+0.0375, 0.2249]
+post_lower_full = [-0.0703, 0.0852]
+post_upper_full = [+0.1417, 0.3660]
 
 for i, ax in enumerate(axs):
     df = dfs[i]
@@ -81,16 +81,16 @@ for i, ax in enumerate(axs):
     ax.axhline(post_mean_full[i], color='grey', linestyle='-', linewidth=1.5,
                label='Post. mean (all years model)' if i == 0 else "")
     ax.axhline(0, color='black', linestyle='--', linewidth=1)
-    ax.set_ylim(-0.001, 0.004)
+    ax.set_ylim(-0.2, 0.5)
     ax.set_xlabel('Window Start Year')
     ax.set_title(titles[i], fontsize=10)
     ax.grid(False)
     if i == 0:
         ax.set_ylabel('ENSO effect on ACR (per s.d.)')
         ax.legend(loc=0, frameon=False, fontsize=9)
-plt.suptitle('ENSO effect over time\nRunning regressions (N = 45), grouped aggregate, global grid4', fontsize=12)
+plt.suptitle('ENSO effect over time\nRunning regressions, logit panel, global grid4', fontsize=12)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/rollling_regression_Onset_NINO3_Global_square4_grouped.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/rollling_regression_Onset_NINO3_Global_square4_logitpanel.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

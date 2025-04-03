@@ -635,7 +635,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
         plt.title('NINO3 Teleconnection', fontsize=11)
         plt.tight_layout()
-        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
