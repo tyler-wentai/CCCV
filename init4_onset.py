@@ -77,6 +77,8 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
         regions = south_america
     elif (localities=='Global' or localities=='global'):
         regions = set(gdf1['SOVEREIGNT'])
+    elif (localities=='NonAfrica' or localities=='nonafrica'):
+        regions = set(gdf1['SOVEREIGNT']) - set(africa_countries)
     else:
         if not isinstance(localities, list):
             raise TypeError(f"'localities' argument should be a list if not a pre-specified region.")
@@ -403,7 +405,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_ONSET4_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -636,9 +638,9 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.add_patch(index_box)
         cbar = gdf_plot.get_figure().axes[-1]
         cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
-        plt.title('DMI Teleconnection', fontsize=11)
+        plt.title('ENSO Teleconnection', fontsize=11)
         plt.tight_layout()
-        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_geq80percent_Africa.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent_NonAfrica.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
@@ -677,13 +679,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=3.0,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'dmi',
+                                        clim_index = 'nino3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square3.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4_ONSET4.csv', index=False)
+print(panel_data.head())
 
 
