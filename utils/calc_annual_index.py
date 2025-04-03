@@ -264,12 +264,12 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind['SON_year'] = clim_ind.index.year
 
         # 2) Filter for only SON months (9, 10, 11)
-        # son = clim_ind[clim_ind.index.month.isin([9, 10, 11])]
-        son = clim_ind[clim_ind.index.month.isin([1,2,3,4,5,6,7,8,9,10,11,12])]
+        son = clim_ind[clim_ind.index.month.isin([9, 10, 11])]
+        # son = clim_ind[clim_ind.index.month.isin([1,2,3,4,5,6,7,8,9,10,11,12])]
 
         # 3) Group by 'SON_year' and compute the mean anomaly to obtain annualized index values
         ann_ind = son.groupby('SON_year').ANOM.agg(['mean', 'count']).reset_index()
-        ann_ind = ann_ind[ann_ind['count'] == 12]    # Only keep years with all three months of data
+        ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'ani'): ### ANI

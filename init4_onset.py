@@ -604,7 +604,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        bounds = [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
+        psi_quants = total_aggregate['psi'].quantile([0.0,0.8,0.9,1.0])
+        print(psi_quants)
+        psi_quants = psi_quants.round(3).tolist()
+        bounds = psi_quants
         cmap = mcolors.ListedColormap(["gainsboro", "darkorange", "firebrick"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -623,7 +626,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
                 'label': "Teleconnection percentile", 
                 'orientation': "vertical", 
                 'shrink': 0.6,
-                'ticks': [0, 1.4415020, 2.1095696, np.max(total_aggregate['psi'])]
+                'ticks': bounds
             },
             ax=ax,
             transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
@@ -633,9 +636,9 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.add_patch(index_box)
         cbar = gdf_plot.get_figure().axes[-1]
         cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
-        plt.title('NINO3 Teleconnection', fontsize=11)
+        plt.title('DMI Teleconnection', fontsize=11)
         plt.tight_layout()
-        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_geq80percent_Africa.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
@@ -674,13 +677,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=3.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',
+                                        clim_index = 'dmi',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv', index=False)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Africa_DMI_square3.csv', index=False)
 
 
