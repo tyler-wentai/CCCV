@@ -245,7 +245,38 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
             ax.set_ylabel("Latitude")
         # plt.savefig('/Users/tylerbagwell/Desktop/cccv_data/plots_results/global_grid_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
-        sys.exit()
+
+        import cartopy.feature as cfeature
+        import matplotlib.ticker as mticker
+        from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+        # Define a polygon with lat/lon coordinates
+        fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
+        gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+        gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
+        gl.xlabel_style = {'size': 8}
+        gl.ylabel_style = {'size': 8}
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
+
+        # create a custom colormap
+        import matplotlib.colors as mcolors
+        import matplotlib.patches as mpatches
+        gl.top_labels       = False 
+        ax.set_global()
+        gdf_plot = gdf_final.plot(
+            ax=ax, column='SOVEREIGNT', cmap=categorical_cmap,
+            edgecolor='black',
+            linewidth=0.75,
+            zorder=1,
+            transform=ccrs.PlateCarree())
+        ax.add_geometries(gdf_final['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
+        ax.coastlines()
+        ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black')
+        plt.title(r'$4^{\circ} \times 4^{\circ}$ gridding', fontsize=11)
+        plt.tight_layout()
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_global_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
 
     return gdf_final
 
@@ -405,7 +436,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_ONSET4_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -685,8 +716,7 @@ panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Globa
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
-                                        show_grid=False, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4_ONSET4.csv', index=False)
-print(panel_data.head())
+                                        show_grid=True, show_gridded_aggregate=True)
+panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_NINO3_square4.csv', index=False)
 
 
