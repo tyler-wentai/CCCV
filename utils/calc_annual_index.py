@@ -231,6 +231,10 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
                                 start_date=datetime(start_year, 1, 1, 0, 0, 0),
                                 end_date=datetime(end_year, 12, 1, 0, 0, 0))
+    elif (climate_index == 'eei'):
+        clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+                                start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                                end_date=datetime(end_year, 12, 1, 0, 0, 0))
     elif (climate_index == 'dmi'):
         clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
                                 start_date=datetime(start_year, 1, 1, 0, 0, 0),
@@ -245,7 +249,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
     clim_ind['year'] = clim_ind.index.year
     clim_ind['month'] = clim_ind.index.month
 
-    if (climate_index == 'nino3' or climate_index == 'nino34'): ### NINO3 or NINO3.4
+    if (climate_index == 'nino3' or climate_index == 'nino34' or climate_index == 'eei'): ### NINO3 or NINO3.4
         # 1) Add a 'DJF_year' column that treats December as belonging to the *next* year
         clim_ind['DJF_year'] = clim_ind.index.year
         # clim_ind.loc[clim_ind.index.month == 12, 'DJF_year'] += 1
@@ -264,12 +268,12 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind['SON_year'] = clim_ind.index.year
 
         # 2) Filter for only SON months (9, 10, 11)
-        son = clim_ind[clim_ind.index.month.isin([9, 10, 11])]
-        # son = clim_ind[clim_ind.index.month.isin([1,2,3,4,5,6,7,8,9,10,11,12])]
+        # son = clim_ind[clim_ind.index.month.isin([9, 10, 11])]
+        son = clim_ind[clim_ind.index.month.isin([5,6,7,8,9,10,11,12])]
 
         # 3) Group by 'SON_year' and compute the mean anomaly to obtain annualized index values
         ann_ind = son.groupby('SON_year').ANOM.agg(['mean', 'count']).reset_index()
-        ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+        ann_ind = ann_ind[ann_ind['count'] == 8]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'ani'): ### ANI
