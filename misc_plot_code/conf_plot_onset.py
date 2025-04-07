@@ -60,13 +60,13 @@ colors = [cmap(level) for level in levels]
 val_min = 0
 val_max = 0
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low90.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low95.csv'
-path3_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_low99.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low90.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low90.csv'
+path3_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_low95.csv'
 
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
-path3_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_veryhigh95_quad.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high90.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high90.csv'
+path3_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_high95.csv'
 
 df1_l = pd.read_csv(path1_l)
 df2_l = pd.read_csv(path2_l)
@@ -117,14 +117,14 @@ df2_h['lower__'] = df2_h['lower__'] - val2_h
 
 # maroon, navy
 plt.figure(figsize=(5, 4))
-# plt.plot(df1_l['cindex_lag0y'], df1_l['estimate__'], color='navy', label='Weakly, posterior mean', linewidth=2.0)
+plt.plot(df1_l['cindex_lag0y'], df1_l['estimate__'], color='black', label='Weakly, posterior mean', linewidth=2.0)
 # plt.fill_between(df1_l['cindex_lag0y'], df1_l['lower__'], df1_l['upper__'], color='b', alpha=0.30, edgecolor=None, label='likely (90% CI)')
-# plt.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='b', alpha=0.20, edgecolor=None)#, label='very likely (95% CI)')
+plt.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.30, edgecolor=None)#, label='very likely (95% CI)')
 # plt.fill_between(df3['cindex_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
 plt.plot(df1_h['cindex_lag0y'], df1_h['estimate__'], color='maroon', label='Strongly, posterior mean', linewidth=2.0)
 # plt.fill_between(df1_h['cindex_lag0y'], df1_h['lower__'], df1_h['upper__'], color='r', alpha=0.30, edgecolor=None, label='likely (90% CI)')
-plt.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='r', alpha=0.20, edgecolor=None)#, label='very likely (95% CI)')
+plt.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='r', alpha=0.30, edgecolor=None)#, label='very likely (95% CI)')
 # plt.fill_between(df3['cindex_lag0y'], df3['lower__'], df3['upper__'], color='r', alpha=0.15, edgecolor=None, label='virtually certain (99% CI)')
 
 # import matplotlib.lines as mlines
@@ -162,11 +162,11 @@ plt.text(-2., -0.0055, 'Strong', fontsize=9, color='k', horizontalalignment='cen
 plt.text(+2., -0.0055, 'Strong', fontsize=9, color='k', horizontalalignment='center')
 # plt.text(+3., -0.0055, 'Very\nStrong', fontsize=9, color='k', horizontalalignment='center')
 
-plt.xlim(-3.0,2.5)
-plt.ylim(-0.003,0.01)
+plt.xlim(-2.0,3.5)
+plt.ylim(-0.005,0.01)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/Onset_DMI_Global_verystrongly_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/Onset_DMI_Global_verystrongly_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 sys.exit()
 
