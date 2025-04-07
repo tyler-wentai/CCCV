@@ -246,8 +246,8 @@ ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
 # ax1.axvline(0, color='gray', linestyle='--', linewidth=1)
 sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
 ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
-sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='orangered', ax=ax2)
-ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='orangered', alpha=0.25, edgecolor=None)
+sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='red', ax=ax2)
+ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='red', alpha=0.25, edgecolor=None)
 
 # ax2.axvline(0, color='black', linestyle='--', linewidth=1)
 
@@ -283,8 +283,8 @@ plt.text(-1.0,  +3.5, 'La Niña', fontsize=9, color='k', horizontalalignment='ri
 line_weak = mlines.Line2D([], [], color='dimgray')
 patch_weak = mpatches.Patch(color='dimgray', alpha=0.35)
 # Strong: darkorange line and fill
-line_strong = mlines.Line2D([], [], color='orangered')
-patch_strong = mpatches.Patch(color='orangered', alpha=0.25)
+line_strong = mlines.Line2D([], [], color='red')
+patch_strong = mpatches.Patch(color='red', alpha=0.25)
 
 # Combine each line and its fill into a tuple
 handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
@@ -298,5 +298,5 @@ ax2.set_xlim(-2.00, 2.75)
 # ax2.set_ylim(-0.0075, 0.010)
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_Onset_Binary_Global_NINO3_square4_95ci.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_Onset_Binary_Global_NINO3_square4_95ci.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()

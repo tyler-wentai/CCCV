@@ -128,7 +128,7 @@ patch_2 = mpatches.Patch(color='#FFB000', alpha=0.35)
 
 # Combine each line and its fill into a tuple
 handles = [(line_0, patch_0),(line_1, patch_1),(line_2, patch_2)]
-labels = ['All years (N=73)', '1997 removed', '1997, 2015 removed']
+labels = ['All years (N=73)', '2015 removed', '2015, 1997 removed']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
 ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.65], fontsize=9, frameon=False)
