@@ -189,25 +189,32 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     print("...Fid values where all psi observations are null:", fid_all_null)
 
     fid_all_null_geom = panel_gdf[panel_gdf['fid'].isin(fid_all_null)].groupby('fid', as_index=False).first()[['fid', 'geometry']]
-    print(fid_all_null_geom)
+    fid_all_null_geom.crs = "EPSG:4326"
 
-    help_gdf = gpd.sjoin(fid_all_null_geom, psi_gdf, how='left', predicate='dwithin', distance=0.33) # find nearest psi value within 0.33 degrees
-    help_gdf = help_gdf.groupby('fid', as_index=False).agg({'psi': 'mean', 'geometry': 'first'})
-    help_gdf['pop_avg_psi'] = help_gdf['psi']
+    psi_help1_gdf = gpd.sjoin(fid_all_null_geom, psi_gdf, how='left', predicate='dwithin', distance=0.33) # find nearest psi value within 0.33 degrees
+    psi_help1_gdf = psi_help1_gdf.groupby('fid', as_index=False).agg({'psi': 'mean'})
+    psi_help1_gdf['pop_avg_psi'] = psi_help1_gdf['psi']
 
-    # panel_gdf = panel_gdf.merge(help_gdf, on='fid', how='left')
-    
-    # psi_mapping = help_gdf.set_index('fid')['psi']
-    # panel_gdf['psi'] = panel_gdf['fid'].map(psi_mapping)
+    print(psi_help1_gdf)
 
-    # psi_mapping = help_gdf.set_index('fid')['psi']
-    # panel_gdf['psi'] = panel_gdf['fid'].map(psi_mapping).combine_first(panel_gdf['psi'])
+    psi_help2_gdf = panel_gdf.groupby('fid', as_index=False).first()[['fid', 'psi', 'pop_avg_psi']] # the psi values for all states that were not null
+    psi_help2_gdf = psi_help2_gdf.dropna(subset=['psi']) # drop the fid values that had null psi values
 
-    # print(panel_gdf)
-
-    sys.exit()
+    print(psi_help2_gdf)
 
 
+    duplicates = set(psi_help1_gdf['fid']).intersection(set(psi_help2_gdf['fid']))
+    if len(duplicates) == 0:
+        # No duplicates—concatenate the DataFrames
+        combined_df = pd.concat([psi_help1_gdf, psi_help2_gdf], ignore_index=True)
+        print("...DataFrames appended successfully!")
+    else:
+        print(f"...Duplicate fid values found: {duplicates}")
+
+    psi_mapping = combined_df.set_index('fid')['psi']
+    panel_gdf['psi'] = panel_gdf['fid'].map(psi_mapping) # map psi values to the panel_gdf by fid
+    pop_avg_psi_mapping = combined_df.set_index('fid')['pop_avg_psi']
+    panel_gdf['pop_avg_psi'] = panel_gdf['fid'].map(pop_avg_psi_mapping) # map pop_avg_psi values to the panel_gdf by fid
 
     ######## C. COMPUTE CLIMATE INDEX (t and t-1 and t-2) AND MERGE W/ PANEL
     start_year  = int(panel_start_year - 5) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
@@ -226,16 +233,13 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     ######## E. POLISH PANEL
     cols = [col for col in panel_gdf.columns if col != 'geometry'] + ['geometry']
     panel_gdf = panel_gdf[cols]
-    panel_gdf = panel_gdf.rename(columns={'cntry_n': 'country'})
+    panel_gdf = panel_gdf.rename(columns={'cntry_n': 'country', 'fid': 'loc_id'})
 
     ###### F. TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
     if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
         panel_gdf['conflict_count'] = (panel_gdf['conflict_count'] > 0).astype(int)
         # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
         panel_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
-
-    print(panel_gdf.groupby('country').sum(['conflict_binary']))
-    # print(panel_gdf[panel_gdf['country']=="Yemen, People's Republic of"])
 
     ######## PLOTTING
     if (plot_telecon==True):
@@ -249,7 +253,8 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
                            legend=True,
                            figsize=(10, 6), 
                            edgecolor='black',
-                           linewidth=0.25)
+                           linewidth=0.25,
+                           vmin=0.6863374, vmax=1.2993510)
         plt.title(var_in)
         plt.show()
 
@@ -263,18 +268,18 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         plt.show()
 
 
-    # cols = [col for col in panel_gdf.columns if col != 'geometry']
-    # panel_gdf = panel_gdf[cols]
+    cols = [col for col in panel_gdf.columns if col not in ['geometry', 'pop2000']]
+    panel_gdf = panel_gdf[cols]
 
     return(panel_gdf)
 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino3',
+                                    clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_cindexnosd.csv', index=False)
+# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMI_cindexnosd.csv', index=False)
 print(panel)
