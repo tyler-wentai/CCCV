@@ -9,7 +9,7 @@ from utils.calc_annual_index import *
 
 print('\n\nSTART ---------------------\n')
 
-def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, pop_path, clim_index, plot_telecon=False):
+def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, pop_path, clim_index, response_var, plot_telecon=False):
     """
     This function initializes the state onset panel. It reads in the country border data, and creates a panel with country-year observations.
     """
@@ -77,22 +77,43 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     panel_gdf.crs = "EPSG:4326"
     panel_gdf = panel_gdf[['year','cntry_n','gwcode','fid','geometry']]
 
+
+
+    ######## D. COMPUTE CONFLICT ONSET COUNT-YEAR
+    # load conflict events dataset and convert to GeoDataFrame
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+    conflict_df = pd.read_csv(conflictdata_path)
+    conflict_gdf = gpd.GeoDataFrame(
+        conflict_df,
+        geometry=gpd.points_from_xy(conflict_df.onset_lon, conflict_df.onset_lat),
+        crs='EPSG:4326'
+        )
+
+    joined_gdf = gpd.sjoin(conflict_gdf, panel_gdf, how='inner', predicate='within', on_attribute='year')
+    joined_gdf = joined_gdf[['conflict_id', 'location', 'year', 'onset_loc', 'onset_loc_prec',
+                             'primary_onset', 'geometry', 'cntry_n', 'gwcode', 'fid']]
+
+    conflict_counts = joined_gdf.groupby(['year', 'fid']).size().reset_index(name='conflict_count')
+
+    panel_gdf = pd.merge(panel_gdf, conflict_counts, on=['year', 'fid'], how='left')
+    panel_gdf['conflict_count'] = panel_gdf['conflict_count'].fillna(0) # fill missing values with 0, i.e., no conflict
+
     ######## B. COMPUTE COUNTRY-YEAR TELECONNECTION STRENGTH (POPUlATION WEIGHTED)
-    print('Computing gdf for psi...')
+    print('...Computing gdf for psi...')
     psi = xr.open_dataarray(telecon_path)
     pop = xr.open_dataarray(pop_path)
     pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
-    # psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
-    # lon1 = psi['longitude']
-    # def convert_longitude(ds):
-    #     longitude = ds['longitude']
-    #     longitude = ((longitude + 180) % 360) - 180
-    #     ds = ds.assign_coords(longitude=longitude)
-    #     return ds
-    # if lon1.max() > 180:
-    #     psi = convert_longitude(psi)
-    # psi = psi.sortby('longitude')
+    psi = psi.rename({'lat': 'latitude', 'lon': 'longitude'})
+    lon1 = psi['longitude']
+    def convert_longitude(ds):
+        longitude = ds['longitude']
+        longitude = ((longitude + 180) % 360) - 180
+        ds = ds.assign_coords(longitude=longitude)
+        return ds
+    if lon1.max() > 180:
+        psi = convert_longitude(psi)
+    psi = psi.sortby('longitude')
     
     # Calculate the spacing for psi's coordinates
     psi_lat_spacing = np.diff(psi.latitude.values).mean()
@@ -102,8 +123,8 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     pop_lat_spacing = np.diff(pop.latitude.values).mean()
     pop_lon_spacing = np.diff(pop.longitude.values).mean()
 
-    print(f"...psi - Latitude spacing: {psi_lat_spacing}, Longitude spacing: {psi_lon_spacing}")
-    print(f"...pop - Latitude spacing: {pop_lat_spacing}, Longitude spacing: {pop_lon_spacing}")
+    print(f"......psi - Latitude spacing: {psi_lat_spacing}, Longitude spacing: {psi_lon_spacing}")
+    print(f"......pop - Latitude spacing: {pop_lat_spacing}, Longitude spacing: {pop_lon_spacing}")
 
     # Ensure that the DataArray's has 'latitude' and 'longitude' coordinates
     if 'latitude' not in psi.coords or 'longitude' not in psi.coords:
@@ -162,26 +183,61 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     panel_gdf = panel_gdf.merge(combined_df, on='fid', how='left')
     panel_gdf = panel_gdf.drop(['pop_weighted_psi'], axis=1)
 
+    # find where psi is null for a unique fid (these will be states that are too small, think island states) and compute the mean psi value for that fid
+    all_null = panel_gdf.groupby('fid')['psi'].apply(lambda x: x.isna().all())
+    fid_all_null = all_null[all_null].index.tolist()
+    print("...Fid values where all psi observations are null:", fid_all_null)
+
+    fid_all_null_geom = panel_gdf[panel_gdf['fid'].isin(fid_all_null)].groupby('fid', as_index=False).first()[['fid', 'geometry']]
+    print(fid_all_null_geom)
+
+    help_gdf = gpd.sjoin(fid_all_null_geom, psi_gdf, how='left', predicate='dwithin', distance=0.33) # find nearest psi value within 0.33 degrees
+    help_gdf = help_gdf.groupby('fid', as_index=False).agg({'psi': 'mean', 'geometry': 'first'})
+    help_gdf['pop_avg_psi'] = help_gdf['psi']
+
+    # panel_gdf = panel_gdf.merge(help_gdf, on='fid', how='left')
+    
+    # psi_mapping = help_gdf.set_index('fid')['psi']
+    # panel_gdf['psi'] = panel_gdf['fid'].map(psi_mapping)
+
+    # psi_mapping = help_gdf.set_index('fid')['psi']
+    # panel_gdf['psi'] = panel_gdf['fid'].map(psi_mapping).combine_first(panel_gdf['psi'])
+
+    # print(panel_gdf)
+
+    sys.exit()
+
+
+
     ######## C. COMPUTE CLIMATE INDEX (t and t-1 and t-2) AND MERGE W/ PANEL
     start_year  = int(panel_start_year - 5) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
     end_year    = int(panel_end_year)
 
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
 
-    annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
+    annual_index['cindex']
     annual_index['cindex_lag1y'] = annual_index['cindex'].shift(+1)
     annual_index['cindex_lag2y'] = annual_index['cindex'].shift(+2)
     annual_index['cindex_lag3y'] = annual_index['cindex'].shift(+3)
-    annual_index['cindex_lag4y'] = annual_index['cindex'].shift(+4)
+    annual_index = annual_index.rename(columns={'cindex': 'cindex_lag0y'})
 
     panel_gdf = panel_gdf.merge(annual_index, on='year', how='left')
 
-    ######## D. POLISH PANEL
+    ######## E. POLISH PANEL
     cols = [col for col in panel_gdf.columns if col != 'geometry'] + ['geometry']
     panel_gdf = panel_gdf[cols]
     panel_gdf = panel_gdf.rename(columns={'cntry_n': 'country'})
 
-    ########
+    ###### F. TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
+    if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
+        panel_gdf['conflict_count'] = (panel_gdf['conflict_count'] > 0).astype(int)
+        # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
+        panel_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
+
+    print(panel_gdf.groupby('country').sum(['conflict_binary']))
+    # print(panel_gdf[panel_gdf['country']=="Yemen, People's Republic of"])
+
+    ######## PLOTTING
     if (plot_telecon==True):
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
 
@@ -206,14 +262,19 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         plt.title(var_in)
         plt.show()
 
+
+    # cols = [col for col in panel_gdf.columns if col != 'geometry']
+    # panel_gdf = panel_gdf[cols]
+
     return(panel_gdf)
 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_LAND_nskip3.0_19502023_12months.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='dmi',
+                                    clim_index='nino3',
+                                    response_var = 'binary',
                                     plot_telecon=True)
-
+# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_cindexnosd.csv', index=False)
 print(panel)

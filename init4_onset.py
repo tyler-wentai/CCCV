@@ -710,13 +710,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'eei',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_EEI_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_EEI_square4_cindexnosd.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets/Onset_Binary_Global_EEI_square4_cindexnosd.csv', index=False)
 
 
