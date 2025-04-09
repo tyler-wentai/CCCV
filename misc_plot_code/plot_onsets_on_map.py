@@ -27,9 +27,10 @@ gdf = gpd.GeoDataFrame(
     crs="EPSG:4326"
 )
 
+print(gdf.shape)
 
 # Create a figure with the desired size
-fig = plt.figure(figsize=(6, 4))
+fig = plt.figure(figsize=(4.5, 3.5))
 
 # Set up an axes with the Robinson projection
 ax = plt.axes(projection=ccrs.Robinson())
@@ -92,10 +93,10 @@ yi_masked = np.where(zi > density_threshold, yi, np.nan)
 
 # Plot the density contours.
 # Since xi, yi, and zi are in the projection coordinate system, no additional transform is needed.
-ax.contourf(xi_masked, yi_masked, zi_masked, levels=4, cmap='Greys', alpha=1)
+# ax.contourf(xi_masked, yi_masked, zi_masked, levels=4, cmap='Greys', alpha=1)
 
 
-plt.title('Conflict Onset Locations (1950-2023)', fontsize=11)
+plt.title('Onset Locations of Armed Conflict\n 1950-2025, n=555', fontsize=10)
 
 # Show plot
 plt.savefig('/Users/tylerbagwell/Desktop/conflict_onset_map.png', dpi=300, bbox_inches='tight')

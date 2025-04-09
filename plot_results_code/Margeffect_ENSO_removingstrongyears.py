@@ -104,7 +104,7 @@ ax2.yaxis.set_label_position("left")  # Move line plot label to the left
 # ax2.set_yticklabels(["0.5x", "1.0x", "1.5x", "2.0x", "2.5x", "3.0x", "3.5x"], fontsize=10)
 ax2.tick_params(axis='y', direction='in')
 # ax2.set_ylabel(r"Pct. $\Delta$ACR from neutral phase (%)", fontsize=10, color='black')
-ax2.set_ylabel(r'$\Delta$ACR$^{\dagger}$', fontsize=10, color='black')
+ax2.set_ylabel(r'ACR$_{group}$ / ACR$_{global}^{netural}$', fontsize=10, color='black')
 
 #
 # ax1.axvspan(+1.5, +2.8, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)

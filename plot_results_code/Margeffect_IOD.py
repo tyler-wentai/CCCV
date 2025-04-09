@@ -41,12 +41,12 @@ from matplotlib.legend_handler import HandlerTuple
 # ##
 
 
-path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_NINO3_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_high90.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_high95.csv'
+path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_strong95.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_strong95.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_weak90.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_weak95.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_weak95.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_weak95.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -61,26 +61,26 @@ index_closest2_h = df2_h['cindex_lag0y'].abs().idxmin()
 val1_h = df1_h['estimate__'].iloc[index_closest1_h]
 val2_h = df2_h['estimate__'].iloc[index_closest2_h]
 
-df1_h['estimate__']     = 1*(df1_h['estimate__'])/0.004605692
-df1_h['upper__']        = 1*(df1_h['upper__'])/0.004605692
-df1_h['lower__']        = 1*(df1_h['lower__'])/0.004605692
+df1_h['estimate__']     = 1*(df1_h['estimate__'])/0.004724604
+df1_h['upper__']        = 1*(df1_h['upper__'])/0.004724604
+df1_h['lower__']        = 1*(df1_h['lower__'])/0.004724604
 
-df2_h['estimate__']     = 1*(df2_h['estimate__'])/0.004605692
-df2_h['upper__']        = 1*(df2_h['upper__'])/0.004605692
-df2_h['lower__']        = 1*(df2_h['lower__'])/0.004605692
+df2_h['estimate__']     = 1*(df2_h['estimate__'])/0.004724604
+df2_h['upper__']        = 1*(df2_h['upper__'])/0.004724604
+df2_h['lower__']        = 1*(df2_h['lower__'])/0.004724604
 
 index_closest1_l = df1_l['cindex_lag0y'].abs().idxmin()
 index_closest2_l = df2_l['cindex_lag0y'].abs().idxmin()
 val1_l = df1_l['estimate__'].iloc[index_closest1_l]
 val2_l = df2_l['estimate__'].iloc[index_closest2_l]
 
-df1_l['estimate__']     = 1*(df1_l['estimate__'])/0.004605692
-df1_l['upper__']        = 1*(df1_l['upper__'])/0.004605692
-df1_l['lower__']        = 1*(df1_l['lower__'])/0.004605692
+df1_l['estimate__']     = 1*(df1_l['estimate__'])/0.004724604
+df1_l['upper__']        = 1*(df1_l['upper__'])/0.004724604
+df1_l['lower__']        = 1*(df1_l['lower__'])/0.004724604
 
-df2_l['estimate__']     = 1*(df2_l['estimate__'])/0.004605692
-df2_l['upper__']        = 1*(df2_l['upper__'])/0.004605692
-df2_l['lower__']        = 1*(df2_l['lower__'])/0.004605692
+df2_l['estimate__']     = 1*(df2_l['estimate__'])/0.004724604
+df2_l['upper__']        = 1*(df2_l['upper__'])/0.004724604
+df2_l['lower__']        = 1*(df2_l['lower__'])/0.004724604
 
 cmap = sns.diverging_palette(220, 20, as_cmap=True)
 num_colors = 5
@@ -238,7 +238,7 @@ fig = plt.figure(figsize=(4.5, 3.5))
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
-ax1.set_title('Marginal Effect of ENSO (N=73)\n', fontsize=10, color='black')
+ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n', fontsize=10, color='black')
 
 # 
 sns.histplot(x=df_ci['x'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
@@ -257,7 +257,7 @@ ax1.yaxis.set_label_position("right") # Move histogram label to the right
 ax1.set_yticks([0, 0.15, 0.30])
 ax1.set_yticklabels([0, 0.15, 0.30], fontsize=8)
 ax1.set_ylabel("Obs. proportion               ", ha='right', fontsize=8, color='black')
-ax1.set_xlabel(r"Annualized NINO3 ($^{\degree}C$)", fontsize=10, color='black')
+ax1.set_xlabel(r"Annualized DMI ($^{\degree}C$)", fontsize=10, color='black')
 ax1.tick_params(axis='y', direction='in')
 
 ax2.yaxis.tick_left()                 # Move line plot ticks to the left
@@ -270,15 +270,15 @@ ax2.set_ylabel(r'ACR$_{group}$ / ACR$_{global}^{netural}$', fontsize=10, color='
 
 #
 # ax1.axvspan(+1.5, +2.8, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(+0.5, +2.8, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(-2.05, -0.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(+0.4, +2.8, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(-0.4, +0.4, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(-2.05, -0.4, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
 # ax1.axvspan(-2.05, -1.5, color=colors[0], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
 
 #
 plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
-plt.text(+1.0,  +3.5, 'El Niño', fontsize=9, color='k', horizontalalignment='left')
-plt.text(-1.0,  +3.5, 'La Niña', fontsize=9, color='k', horizontalalignment='right')
+plt.text(+0.5,  +3.5, 'Pos. Phase', fontsize=9, color='k', horizontalalignment='left')
+plt.text(-0.5,  +3.5, 'Neg. Phase', fontsize=9, color='k', horizontalalignment='right')
 
 line_weak = mlines.Line2D([], [], color='dimgray')
 patch_weak = mpatches.Patch(color='dimgray', alpha=0.35)
@@ -294,9 +294,9 @@ labels = ['Strong', 'Weak']
 ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.5], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
 
 ax1.set_ylim(0, 2.5)
-ax2.set_xlim(-2.00, 2.75)
-# ax2.set_ylim(-0.0075, 0.010)
+ax2.set_xlim(-1.00, 1.00)
+ax2.set_ylim(0.1, 3.85)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_Onset_Binary_Global_NINO3_square4_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_Onset_Binary_Global_DMI_square4_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
