@@ -47,10 +47,10 @@ ax.coastlines(linewidth=0.75)
 
 # Set up gridlines with custom tick locations
 gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
-gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+gl.xlocator = mticker.FixedLocator(range(-120, 121, 60))  # meridians every 60°
 gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
-gl.xlabel_style = {'size': 8}
-gl.ylabel_style = {'size': 8}
+gl.xlabel_style = {'size': 7}
+gl.ylabel_style = {'size': 7}
 gl.xformatter = LONGITUDE_FORMATTER
 gl.yformatter = LATITUDE_FORMATTER
 
@@ -96,7 +96,7 @@ yi_masked = np.where(zi > density_threshold, yi, np.nan)
 # ax.contourf(xi_masked, yi_masked, zi_masked, levels=4, cmap='Greys', alpha=1)
 
 
-plt.title('Onset Locations of Armed Conflict\n 1950-2025, n=555', fontsize=10)
+plt.title('Onset Locations of Armed Conflict\n 1950-2023, n=555', fontsize=10)
 
 # Show plot
 plt.savefig('/Users/tylerbagwell/Desktop/conflict_onset_map.png', dpi=300, bbox_inches='tight')

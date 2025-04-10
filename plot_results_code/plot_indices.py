@@ -44,7 +44,7 @@ colors = [cmap(level) for level in levels]
 
 
 # Create a figure with 2 subplots (one above the other), sharing the x-axis
-fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(4.5, 3.5), sharex=True)
+fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(5.0, 3.5), sharex=True)
 
 # Plot the NINO3 data on the first subplot
 ax1.plot(nino3.index, nino3['NINO3'], linestyle='-', linewidth=1.5, color='purple', label='(Our ENSO index)', zorder=1)
@@ -58,10 +58,11 @@ ax1.axhspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth
 ax1.axhspan(-4.0, -0.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
 
 ax1.set_ylim(-2.5, 3.5)
+ax1.set_title('El Niño–Southern Oscillation Index', fontsize=9)
 
 
 # Plot the DMI data on the second subplot
-ax2.plot(dmi.index, dmi['DMI'], linestyle='-', linewidth=1.5, color='green', label='(Our IOD index)', zorder=1)
+ax2.plot(dmi.index, dmi['DMI'], linestyle='-', linewidth=1.5, color='purple', label='(Our IOD index)', zorder=1)
 ax2.set_xlabel('Year', fontsize=9)
 ax2.set_ylabel(r'DMI ($\degree C$)', fontsize=9)
 # ax2.legend(frameon=False, fontsize=8)
@@ -73,9 +74,20 @@ ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
 ax2.axhline(0, color='black', linewidth=1.5, linestyle='--', zorder=2)
 
-ax1.text(1990,  +3.0, 'El Niño', fontsize=9, color='k', horizontalalignment='center')
-ax1.text(1990,  -2.0, 'La Niña', fontsize=9, color='k', horizontalalignment='center')
+ax2.axhspan(+0.4, +2.0, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+ax2.axhspan(-0.4, +0.4, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+ax2.axhspan(-2.0, -0.4, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+
+ax2.set_ylim(-1.5, 1.5)
+ax2.set_title('Indian Ocean Dipole Index', fontsize=9)
+
+ax1.text(-8000,  +2.7, 'El Niño', fontsize=9, color='k')
+ax1.text(-8000,  -2.1, 'La Niña', fontsize=9, color='k')
+
+ax2.text(-8000,  +1.1, 'Pos. phase', fontsize=9, color='k')
+ax2.text(-8000,  -1.3, 'Neg. phase', fontsize=9, color='k')
 
 
 plt.tight_layout()
+plt.savefig('/Users/tylerbagwell/Desktop/plot_nino3&dmi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
