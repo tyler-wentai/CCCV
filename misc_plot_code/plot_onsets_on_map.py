@@ -39,6 +39,8 @@ ax.set_global()
 # Fill the map with ocean color (this acts like the map boundary fill)
 # ax.add_feature(cfeature.OCEAN, facecolor='#E0FFFB')
 
+ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black', linewidth=0.5)
+
 # Add land (continents) with the chosen color
 ax.add_feature(cfeature.LAND, facecolor='silver') #'#E0ECBA'
 
