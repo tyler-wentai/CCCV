@@ -702,8 +702,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    cols = [col for col in final_gdf.columns if col != 'geometry']
-    final_gdf = final_gdf[cols]
+    # cols = [col for col in final_gdf.columns if col != 'geometry']
+    # final_gdf = final_gdf[cols]
 
     return final_gdf
 
@@ -712,11 +712,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 # stepsize=3.5
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'dmi',
+                                        clim_index = 'nino3',
                                         response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_0d5.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMI_square4_cindexnosd.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3_square4_wGeometry.csv', index=False)
 
 

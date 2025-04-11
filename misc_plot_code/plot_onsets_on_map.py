@@ -37,10 +37,10 @@ ax = plt.axes(projection=ccrs.Robinson())
 ax.set_global()
 
 # Fill the map with ocean color (this acts like the map boundary fill)
-ax.add_feature(cfeature.OCEAN, facecolor='#E0FFFB')
+# ax.add_feature(cfeature.OCEAN, facecolor='#E0FFFB')
 
 # Add land (continents) with the chosen color
-ax.add_feature(cfeature.LAND, facecolor='#E0ECBA')
+ax.add_feature(cfeature.LAND, facecolor='silver') #'#E0ECBA'
 
 # Draw coastlines with a specified linewidth
 ax.coastlines(linewidth=0.75)
@@ -96,7 +96,7 @@ yi_masked = np.where(zi > density_threshold, yi, np.nan)
 # ax.contourf(xi_masked, yi_masked, zi_masked, levels=4, cmap='Greys', alpha=1)
 
 
-plt.title('Onset Locations of Armed Conflict\n 1950-2023, n=555', fontsize=10)
+plt.title('Onset of armed conflict, 1950-2023\nn=555', fontsize=8)
 
 # Show plot
 plt.savefig('/Users/tylerbagwell/Desktop/conflict_onset_map.png', dpi=300, bbox_inches='tight')
