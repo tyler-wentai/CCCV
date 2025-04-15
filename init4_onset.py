@@ -675,6 +675,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         plt.show()
 
         ##
+        fig, ax = plt.subplots(figsize=(8, 5)) # Adjust figsize as needed
+
+        sns.histplot(data=total_aggregate, x='psi', bins='scott', kde=True, ax=ax)
+        ax.set_ylabel("Frequency")
+
+        plt.tight_layout()
+        plt.show()
 
         # fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
 
