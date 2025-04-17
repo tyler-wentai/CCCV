@@ -27,11 +27,11 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_nino34_LAND_nskip3.0_19502023_12months.nc')
-psi['longitude'] = xr.where(psi['longitude'] > 180, psi['longitude'] - 360, psi['longitude'])
-psi = psi.sortby('longitude')
-lat1 = psi['latitude'].values
-lon1 = psi['longitude'].values
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO34.nc')
+psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
+psi = psi.sortby('lon')
+lat1 = psi['lat'].values
+lon1 = psi['lon'].values
 variable1 = psi.values[:,:]
 
 #variable1 = psi.values[7,:,:]
@@ -60,7 +60,7 @@ levels = np.arange(0,maxval,1)
 
 c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto')
 cc = ax.imshow(variable1_masked, cmap='Reds')
-gdf2.plot(ax=ax, edgecolor=None, color='white')
+# gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
 ax.set_xlim([-180.0, 180.0])
 ax.set_ylim([-90.0, +90.0])
