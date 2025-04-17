@@ -112,7 +112,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMI_square4_cindexnosd_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMI_square3_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -200,7 +200,7 @@ cbar = gdf_plot.get_figure().axes[-1]
 cbar.set_title("Teleconnection\nstrength", fontsize=9)
 plt.title('Indian Ocean Dipole (DMI) Teleconnection Strength', fontsize=10)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

@@ -27,7 +27,43 @@ print('\n\nSTART ---------------------\n')
 # variable2 = psi2.values[:,:]
 # vals2 = variable2.flatten()
 
-psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO34.nc')
+
+# import xarray as xr
+# import matplotlib.pyplot as plt
+
+# Load the dataset
+ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO34.nc')
+var_name = list(ds.data_vars)[0]
+da = ds[var_name]
+
+# Plot using xarray's built-in map projection
+fig = plt.figure(figsize=(12, 6))
+ax = plt.axes()
+da.plot.pcolormesh(
+    ax=ax,
+    cmap='Reds',
+    x='lon',
+    y='lat',
+    add_colorbar=True
+)
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_title(f'{var_name}: Teleconnection Strength')
+# ax.coastlines()  # uses Matplotlib’s default coastlines
+
+plt.show()
+
+
+sys.exit()
+
+
+
+
+
+psi = xr.open_dataarray('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc')
+print(psi)
+print(psi.attrs)
+
 psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon'])
 psi = psi.sortby('lon')
 lat1 = psi['lat'].values
@@ -58,7 +94,7 @@ variable1_masked = np.ma.masked_where(variable1 == 0, variable1)
 maxval = np.max(variable1)
 levels = np.arange(0,maxval,1)
 
-c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto')
+c = ax.pcolormesh(lon1, lat1, variable1_masked, cmap=custom_cmap, shading='auto', vmin=1.5)
 cc = ax.imshow(variable1_masked, cmap='Reds')
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)

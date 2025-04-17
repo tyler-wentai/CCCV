@@ -16,7 +16,7 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'NINO34'
+clim_index = 'NINO3'
 
 start_year  = 1950
 end_year    = 2023
@@ -83,12 +83,12 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -222,25 +222,6 @@ clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
 ## --- NINO3
-# dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
-# dec_df['year'] = dec_df['year'] + 1  # Shift to next year
-# dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
-
-# jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
-# jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-# feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
-
-# yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
-# yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
-
-# yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
-
-# may_to_dec_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-# index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-# index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-
-## --- NINO34
 dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
 dec_df['year'] = dec_df['year'] + 1  # Shift to next year
 dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
@@ -254,6 +235,25 @@ yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January
 
 yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
 index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+
+# may_to_dec_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+# index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+# index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
+
+## --- NINO34
+# dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
+# dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+# dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+
+# jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
+# jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+# feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
+
+# yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
+
+# yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- DMI
 # sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
