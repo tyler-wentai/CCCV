@@ -637,15 +637,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        psi_quants = total_aggregate['psi'].quantile([0.0,0.8,0.9,1.0])
+        psi_quants = total_aggregate['psi'].quantile([0.0,0.8,1.0])
         print(psi_quants)
         psi_quants = psi_quants.round(3).tolist()
         bounds = psi_quants
-        cmap = mcolors.ListedColormap(["gainsboro", "darkorange", "firebrick"])
+        cmap = mcolors.ListedColormap(["gainsboro", "red"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                              fill=None, edgecolor='darkviolet', linewidth=1.5,
+                              fill=None, edgecolor='green', linewidth=1.5,
                               transform=ccrs.PlateCarree())
 
         gl.top_labels       = False 
@@ -668,10 +668,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.coastlines()
         ax.add_patch(index_box)
         cbar = gdf_plot.get_figure().axes[-1]
-        cbar.set_yticklabels(['0%', '80%', '90%', '100%'])
+        cbar.set_yticklabels(['0%', '80%', '100%'])
         plt.title('ENSO Teleconnection', fontsize=11)
         plt.tight_layout()
-        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent_NonAfrica.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent_NonAfrica.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
@@ -709,21 +709,21 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    # cols = [col for col in final_gdf.columns if col != 'geometry']
-    # final_gdf = final_gdf[cols]
+    cols = [col for col in final_gdf.columns if col != 'geometry']
+    final_gdf = final_gdf[cols]
 
     return final_gdf
 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=3.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'dmi',
+                                        clim_index = 'nino3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_0d5.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMI_square3_wGeometry.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3new_square4.csv', index=False)
 
 

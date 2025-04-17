@@ -31,8 +31,13 @@ print('\n\nSTART ---------------------\n')
 # import xarray as xr
 # import matplotlib.pyplot as plt
 
-# Load the dataset
-ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO34.nc')
+# Load the datasets
+path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
+path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
+gdf1 = gpd.read_file(path_land)
+gdf2 = gpd.read_file(path_maritime_0)
+
+ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc')
 var_name = list(ds.data_vars)[0]
 da = ds[var_name]
 
@@ -44,12 +49,14 @@ da.plot.pcolormesh(
     cmap='Reds',
     x='lon',
     y='lat',
+    vmin=1.0,
     add_colorbar=True
 )
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
+gdf2.plot(ax=ax, edgecolor=None, color='white')
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_title(f'{var_name}: Teleconnection Strength')
-# ax.coastlines()  # uses Matplotlib’s default coastlines
 
 plt.show()
 
