@@ -39,11 +39,17 @@ cols = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] +
 cindex1_monthly = cindex1_monthly[cols]
 
 cindex1_corr = cindex1_monthly.corr()
+print(len(cindex1_monthly))
+avg_abs1 = cindex1_monthly.abs().sum() / len(cindex1_monthly)
+
+# see the result
+print(avg_abs1)
 
 cindex2_monthly = cindex2.pivot(index='Year', columns='Month', values='ANOM')
 cindex2_corr = cindex2_monthly.corr()
 
-print(cindex1_corr)
+# print(cindex1_monthly)
+
 
 fig, ax = plt.subplots(figsize=(7, 7))
 plt.suptitle("Monthly Correlations (1950-2023)", fontsize=12)
