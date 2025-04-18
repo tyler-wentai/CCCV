@@ -31,14 +31,21 @@ cindex2['Month'] = cindex2.index.month
 
 cindex1_monthly = cindex1.pivot(index='Year', columns='Month', values='ANOM')
 for m in range(1, 8):                       # months 1‑4
-    cindex1_monthly[f'{m:02d}_next'] = cindex1_monthly[m].shift(-1)
+    cindex1_monthly[int(f'{m+12}')] = cindex1_monthly[m].shift(-1)
 cindex1_monthly = cindex1_monthly.iloc[:-1]
 
-cols = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] +
-        ['01_next', '02_next', '03_next', '04_next', '05_next', '06_next', '07_next'])
-cindex1_monthly = cindex1_monthly[cols]
+print(cindex1_monthly)
+
+month_mapping = {
+    1: r'Jan$_t$', 2: r'Feb$_t$', 3: r'Mar$_t$', 4: r'Apr$_t$',
+    5: r'May$_t$', 6: r'Jun$_t$', 7: r'Jul$_t$', 8: r'Aug$_t$',
+    9: r'Sep$_t$', 10: r'Oct$_t$', 11: r'Nov$_t$', 12: r'Dec$_t$',
+    13: r'Jan$_{t+1}$', 14: r'Feb$_{t+1}$', 15: r'Mar$_{t+1}$', 16: r'Apr$_{t+1}$',
+    17: r'May$_{t+1}$', 18: r'Jun$_{t+1}$', 19: r'Jul$_{t+1}$'
+}
 
 cindex1_corr = cindex1_monthly.corr()
+cindex1_corr.rename(index=month_mapping, columns=month_mapping, inplace=True)
 print(len(cindex1_monthly))
 avg_abs1 = cindex1_monthly.abs().sum() / len(cindex1_monthly)
 
@@ -52,28 +59,51 @@ cindex2_corr = cindex2_monthly.corr()
 
 
 fig, ax = plt.subplots(figsize=(7, 7))
-plt.suptitle("Monthly Correlations (1950-2023)", fontsize=12)
 
 # Heatmap 1: Lower triangle only
 sns.heatmap(
     cindex1_corr,
-    annot=True,               # Annotate cells with correlation coefficients
-    fmt=".2f",                # Round annotations to two decimals
-    cmap='PuOr',               # Blue-to-white-to-red colormap
-    vmin=-1, vmax=1,          # Set the color scale limits
-    center=0,                 # Center the colormap at 0
-    linewidths=0.5,           # Set grid line width
-    linecolor='white',         # Change grid line color to gray
-    square=True,              # Make cells square
-    cbar_kws={"shrink": 0.6},  # Adjust color bar size
-    annot_kws={"size": 6}, # Font size for the annotations
+    annot=True,                 # Annotate cells with correlation coefficients
+    fmt=".2f",                  # Round annotations to two decimals
+    cmap='PuOr',              
+    vmin=-1, vmax=1,            # Set the color scale limits
+    center=0,                   # Center the colormap at 0
+    linewidths=0.5,             # Set grid line width
+    linecolor='white',          # Change grid line color to gray
+    square=True,                # Make cells square
+    cbar_kws={"shrink": 0.6},   # Adjust color bar size
+    annot_kws={"size": 6},      # Font size for the annotations
     ax=ax
 )
-ax.set_title("NINO3", fontsize=10)
+ax.set_title("NINO3: Monthly Correlations (1950-2023)", fontsize=11)
 
 plt.tight_layout()
 # plt.savefig("/Users/tylerbagwell/Desktop/cccv_data/pub_plots/cindex_monthly_correlation_heatmaps.png", dpi=300, bbox_inches='tight')
 plt.show()
+
+
+fig, ax = plt.subplots(figsize=(7, 3))
+avg_abs1.name = "Value"
+df = avg_abs1.reset_index().rename(columns={"index": "Month"})
+df = df[df["Month"].between(5, 16)]
+df["Month"] = df["Month"].map(month_mapping)
+print(df)
+
+# ── 2. Draw the line plot ─────────────────────────────────────────────
+sns.set_theme(style="whitegrid", palette="pastel")          # nice background
+ax = sns.lineplot(data=df, x="Month", y="Value",
+                  marker="o", linewidth=2)
+
+# ── 3. Cosmetic touches ───────────────────────────────────────────────
+ax.set(
+    xticks=range(0,12),
+    xlabel="Month",
+    ylabel=r"Avg. abs. NINO3 ($^\degree C$)"
+)
+plt.tight_layout()
+plt.show()
+
+
 
 sys.exit()
 
