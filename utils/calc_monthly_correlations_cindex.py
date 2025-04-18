@@ -12,7 +12,7 @@ print('\n\nSTART ---------------------\n')
 
 
 start_year  = 1950
-end_year    = 2023
+end_year    = 2024 # need to add one more year
 
 cindex1 = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
@@ -30,10 +30,46 @@ cindex2['Year']  = cindex2.index.year
 cindex2['Month'] = cindex2.index.month
 
 cindex1_monthly = cindex1.pivot(index='Year', columns='Month', values='ANOM')
+for m in range(1, 8):                       # months 1‑4
+    cindex1_monthly[f'{m:02d}_next'] = cindex1_monthly[m].shift(-1)
+cindex1_monthly = cindex1_monthly.iloc[:-1]
+
+cols = ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] +
+        ['01_next', '02_next', '03_next', '04_next', '05_next', '06_next', '07_next'])
+cindex1_monthly = cindex1_monthly[cols]
+
 cindex1_corr = cindex1_monthly.corr()
 
 cindex2_monthly = cindex2.pivot(index='Year', columns='Month', values='ANOM')
 cindex2_corr = cindex2_monthly.corr()
+
+print(cindex1_corr)
+
+fig, ax = plt.subplots(figsize=(7, 7))
+plt.suptitle("Monthly Correlations (1950-2023)", fontsize=12)
+
+# Heatmap 1: Lower triangle only
+sns.heatmap(
+    cindex1_corr,
+    annot=True,               # Annotate cells with correlation coefficients
+    fmt=".2f",                # Round annotations to two decimals
+    cmap='PuOr',               # Blue-to-white-to-red colormap
+    vmin=-1, vmax=1,          # Set the color scale limits
+    center=0,                 # Center the colormap at 0
+    linewidths=0.5,           # Set grid line width
+    linecolor='white',         # Change grid line color to gray
+    square=True,              # Make cells square
+    cbar_kws={"shrink": 0.6},  # Adjust color bar size
+    annot_kws={"size": 6}, # Font size for the annotations
+    ax=ax
+)
+ax.set_title("NINO3", fontsize=10)
+
+plt.tight_layout()
+# plt.savefig("/Users/tylerbagwell/Desktop/cccv_data/pub_plots/cindex_monthly_correlation_heatmaps.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+sys.exit()
 
 
 mask1 = np.triu(np.ones_like(cindex1_corr, dtype=bool), k=1)
