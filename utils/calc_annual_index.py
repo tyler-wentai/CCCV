@@ -281,11 +281,12 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind['JJA_year'] = clim_ind.index.year
 
         # 2) Filter for only JJA months (6, 7, 8)
-        jja = clim_ind[clim_ind.index.month.isin([6, 7, 8])]
+        # jja = clim_ind[clim_ind.index.month.isin([6, 7, 8])]
+        jja = clim_ind[clim_ind.index.month.isin([5,6,7,8,9,10,11,12])]
 
         # 3) Group by 'JJA_year' and compute the mean anomaly to obtain annualized index values
         ann_ind = jja.groupby('JJA_year').ANOM.agg(['mean', 'count']).reset_index()
-        ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
+        ann_ind = ann_ind[ann_ind['count'] == 8]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'JJA_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     else:
