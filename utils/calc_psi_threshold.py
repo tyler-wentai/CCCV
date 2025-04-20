@@ -16,21 +16,6 @@ import regionmask
 
 print('\n\nSTART ---------------------\n')
 
-# psi1 = xr.open_dataarray('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
-# lat1 = psi1['lat'].values
-# lon1 = psi1['lon'].values
-# variable1 = psi1.values[:,:]
-# vals1 = variable1.flatten()
-
-# psi2 = xr.open_dataarray('/Users/tylerbagwell/Desktop/spei6_ERA5_mon_194001-202212.nc')
-# lat2 = psi2['lat'].values
-# lon2 = psi2['lon'].values
-# variable2 = psi2.values[:,:]
-# vals2 = variable2.flatten()
-
-
-# import xarray as xr
-# import matplotlib.pyplot as plt
 
 # Load the datasets
 path_land = "data/map_packages/50m_cultural/ne_50m_admin_0_countries.shp"
@@ -38,18 +23,38 @@ path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
 gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
-ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_FINAL.nc')
+ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_DMI_FINAL.nc')
 var_name = list(ds.data_vars)[0]
 da = ds[var_name]
-# da = da.sum(dim='month')
-land_regs = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
-# this creates an integer mask: land cells get region IDs ≥0, ocean cells get −1
-mask = land_regs.mask(da)
+land_regs   = regionmask.defined_regions.natural_earth_v5_0_0.land_110
+mask        = land_regs.mask(da)    # this creates an integer mask: land cells get region IDs ≥0, ocean cells get −1
+da_land     = da.where(mask>=0)     # keep only land
 
-# keep only land
-da_land = da.where(mask>=0)
+vals = da_land.values.ravel()
+vals = vals[~np.isnan(vals)]
 
+mask = (~np.isnan(vals)) & (vals != 0)
+clean = vals[mask]
+med = np.median(clean)
+mean = np.mean(clean)
+
+# 3) histogram
+plt.figure(figsize=(8,5))
+plt.hist(clean, bins=50, edgecolor='k', alpha=0.7)
+plt.axvline(med, color='r', linestyle='--', linewidth=2, 
+            label=f'Median = {med:.2f}')
+plt.axvline(mean, color='b', linestyle='--', linewidth=2,
+            label=f'Mean = {mean:.2f}')
+plt.xlabel(f'{da.name} value')
+plt.ylabel('Frequency')
+plt.title('Histogram of all months×lat×lon values')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+
+sys.exit()
 # Plot using xarray's built-in map projection
 fig = plt.figure(figsize=(12, 6))
 ax = plt.axes()

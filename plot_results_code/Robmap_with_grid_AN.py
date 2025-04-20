@@ -16,7 +16,7 @@ import matplotlib.patches as mpatches
 print('\n\nSTART ---------------------\n')
 
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3final_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_ANIfinal_square4_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -56,9 +56,29 @@ bounds = [0, 1.80, np.max(gdf_agg['psi'])]
 cmap = mcolors.ListedColormap(["gainsboro", "red"])
 norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                        fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
-                        transform=ccrs.PlateCarree())
+index_box1 = mpatches.Rectangle(
+    (50, -10),  # lower-left corner (longitude, latitude)
+    20,         # width: 70E - 50E
+    20,         # height: 10N - (-10S)
+    fill=True,
+    facecolor='green',
+    edgecolor=None,
+    linewidth=1.5,
+    alpha=0.30,
+    transform=ccrs.PlateCarree()
+)
+
+index_box2 = mpatches.Rectangle(
+    (90, -10),  # lower-left corner (longitude, latitude)
+    20,         # width: 110E - 90E
+    10,         # height: 0 - (-10S)
+    fill=True,
+    facecolor='green',
+    edgecolor=None,
+    linewidth=1.5,
+    alpha=0.30,
+    transform=ccrs.PlateCarree()
+)
 
 gl.top_labels       = False 
 ax.set_global()
@@ -71,27 +91,28 @@ gdf_plot = gdf_agg.plot(
         'label': "Weak group       Strong group",
         'orientation': "vertical", 
         'shrink': 0.6,
-        'ticks': [0, 1.80, np.max(gdf_agg['psi'])]
+        'ticks': [0, 1.180, np.max(gdf_agg['psi'])]
     },
     ax=ax,
     transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
 )
 ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
 ax.coastlines()
-ax.add_patch(index_box)
+ax.add_patch(index_box1)
+ax.add_patch(index_box2)
 cbar = gdf_plot.get_figure().axes[-1]
 # cbar.set_yticklabels(['0%', '80%', '100%'])
 cbar.set_title("Teleconnection\nstrength\n(percentile)", fontsize=9)
-plt.title('NINO3 Teleconnection Group Paritioning', fontsize=10)
+plt.title('Atlantic Niño (DMI) Teleconnection Group Paritioning', fontsize=10)
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_ANI_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
 ####################################
 ####################################
 
-# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3final_square4_wGeometry.csv'
+# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_ANIfinal_square4_wGeometry.csv'
 # df = pd.read_csv(path)
 
 # df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -133,9 +154,29 @@ plt.show()
 
 # cmap = 'PuRd'
 
-# index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-#                         fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
-#                         transform=ccrs.PlateCarree())
+# index_box1 = mpatches.Rectangle(
+#     (50, -10),  # lower-left corner (longitude, latitude)
+#     20,         # width: 70E - 50E
+#     20,         # height: 10N - (-10S)
+#     fill=True,
+#     facecolor='green',
+#     edgecolor=None,
+#     linewidth=1.5,
+#     alpha=0.30,
+#     transform=ccrs.PlateCarree()
+# )
+
+# index_box2 = mpatches.Rectangle(
+#     (90, -10),  # lower-left corner (longitude, latitude)
+#     20,         # width: 110E - 90E
+#     10,         # height: 0 - (-10S)
+#     fill=True,
+#     facecolor='green',
+#     edgecolor=None,
+#     linewidth=1.5,
+#     alpha=0.30,
+#     transform=ccrs.PlateCarree()
+# )
 
 # gl.top_labels       = False 
 # ax.set_global()
@@ -152,13 +193,14 @@ plt.show()
 # )
 # ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
 # ax.coastlines()
-# ax.add_patch(index_box)
+# ax.add_patch(index_box1)
+# ax.add_patch(index_box2)
 # cbar = gdf_plot.get_figure().axes[-1]
 # # cbar.set_yticklabels(['0%', '80%', '100%'])
 # cbar.set_title("Teleconnection\nstrength", fontsize=9)
-# plt.title('ENSO (NINO3) Teleconnection Strength', fontsize=10)
+# plt.title('Atlantic Niño (DMI) Teleconnection Strength', fontsize=10)
 # plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_ANI_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 # plt.show()
 
 
