@@ -267,8 +267,8 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         plt.show()
 
 
-    cols = [col for col in panel_gdf.columns if col not in ['geometry', 'pop2000']]
-    panel_gdf = panel_gdf[cols]
+    # cols = [col for col in panel_gdf.columns if col not in ['geometry', 'pop2000']]
+    # panel_gdf = panel_gdf[cols]
 
     return(panel_gdf)
 
@@ -280,5 +280,5 @@ panel = initalize_state_onset_panel(panel_start_year=1950,
                                     clim_index='nino3',
                                     response_var = 'binary',
                                     plot_telecon=True)
-# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_cindexnosd.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3final.csv', index=False)
 # print(panel)

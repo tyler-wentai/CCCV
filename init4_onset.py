@@ -456,6 +456,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
     # annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
+    print(annual_index)
 
     # group by polygon (loc_id) and year and then count number of conflicts for each grouping
     count_df = filtered_gdf.groupby(['loc_id', 'year']).size().reset_index(name='conflict_count')
@@ -720,10 +721,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'nino3',
-                                        response_var='count',
+                                        response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_FINAL.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3final_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3final_square4.csv', index=False)
 
 

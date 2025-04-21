@@ -52,8 +52,8 @@ gl.xformatter = LONGITUDE_FORMATTER
 gl.yformatter = LATITUDE_FORMATTER
 
 # create a custom colormap
-bounds = [0, 1.80, np.max(gdf_agg['psi'])]
-cmap = mcolors.ListedColormap(["gainsboro", "red"])
+bounds = [0, 0.331, 0.356, np.max(gdf_agg['psi'])]
+cmap = mcolors.ListedColormap(["gainsboro", "red", "gainsboro"])
 norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
 index_box = mpatches.Rectangle((-150, -5), 60, 10, 
