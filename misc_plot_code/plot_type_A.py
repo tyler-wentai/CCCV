@@ -38,9 +38,12 @@ path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
 gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
-ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_FINAL.nc')
+# ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502022_FINAL.npy')
+ds = np.load('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502022_FINAL.npy')
+print(set(ds[0,:,:].flatten()))
 var_name = list(ds.data_vars)[0]
 da = ds[var_name]
+print(da)
 # da = da.sum(dim='month')
 land_regs = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
@@ -49,6 +52,7 @@ mask = land_regs.mask(da)
 
 # keep only land
 da_land = da.where(mask>=0)
+
 
 # Plot using xarray's built-in map projection
 fig = plt.figure(figsize=(12, 6))
@@ -60,7 +64,7 @@ da_land.plot.pcolormesh(
     y='lat',
     add_colorbar=True
 )
-# gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
+gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)
 # gdf2.plot(ax=ax, edgecolor=None, color='white')
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
