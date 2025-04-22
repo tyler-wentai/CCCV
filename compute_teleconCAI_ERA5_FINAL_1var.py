@@ -62,9 +62,9 @@ ds1 = ds1.assign_coords(
 
 
 # load index data
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -74,9 +74,9 @@ clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
