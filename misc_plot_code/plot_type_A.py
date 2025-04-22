@@ -38,12 +38,9 @@ path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
 gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
-# ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502022_FINAL.npy')
-ds = np.load('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502022_FINAL.npy')
-print(set(ds[0,:,:].flatten()))
+ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_DMI_FINAL.nc')
 var_name = list(ds.data_vars)[0]
 da = ds[var_name]
-print(da)
 # da = da.sum(dim='month')
 land_regs = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
@@ -59,9 +56,10 @@ fig = plt.figure(figsize=(12, 6))
 ax = plt.axes()
 da_land.plot.pcolormesh(
     ax=ax,
-    cmap='Reds',
+    cmap='PRGn',
     x='lon',
     y='lat',
+    vmax=-1,
     add_colorbar=True
 )
 gdf1.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.15)

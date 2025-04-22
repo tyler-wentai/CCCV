@@ -133,7 +133,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
 
     df["detr"] = (
         df.groupby("month", group_keys=False)
-            .apply(_remove_trend, include_groups=False))
+            .apply(_remove_trend))#, include_groups=False))
 
     # --- 3. standardize 
     sigma = np.array([df.loc[df["month"] == m, "detr"].std(ddof=0) for m in range(12)]) # population sigma
@@ -163,9 +163,9 @@ else:
         if (i%10==0): 
             print("...", i)
         for j in range(n_long):
-            has_nan = np.isnan(var1_std[:, i, j]).any()
+            has_nan = np.isnan(var1_common[:, i, j]).any()
             if (has_nan==False):
-                var1_std[:, i, j] = detrend_then_standardize_monthly(var1_std[:, i, j], israin=True)
+                var1_std[:, i, j] = detrend_then_standardize_monthly(var1_common[:, i, j], israin=True)
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
@@ -256,7 +256,7 @@ psi             = np.empty((n_lat,n_long))
 # index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO'])
 
 print("\nComputing psi array...")
-warnings.filterwarnings('ignore', category=RuntimeWarning) #!!!!!!!
+#warnings.filterwarnings('ignore', category=RuntimeWarning) #!!!!!!!
 for i in range(n_lat):
     if (i%10==0): 
         print("...", i)
@@ -303,7 +303,6 @@ for i in range(n_lat):
                 pvals_array_1[int(k-1),i,j] = 1.
 
             # save monthly psi values
-            print(var_ts)
             var1_psi = corr_1['r'].iloc[0] if corr_1['p-val'].iloc[0] < 0.05 else 0
             monthly_psi[int(k-1),i,j] = var1_psi
 
@@ -344,7 +343,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using t2m and tp.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using spi6.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
