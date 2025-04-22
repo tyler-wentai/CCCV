@@ -7,6 +7,7 @@ import xarray as xr
 from pingouin import partial_corr
 from prepare_index import *
 from pathlib import Path
+import warnings
 
 print('\n\nSTART ---------------------\n')
 
@@ -80,7 +81,12 @@ clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 
+common_lon  = np.intersect1d(ds1['longitude'], ds1['longitude'])
+common_lat  = np.intersect1d(ds1['latitude'], ds1['latitude'])
 common_time = np.intersect1d(ds1['time'], clim_ind.index.to_numpy())
+
+print(common_lon)
+print(common_lat)
 
 ds1_common      = ds1.sel(time=common_time, longitude=ds1['longitude'], latitude=ds1['latitude'])
 clim_ind_common = clim_ind.loc[clim_ind.index.isin(pd.to_datetime(common_time))]
@@ -139,7 +145,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spi6_anom_ERA5_0d519502022_FINAL.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -149,7 +155,7 @@ if anom_file1.exists():
     print(var1_std.shape)
 
 else:
-    print("One or both anomaly field files are missing. Proceeding with processing.")
+    print("Anomaly field files are missing. Proceeding with processing.")
     var1_std = np.empty_like(var1_common) # Initialize a new array to store the standardized data
 
     print("Standardizing and de-trending climate variable data...")
@@ -250,6 +256,7 @@ psi             = np.empty((n_lat,n_long))
 # index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO'])
 
 print("\nComputing psi array...")
+warnings.filterwarnings('ignore', category=RuntimeWarning) #!!!!!!!
 for i in range(n_lat):
     if (i%10==0): 
         print("...", i)
@@ -313,12 +320,12 @@ for i in range(n_lat):
 
 psi_array = xr.DataArray(data = psi,
                             coords={
-                            "lat": ds1['latitude'],
-                            "lon": ds1['longitude']
+                            "lat": common_lat,
+                            "lon": common_lon
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using .",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using spi6.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -331,8 +338,8 @@ psi_array.to_netcdf(pathA_str)
 psiMonthly_array = xr.DataArray(data = monthly_psi,
                             coords={
                             "month": np.arange(1,(n_months+1),1),    
-                            "lat": ds1['latitude'],
-                            "lon": ds1['longitude']
+                            "lat": common_lat,
+                            "lon": common_lon
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
