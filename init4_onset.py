@@ -653,8 +653,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_global()
         gdf_plot = total_aggregate.plot(
             column='psi',    
-            cmap=cmap, #'tab20c_r',
-            norm=norm,   
+            cmap='PRGn', #cmap, #'tab20c_r',
+            #norm=norm,   
             legend=True,                   
             legend_kwds={
                 'label': "Teleconnection percentile", 
@@ -722,9 +722,9 @@ panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', s
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'nino3',
                                         response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_NINO3_FINAL.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_DMI_FINAL.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3finalspi6_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMIspi6_square4.csv', index=False)
 
 
