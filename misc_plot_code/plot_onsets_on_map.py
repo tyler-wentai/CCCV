@@ -30,7 +30,7 @@ gdf = gpd.GeoDataFrame(
 print(gdf.shape)
 
 # Create a figure with the desired size
-fig = plt.figure(figsize=(4.5, 3.5))
+fig = plt.figure(figsize=(5, 4))
 
 # Set up an axes with the Robinson projection
 ax = plt.axes(projection=ccrs.Robinson())
@@ -42,7 +42,7 @@ ax.set_global()
 ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black', linewidth=0.5)
 
 # Add land (continents) with the chosen color
-ax.add_feature(cfeature.LAND, facecolor='silver') #'#E0ECBA'
+ax.add_feature(cfeature.LAND, facecolor='gainsboro') #'#E0ECBA'
 
 # Draw coastlines with a specified linewidth
 ax.coastlines(linewidth=0.75)
