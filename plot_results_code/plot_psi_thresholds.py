@@ -19,7 +19,7 @@ print('\n\nSTART ---------------------\n')
 land_regs   = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
 #### --- NINO3
-ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_NINO3_FINAL.nc')
+ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthlyspi6_NINO3_FINAL.nc')
 var1_name = list(ds1.data_vars)[0]
 da1 = ds1[var1_name]
 
@@ -95,7 +95,7 @@ for i, (ax, (data, med, mean, name, title)) in enumerate(zip(axs, datasets)):
     ax.axvline(0.45, color='g', linestyle='--', linewidth=1.5, label=f'Monthly threshold')
     ax.set_ylabel('Density', fontsize=10)
     ax.set_title(title, fontsize=10, loc='left')
-    ax.set_xlim([0.2, 1.1])
+    # ax.set_xlim([0.2, 1.1])
     ax.legend(frameon=False, fontsize=9)
 
     # only give the xlabel to the bottom axis
@@ -107,5 +107,5 @@ for i, (ax, (data, med, mean, name, title)) in enumerate(zip(axs, datasets)):
 
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/Hist_MonthlyPsis_threshold.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/Hist_MonthlyPsis_threshold.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
