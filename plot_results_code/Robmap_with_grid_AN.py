@@ -16,7 +16,7 @@ import matplotlib.patches as mpatches
 print('\n\nSTART ---------------------\n')
 
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_ANIfinal_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_ANI_square2_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -31,7 +31,7 @@ gdf.set_crs(epsg=4326, inplace=True)
 gdf_agg =gdf.groupby('loc_id').agg({
     'geometry': 'first',
     'psi': 'first',
-    'conflict_binary':'sum',
+    'conflict_count':'sum',
 }).reset_index()
 
 # Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
@@ -91,7 +91,7 @@ gdf_plot = gdf_agg.plot(
         'label': "Weak group       Strong group",
         'orientation': "vertical", 
         'shrink': 0.6,
-        'ticks': [0, 1.180, np.max(gdf_agg['psi'])]
+        'ticks': bounds
     },
     ax=ax,
     transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates

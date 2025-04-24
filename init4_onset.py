@@ -682,6 +682,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_ylabel("Frequency")
 
         plt.tight_layout()
+        plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/psi_hist_NINO3_square3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         # fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
@@ -718,13 +719,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',
+                                        clim_index = 'ani',
                                         response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_DMI_FINAL.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_FINAL.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMIspi6_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Africa_ANI_square2.csv', index=False)
 
 

@@ -16,82 +16,7 @@ import matplotlib.patches as mpatches
 print('\n\nSTART ---------------------\n')
 
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3final_square4_wGeometry.csv'
-df = pd.read_csv(path)
-
-df['geometry'] = df['geometry'].apply(wkt.loads)
-
-# Create a GeoDataFrame, specifying the geometry column
-gdf = gpd.GeoDataFrame(df, geometry='geometry')
-
-# Optionally, set the coordinate reference system (CRS) if known, for example WGS84
-gdf.set_crs(epsg=4326, inplace=True)
-
-
-gdf_agg =gdf.groupby('loc_id').agg({
-    'geometry': 'first',
-    'psi': 'first',
-    'conflict_binary':'sum',
-}).reset_index()
-
-# Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
-gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
-
-# Optionally, set the CRS using the CRS from the original GeoDataFrame
-gdf_agg.set_crs(gdf.crs, inplace=True)
-
-
-# Define a polygon with lat/lon coordinates
-fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
-gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
-gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
-gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
-gl.xlabel_style = {'size': 8}
-gl.ylabel_style = {'size': 8}
-gl.xformatter = LONGITUDE_FORMATTER
-gl.yformatter = LATITUDE_FORMATTER
-
-# create a custom colormap
-bounds = [0, 0.331, 0.356, np.max(gdf_agg['psi'])]
-cmap = mcolors.ListedColormap(["gainsboro", "red", "gainsboro"])
-norm = mcolors.BoundaryNorm(bounds, cmap.N)
-
-index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                        fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
-                        transform=ccrs.PlateCarree())
-
-gl.top_labels       = False 
-ax.set_global()
-gdf_plot = gdf_agg.plot(
-    column='psi',    
-    cmap=cmap, #'tab20c_r',
-    norm=norm,   
-    legend=True,                   
-    legend_kwds={
-        'label': "Weak group       Strong group",
-        'orientation': "vertical", 
-        'shrink': 0.6,
-        'ticks': [0, 1.80, np.max(gdf_agg['psi'])]
-    },
-    ax=ax,
-    transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
-)
-ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
-ax.coastlines()
-ax.add_patch(index_box)
-cbar = gdf_plot.get_figure().axes[-1]
-# cbar.set_yticklabels(['0%', '80%', '100%'])
-cbar.set_title("Teleconnection\nstrength\n(percentile)", fontsize=9)
-plt.title('NINO3 Teleconnection Group Paritioning', fontsize=10)
-plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-plt.show()
-
-
-####################################
-####################################
-
-# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3final_square4_wGeometry.csv'
+# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3_square2_wGeometry.csv'
 # df = pd.read_csv(path)
 
 # df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -106,7 +31,7 @@ plt.show()
 # gdf_agg =gdf.groupby('loc_id').agg({
 #     'geometry': 'first',
 #     'psi': 'first',
-#     'conflict_binary':'sum',
+#     'conflict_count':'sum',
 # }).reset_index()
 
 # # Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
@@ -127,11 +52,9 @@ plt.show()
 # gl.yformatter = LATITUDE_FORMATTER
 
 # # create a custom colormap
-# # bounds = [0, 1.4415020, np.max(gdf_agg['psi'])]
-# # cmap = mcolors.ListedColormap(["gainsboro", "red"])
-# # norm = mcolors.BoundaryNorm(bounds, cmap.N)
-
-# cmap = 'PuRd'
+# bounds = [0, 0.45, np.max(gdf_agg['psi'])]
+# cmap = mcolors.ListedColormap(["blue", "gainsboro"])
+# norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
 # index_box = mpatches.Rectangle((-150, -5), 60, 10, 
 #                         fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
@@ -141,11 +64,14 @@ plt.show()
 # ax.set_global()
 # gdf_plot = gdf_agg.plot(
 #     column='psi',    
-#     cmap=cmap, #'tab20c_r', 
+#     cmap=cmap, #'tab20c_r',
+#     norm=norm,   
 #     legend=True,                   
 #     legend_kwds={
+#         'label': "Weak group       Strong group",
 #         'orientation': "vertical", 
-#         'shrink': 0.6
+#         'shrink': 0.6,
+#         'ticks': bounds
 #     },
 #     ax=ax,
 #     transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
@@ -155,11 +81,85 @@ plt.show()
 # ax.add_patch(index_box)
 # cbar = gdf_plot.get_figure().axes[-1]
 # # cbar.set_yticklabels(['0%', '80%', '100%'])
-# cbar.set_title("Teleconnection\nstrength", fontsize=9)
-# plt.title('ENSO (NINO3) Teleconnection Strength', fontsize=10)
+# cbar.set_title("Teleconnection\nstrength\n(percentile)", fontsize=9)
+# plt.title('NINO3 Teleconnection Group Paritioning', fontsize=10)
 # plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_square2_NINO3_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 # plt.show()
+
+
+####################################
+####################################
+
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3_square4_wGeometry.csv'
+df = pd.read_csv(path)
+
+df['geometry'] = df['geometry'].apply(wkt.loads)
+
+# Create a GeoDataFrame, specifying the geometry column
+gdf = gpd.GeoDataFrame(df, geometry='geometry')
+
+# Optionally, set the coordinate reference system (CRS) if known, for example WGS84
+gdf.set_crs(epsg=4326, inplace=True)
+
+
+gdf_agg =gdf.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_count':'sum',
+}).reset_index()
+
+# Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
+gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
+
+# Optionally, set the CRS using the CRS from the original GeoDataFrame
+gdf_agg.set_crs(gdf.crs, inplace=True)
+
+
+# Define a polygon with lat/lon coordinates
+fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
+gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
+gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+gl.ylocator = mticker.FixedLocator(range(-60, 91, 30))    # parallels every 30°
+gl.xlabel_style = {'size': 8}
+gl.ylabel_style = {'size': 8}
+gl.xformatter = LONGITUDE_FORMATTER
+gl.yformatter = LATITUDE_FORMATTER
+
+# create a custom colormap
+# bounds = [0, 1.4415020, np.max(gdf_agg['psi'])]
+# cmap = mcolors.ListedColormap(["gainsboro", "red"])
+# norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+cmap = 'gist_heat_r'
+
+index_box = mpatches.Rectangle((-150, -5), 60, 10, 
+                        fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
+                        transform=ccrs.PlateCarree())
+
+gl.top_labels       = False 
+ax.set_global()
+gdf_plot = gdf_agg.plot(
+    column='psi',    
+    cmap=cmap, #'tab20c_r', 
+    legend=True,                   
+    legend_kwds={
+        'orientation': "vertical", 
+        'shrink': 0.6
+    },
+    ax=ax,
+    transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
+)
+ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
+ax.coastlines()
+ax.add_patch(index_box)
+cbar = gdf_plot.get_figure().axes[-1]
+# cbar.set_yticklabels(['0%', '80%', '100%'])
+cbar.set_title("Teleconnection\nstrength", fontsize=9)
+plt.title('ENSO (NINO3) Teleconnection Strength', fontsize=10)
+plt.tight_layout()
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
 
 
 

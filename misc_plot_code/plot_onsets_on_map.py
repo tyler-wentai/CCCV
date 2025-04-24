@@ -101,6 +101,6 @@ yi_masked = np.where(zi > density_threshold, yi, np.nan)
 plt.title('Onset of armed conflict, 1950-2023\nn=555', fontsize=8)
 
 # Show plot
-plt.savefig('/Users/tylerbagwell/Desktop/conflict_onset_map.png', dpi=300, bbox_inches='tight')
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/conflict_onset_map.png', dpi=300, bbox_inches='tight')
 plt.show()
 plt.close()

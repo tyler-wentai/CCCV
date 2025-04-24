@@ -16,7 +16,7 @@ import matplotlib.patches as mpatches
 print('\n\nSTART ---------------------\n')
 
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMIfinal_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMIfinal_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -91,7 +91,7 @@ gdf_plot = gdf_agg.plot(
         'label': "Weak group       Strong group",
         'orientation': "vertical", 
         'shrink': 0.6,
-        'ticks': [0, 1.80, np.max(gdf_agg['psi'])]
+        'ticks': bounds
     },
     ax=ax,
     transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
@@ -105,14 +105,14 @@ cbar = gdf_plot.get_figure().axes[-1]
 cbar.set_title("Teleconnection\nstrength\n(percentile)", fontsize=9)
 plt.title('Indian Ocean Dipole (DMI) Teleconnection Group Paritioning', fontsize=10)
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_DMI_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
 ####################################
 ####################################
 
-# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMI_square3_wGeometry.csv'
+# path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMI_square4_wGeometry.csv'
 # df = pd.read_csv(path)
 
 # df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -127,7 +127,7 @@ plt.show()
 # gdf_agg =gdf.groupby('loc_id').agg({
 #     'geometry': 'first',
 #     'psi': 'first',
-#     'conflict_binary':'sum',
+#     'conflict_count':'sum',
 # }).reset_index()
 
 # # Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
@@ -152,7 +152,7 @@ plt.show()
 # # cmap = mcolors.ListedColormap(["gainsboro", "red"])
 # # norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-# cmap = 'PuRd'
+# cmap = 'gist_heat_r'
 
 # index_box1 = mpatches.Rectangle(
 #     (50, -10),  # lower-left corner (longitude, latitude)
@@ -200,7 +200,7 @@ plt.show()
 # cbar.set_title("Teleconnection\nstrength", fontsize=9)
 # plt.title('Indian Ocean Dipole (DMI) Teleconnection Strength', fontsize=10)
 # plt.tight_layout()
-# # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_DMI_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_DMI_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 # plt.show()
 
 

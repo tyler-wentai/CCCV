@@ -42,11 +42,11 @@ from matplotlib.legend_handler import HandlerTuple
 
 
 path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_strong95.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_strong95.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_stronggroup.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_stronggroup.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_weak95.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_square4_group_weak95.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_weakgroup.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_weakgroup.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -61,26 +61,26 @@ index_closest2_h = df2_h['cindex_lag0y'].abs().idxmin()
 val1_h = df1_h['estimate__'].iloc[index_closest1_h]
 val2_h = df2_h['estimate__'].iloc[index_closest2_h]
 
-df1_h['estimate__']     = 1*(df1_h['estimate__'])/0.004724604
-df1_h['upper__']        = 1*(df1_h['upper__'])/0.004724604
-df1_h['lower__']        = 1*(df1_h['lower__'])/0.004724604
+df1_h['estimate__']     = 100*(df1_h['estimate__'])
+df1_h['upper__']        = 100*(df1_h['upper__'])
+df1_h['lower__']        = 100*(df1_h['lower__'])
 
-df2_h['estimate__']     = 1*(df2_h['estimate__'])/0.004724604
-df2_h['upper__']        = 1*(df2_h['upper__'])/0.004724604
-df2_h['lower__']        = 1*(df2_h['lower__'])/0.004724604
+df2_h['estimate__']     = 100*(df2_h['estimate__'])
+df2_h['upper__']        = 100*(df2_h['upper__'])
+df2_h['lower__']        = 100*(df2_h['lower__'])
 
 index_closest1_l = df1_l['cindex_lag0y'].abs().idxmin()
 index_closest2_l = df2_l['cindex_lag0y'].abs().idxmin()
 val1_l = df1_l['estimate__'].iloc[index_closest1_l]
 val2_l = df2_l['estimate__'].iloc[index_closest2_l]
 
-df1_l['estimate__']     = 1*(df1_l['estimate__'])/0.004724604
-df1_l['upper__']        = 1*(df1_l['upper__'])/0.004724604
-df1_l['lower__']        = 1*(df1_l['lower__'])/0.004724604
+df1_l['estimate__']     = 100*(df1_l['estimate__'])
+df1_l['upper__']        = 100*(df1_l['upper__'])
+df1_l['lower__']        = 100*(df1_l['lower__'])
 
-df2_l['estimate__']     = 1*(df2_l['estimate__'])/0.004724604
-df2_l['upper__']        = 1*(df2_l['upper__'])/0.004724604
-df2_l['lower__']        = 1*(df2_l['lower__'])/0.004724604
+df2_l['estimate__']     = 100*(df2_l['estimate__'])
+df2_l['upper__']        = 100*(df2_l['upper__'])
+df2_l['lower__']        = 100*(df2_l['lower__'])
 
 cmap = sns.diverging_palette(220, 20, as_cmap=True)
 num_colors = 5
@@ -241,8 +241,8 @@ ax2 = ax1.twinx()
 ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n', fontsize=10, color='black')
 
 # 
-sns.histplot(x=df_ci['x'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
-ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
+sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
+# ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
 # ax1.axvline(0, color='gray', linestyle='--', linewidth=1)
 sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
 ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
@@ -266,7 +266,7 @@ ax2.yaxis.set_label_position("left")  # Move line plot label to the left
 # ax2.set_yticklabels(["0.5x", "1.0x", "1.5x", "2.0x", "2.5x", "3.0x", "3.5x"], fontsize=10)
 ax2.tick_params(axis='y', direction='in')
 # ax2.set_ylabel(r"Pct. $\Delta$ACR from neutral phase (%)", fontsize=10, color='black')
-ax2.set_ylabel(r'ACR$_{group}$ / ACR$_{global}^{netural}$', fontsize=10, color='black')
+ax2.set_ylabel(r'ACR per °C', fontsize=10, color='black')
 
 #
 # ax1.axvspan(+1.5, +2.8, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
@@ -276,9 +276,9 @@ ax1.axvspan(-2.05, -0.4, color=colors[0], alpha=0.20, edgecolor='none', linewidt
 # ax1.axvspan(-2.05, -1.5, color=colors[0], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
 
 #
-plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
-plt.text(+0.5,  +3.5, 'Pos. Phase', fontsize=9, color='k', horizontalalignment='left')
-plt.text(-0.5,  +3.5, 'Neg. Phase', fontsize=9, color='k', horizontalalignment='right')
+# plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
+# plt.text(+0.5,  +3.5, 'Pos. Phase', fontsize=9, color='k', horizontalalignment='left')
+# plt.text(-0.5,  +3.5, 'Neg. Phase', fontsize=9, color='k', horizontalalignment='right')
 
 line_weak = mlines.Line2D([], [], color='dimgray')
 patch_weak = mpatches.Patch(color='dimgray', alpha=0.35)
@@ -291,12 +291,140 @@ handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
 labels = ['Strong', 'Weak']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
-ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.5], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.6], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
 
 ax1.set_ylim(0, 2.5)
 ax2.set_xlim(-1.00, 1.00)
-ax2.set_ylim(0.1, 3.85)
+# ax2.set_ylim(0.1, 3.85)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_Onset_Binary_Global_DMI_square4_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
+
+
+
+
+
+#######################
+#######################
+
+#ALL COUNTRIES
+
+
+
+
+
+# path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
+# path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_group_ALL95.csv'
+# path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_group_ALL95.csv'
+
+# path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_group_ALL95.csv'
+# path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_group_ALL95.csv'
+
+# df_ci = pd.read_csv(path_ci)
+
+# df1_h = pd.read_csv(path1_h)
+# df2_h = pd.read_csv(path2_h)
+
+# df1_l = pd.read_csv(path1_l)
+# df2_l = pd.read_csv(path2_l)
+
+# index_closest1_h = df1_h['cindex_lag0y'].abs().idxmin()
+# index_closest2_h = df2_h['cindex_lag0y'].abs().idxmin()
+# val1_h = df1_h['estimate__'].iloc[index_closest1_h]
+# val2_h = df2_h['estimate__'].iloc[index_closest2_h]
+
+# df1_h['estimate__']     = 100*(df1_h['estimate__'])
+# df1_h['upper__']        = 100*(df1_h['upper__'])
+# df1_h['lower__']        = 100*(df1_h['lower__'])
+
+# df2_h['estimate__']     = 100*(df2_h['estimate__'])
+# df2_h['upper__']        = 100*(df2_h['upper__'])
+# df2_h['lower__']        = 100*(df2_h['lower__'])
+
+# index_closest1_l = df1_l['cindex_lag0y'].abs().idxmin()
+# index_closest2_l = df2_l['cindex_lag0y'].abs().idxmin()
+# val1_l = df1_l['estimate__'].iloc[index_closest1_l]
+# val2_l = df2_l['estimate__'].iloc[index_closest2_l]
+
+# df1_l['estimate__']     = 100*(df1_l['estimate__'])
+# df1_l['upper__']        = 100*(df1_l['upper__'])
+# df1_l['lower__']        = 100*(df1_l['lower__'])
+
+# df2_l['estimate__']     = 100*(df2_l['estimate__'])
+# df2_l['upper__']        = 100*(df2_l['upper__'])
+# df2_l['lower__']        = 100*(df2_l['lower__'])
+
+# cmap = sns.diverging_palette(220, 20, as_cmap=True)
+# num_colors = 5
+# levels = np.linspace(0, 1, num_colors)
+# colors = [cmap(level) for level in levels]
+
+
+
+# fig = plt.figure(figsize=(4.5, 3.5))
+# ax1 = fig.add_subplot(111)
+# ax2 = ax1.twinx()
+
+# ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n (All countries)', fontsize=10, color='black')
+
+# # 
+# sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
+# # ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
+# # ax1.axvline(0, color='gray', linestyle='--', linewidth=1)
+# sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
+# ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
+# sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='red', ax=ax2)
+# ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='red', alpha=0.25, edgecolor=None)
+
+# # ax2.axvline(0, color='black', linestyle='--', linewidth=1)
+
+# # Swap tick positions:
+# ax1.yaxis.tick_right()                # Move histogram ticks to the right
+# ax1.yaxis.set_label_position("right") # Move histogram label to the right
+# ax1.set_yticks([0, 0.15, 0.30])
+# ax1.set_yticklabels([0, 0.15, 0.30], fontsize=8)
+# ax1.set_ylabel("Obs. proportion               ", ha='right', fontsize=8, color='black')
+# ax1.set_xlabel(r"Annualized DMI ($^{\degree}C$)", fontsize=10, color='black')
+# ax1.tick_params(axis='y', direction='in')
+
+# ax2.yaxis.tick_left()                 # Move line plot ticks to the left
+# ax2.yaxis.set_label_position("left")  # Move line plot label to the left
+# # ax2.set_yticks([+0.5, +1.0, +1.5, +2.0, +2.5, +3.0, +3.5])
+# # ax2.set_yticklabels(["0.5x", "1.0x", "1.5x", "2.0x", "2.5x", "3.0x", "3.5x"], fontsize=10)
+# ax2.tick_params(axis='y', direction='in')
+# # ax2.set_ylabel(r"Pct. $\Delta$ACR from neutral phase (%)", fontsize=10, color='black')
+# ax2.set_ylabel(r'ACR per °C', fontsize=10, color='black')
+
+# #
+# # ax1.axvspan(+1.5, +2.8, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+# ax1.axvspan(+0.4, +2.8, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+# ax1.axvspan(-0.4, +0.4, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+# ax1.axvspan(-2.05, -0.4, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+# # ax1.axvspan(-2.05, -1.5, color=colors[0], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
+
+# #
+# # plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
+# # plt.text(+0.5,  +3.5, 'Pos. Phase', fontsize=9, color='k', horizontalalignment='left')
+# # plt.text(-0.5,  +3.5, 'Neg. Phase', fontsize=9, color='k', horizontalalignment='right')
+
+# line_weak = mlines.Line2D([], [], color='dimgray')
+# patch_weak = mpatches.Patch(color='dimgray', alpha=0.35)
+# # Strong: darkorange line and fill
+# line_strong = mlines.Line2D([], [], color='red')
+# patch_strong = mpatches.Patch(color='red', alpha=0.25)
+
+# # Combine each line and its fill into a tuple
+# handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
+# labels = ['Strong', 'Weak']
+
+# # Create a combined legend using HandlerTuple to combine the tuple handles
+# ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.5], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+
+# ax1.set_ylim(0, 2.5)
+# ax2.set_xlim(-1.00, 1.00)
+# # ax2.set_ylim(0.1, 3.85)
+
+# plt.tight_layout()
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_ALL_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
