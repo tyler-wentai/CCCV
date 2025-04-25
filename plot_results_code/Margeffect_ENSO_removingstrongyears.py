@@ -17,40 +17,40 @@ import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerTuple
 
 
-path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_NINO3_square4.csv"
+path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
 
-path_0 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_high90.csv'
-path_1 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_strong90_1strongelninoremoved.csv'
-path_2 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_strong90_2strongelninoremoved.csv'
-path_3 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_strong90_3strongelninoremoved.csv'
-path_4 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_square4_group_strong90_4strongelninoremoved.csv'
+path_0 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_grouplinear_ci90_remove0pos.csv'
+path_1 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_grouplinear_ci90_remove1pos.csv'
+path_2 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_grouplinear_ci90_remove4pos.csv'
+path_3 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_grouplinear_ci90_remove0pos.csv'
+path_4 = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_grouplinear_ci90_remove0pos.csv'
 
 df_ci = pd.read_csv(path_ci)
 
 df0 = pd.read_csv(path_0)
-df0['estimate__']     = 1*(df0['estimate__'])/0.004605692   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
-df0['upper__']        = 1*(df0['upper__'])/0.004605692
-df0['lower__']        = 1*(df0['lower__'])/0.004605692
+df0['estimate__']     = 100*(df0['estimate__']) # 0.004605692 is ACR of all global grid points at neutral phase ENSO
+df0['upper__']        = 100*(df0['upper__'])
+df0['lower__']        = 100*(df0['lower__'])
 
 df1 = pd.read_csv(path_1)
-df1['estimate__']     = 1*(df1['estimate__'])/0.004605692   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
-df1['upper__']        = 1*(df1['upper__'])/0.004605692
-df1['lower__']        = 1*(df1['lower__'])/0.004605692
+df1['estimate__']     = 100*(df1['estimate__'])   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
+df1['upper__']        = 100*(df1['upper__'])
+df1['lower__']        = 100*(df1['lower__'])
 
 df2 = pd.read_csv(path_2)
-df2['estimate__']     = 1*(df2['estimate__'])/0.004605692   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
-df2['upper__']        = 1*(df2['upper__'])/0.004605692
-df2['lower__']        = 1*(df2['lower__'])/0.004605692
+df2['estimate__']     = 100*(df2['estimate__'])   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
+df2['upper__']        = 100*(df2['upper__'])
+df2['lower__']        = 100*(df2['lower__'])
 
 df3 = pd.read_csv(path_3)
-df3['estimate__']     = 1*(df3['estimate__'])/0.004605692   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
-df3['upper__']        = 1*(df3['upper__'])/0.004605692
-df3['lower__']        = 1*(df3['lower__'])/0.004605692
+df3['estimate__']     = 100*(df3['estimate__'])   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
+df3['upper__']        = 100*(df3['upper__'])
+df3['lower__']        = 100*(df3['lower__'])
 
 df4 = pd.read_csv(path_4)
-df4['estimate__']     = 1*(df4['estimate__'])/0.004605692   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
-df4['upper__']        = 1*(df4['upper__'])/0.004605692
-df4['lower__']        = 1*(df4['lower__'])/0.004605692
+df4['estimate__']     = 100*(df4['estimate__'])   # 0.004605692 is ACR of all global grid points at neutral phase ENSO
+df4['upper__']        = 100*(df4['upper__'])
+df4['lower__']        = 100*(df4['lower__'])
 
 
 cmap = sns.diverging_palette(220, 20, as_cmap=True)
@@ -66,11 +66,11 @@ fig = plt.figure(figsize=(4.5, 3.5))
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
-ax1.set_title('Removing Strong El Niño Years\n(strongly-teleconnected group)', fontsize=10, color='black')
+ax1.set_title('Removing Strong Positive IOD Years\n(strongly-teleconnected group)', fontsize=10, color='black')
 
 # 
-sns.histplot(x=df_ci['x'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
-ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
+sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
+# ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
 #
 sns.lineplot(x='cindex_lag0y', y='estimate__', data=df0, color='#648FFF', ax=ax2)
 ax2.fill_between(df0['cindex_lag0y'], df0['lower__'], df0['upper__'], color='#648FFF', alpha=0.35, edgecolor=None)
@@ -95,7 +95,7 @@ ax1.yaxis.set_label_position("right") # Move histogram label to the right
 ax1.set_yticks([0, 0.15, 0.30])
 ax1.set_yticklabels([0, 0.15, 0.30], fontsize=8)
 ax1.set_ylabel("Obs. proportion               ", ha='right', fontsize=8, color='black')
-ax1.set_xlabel(r"Annualized NINO3 ($^{\degree}C$)", fontsize=10, color='black')
+ax1.set_xlabel(r"Annualized DMI ($^{\degree}C$)", fontsize=10, color='black')
 ax1.tick_params(axis='y', direction='in')
 
 ax2.yaxis.tick_left()                 # Move line plot ticks to the left
@@ -104,19 +104,19 @@ ax2.yaxis.set_label_position("left")  # Move line plot label to the left
 # ax2.set_yticklabels(["0.5x", "1.0x", "1.5x", "2.0x", "2.5x", "3.0x", "3.5x"], fontsize=10)
 ax2.tick_params(axis='y', direction='in')
 # ax2.set_ylabel(r"Pct. $\Delta$ACR from neutral phase (%)", fontsize=10, color='black')
-ax2.set_ylabel(r'ACR$_{group}$ / ACR$_{global}^{netural}$', fontsize=10, color='black')
+ax2.set_ylabel(r'ACR per °C', fontsize=10, color='black')
 
 #
 # ax1.axvspan(+1.5, +2.8, color=colors[4], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(+0.5, +2.8, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(-0.5, +0.5, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
-ax1.axvspan(-2.05, -0.5, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(+0.4, +1.1, color=colors[4], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(-0.4, +0.4, color=colors[2], alpha=0.00, edgecolor='none', linewidth=0.0, zorder=0)
+ax1.axvspan(-1.1, -0.4, color=colors[0], alpha=0.20, edgecolor='none', linewidth=0.0, zorder=0)
 # ax1.axvspan(-2.05, -1.5, color=colors[0], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
 
 #
-plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
-plt.text(+1.0,  +3.5, 'El Niño', fontsize=9, color='k', horizontalalignment='left')
-plt.text(-1.0,  +3.5, 'La Niña', fontsize=9, color='k', horizontalalignment='right')
+# plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
+# plt.text(+1.0,  +3.5, 'El Niño', fontsize=9, color='k', horizontalalignment='left')
+# plt.text(-1.0,  +3.5, 'La Niña', fontsize=9, color='k', horizontalalignment='right')
 
 
 line_0 = mlines.Line2D([], [], color='#648FFF')
@@ -128,15 +128,15 @@ patch_2 = mpatches.Patch(color='#FFB000', alpha=0.35)
 
 # Combine each line and its fill into a tuple
 handles = [(line_0, patch_0),(line_1, patch_1),(line_2, patch_2)]
-labels = ['All years (N=73)', '2015 removed', '2015, 1997 removed']
+labels = ['All years (N=73)', '1997 removed', '4 strongest years removed']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
 ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.65], fontsize=9, frameon=False)
 
 ax1.set_ylim(0, 2.5)
-ax2.set_xlim(-2.00, 2.75)
+ax2.set_xlim(-1.1, 1.1)
 # ax2.set_ylim(-0.0075, 0.010)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_removingstrongelninos_Onset_Binary_Global_NINO3_square4_90ci.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/cindex_margeffect_removingstrongelposIOD_Onset_Binary_Global_NINO3_state_90ci.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()

@@ -298,7 +298,7 @@ ax2.set_xlim(-1.00, 1.00)
 # ax2.set_ylim(0.1, 3.85)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
