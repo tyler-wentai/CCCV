@@ -19,7 +19,7 @@ print('\n\nSTART ---------------------\n')
 land_regs   = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
 #### --- NINO3
-ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthlyspi6_NINO3_FINAL.nc')
+ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_NINO3_FINAL.nc')
 var1_name = list(ds1.data_vars)[0]
 da1 = ds1[var1_name]
 

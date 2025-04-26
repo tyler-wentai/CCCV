@@ -280,5 +280,5 @@ panel = initalize_state_onset_panel(panel_start_year=1950,
                                     clim_index='nino3',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_new.csv', index=False)
 # print(panel)
