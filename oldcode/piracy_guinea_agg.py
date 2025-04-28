@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
-from mapping import mapper
+from oldcode.mapping import mapper
 import statsmodels.api as sm
 
 guinea_center_point = np.array([3.01, 4.34])  # lat, long of center of gulf of guinea

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
 import statsmodels.api as sm
-from prepare_index import *
+from oldcode.prepare_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')

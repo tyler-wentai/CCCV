@@ -8,9 +8,7 @@ from datetime import datetime
 import math
 import xarray as xr
 import seaborn as sns
-from shapely.geometry import mapping
-import statsmodels.api as sm
-from prepare_index import *
+from oldcode.prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -232,145 +230,8 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     return gdf_final
 
 
-# 
-def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
-    """
-    Computes the annualized climate-index-signal-removed average temperature and precipitation for 
-    each geometry contained in the polygons_gdf for years start_year to end_year.
-    """
-    print(" Computing weather controls...")
-
-    # Function to convert longitude from 0-360 to -180 to 180
-    def convert_longitude(ds):
-        longitude = ds['longitude']
-        longitude = ((longitude + 180) % 360) - 180
-        ds = ds.assign_coords(longitude=longitude)
-        return ds
-    
-    # Function to perform standardization of variables
-    def standardize_group(x):
-        std = x.std()
-        if std == 0:
-            return x * 0  # Assign zero or any other constant value
-        else:
-            return (x - x.mean()) / std
-        
-    # Function to perform de-trending
-    def detrend_group_t2m(group):
-        X = group['INDEX']
-        y = group['t2m']
-        X = sm.add_constant(X)
-        model = sm.OLS(y, X).fit()
-        group['t2m'] = model.resid
-        return group
-    
-    # Function to perform de-trending
-    def detrend_group_tp(group):
-        X = group['INDEX']
-        y = group['tp']
-        X = sm.add_constant(X)
-        model = sm.OLS(y, X).fit()
-        group['tp'] = model.resid
-        return group
-
-    # LOAD IN ANOMALIZED CLIMATE DATA
-    # t2m: air temperature at 2 m
-    # tp: total precipitation
-    file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # t2m
-    file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  # tp
-    ds1 = xr.open_dataset(file_path_VAR1)
-    ds2 = xr.open_dataset(file_path_VAR2)
-
-    # change dates to time format:
-    dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
-    ds1 = ds1.assign_coords(date=dates)
-    ds1 = ds1.rename({'date': 'time'})
-    ds1 = ds1.rio.write_crs("EPSG:4326")                    # Ensure the dataset has a CRS
-    ds1 = ds1.sel(time=slice(f"{start_year}-01-01", f"{end_year}-12-31"))   # Select data within the specified year range
-
-    dates = pd.to_datetime(ds2['date'].astype(str), format='%Y%m%d')
-    ds2 = ds2.assign_coords(date=dates)
-    ds2 = ds2.rename({'date': 'time'})
-    ds2 = ds2.rio.write_crs("EPSG:4326")                    # Ensure the dataset has a CRS
-    ds2 = ds2.sel(time=slice(f"{start_year}-01-01", f"{end_year}-12-31"))   # Select data within the specified year range
-
-    lon1 = ds1['longitude']
-    lon2 = ds2['longitude']
-    if lon1.max() > 180:
-        ds1 = convert_longitude(ds1)
-    if lon2.max() > 180:
-        ds2 = convert_longitude(ds2)
-    ds1 = ds1.sortby('longitude')
-    ds2 = ds2.sortby('longitude')
-    ds1 = ds1.assign_coords(
-        longitude=np.round(ds1['longitude'], decimals=2),
-        latitude=np.round(ds1['latitude'], decimals=2)
-        )
-    ds2 = ds2.assign_coords(
-        longitude=np.round(ds2['longitude'], decimals=2),
-        latitude=np.round(ds2['latitude'], decimals=2)
-        )
-
-    polygons_gdf = polygons_gdf.to_crs(ds1.rio.crs)         # Reproject polygons_gdf to match the dataset's CRS
-
-    ds_yearly1 = ds1.groupby('time.year').mean()             # Group data by year and compute annual mean
-    ds_yearly2 = ds2.groupby('time.year').mean()             # Group data by year and compute annual mean
-
-    # Iterate over each polygon and compute the average temperature for each year
-    # t2m
-    results_list1 = []
-    for idx, row in polygons_gdf.iterrows():
-        print(f"t2m: processing polygon {idx+1}/{len(polygons_gdf)}")
-        geometry = [mapping(row['geometry'])]
-
-        ds_clipped = ds_yearly1.rio.clip(geometry, ds1.rio.crs, drop=False)  # Clip the dataset to the polygon
-
-        mean_temp = ds_clipped['t2m'].mean(dim=('latitude', 'longitude'))   # Compute spatial mean over the clipped area
-
-        df = mean_temp.to_dataframe().reset_index() # Convert to DataFrame
-        df['loc_id'] = row['loc_id']  # Use the loc_id from polygons_gdf
-        df = df.rename(columns={'year': 'tropical_year'})
-        results_list1.append(df)
-
-    results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
-    results1 = results1.drop(columns=['number', 'spatial_ref'])
-
-    results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    # results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
-    results1.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
-    results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group)        # standardize residuals over all years for each loc_id
-
-    # tp
-    results_list2 = []
-    for idx, row in polygons_gdf.iterrows():
-        print(f"tp: processing polygon {idx+1}/{len(polygons_gdf)}")
-        geometry = [mapping(row['geometry'])]
-
-        ds_clipped = ds_yearly2.rio.clip(geometry, ds2.rio.crs, drop=False)  # Clip the dataset to the polygon
-
-        mean_temp = ds_clipped['tp'].mean(dim=('latitude', 'longitude'))   # Compute spatial mean over the clipped area
-
-        df = mean_temp.to_dataframe().reset_index() # Convert to DataFrame
-        df['loc_id'] = row['loc_id']  # Use the loc_id from polygons_gdf
-        df = df.rename(columns={'year': 'tropical_year'})
-        results_list2.append(df)
-
-    results2 = pd.concat(results_list2, ignore_index=True)  # Concatenate all results into a single DataFrame
-    results2 = results2.drop(columns=['number', 'spatial_ref'])
-
-    results2 = results2.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    # results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)    # remove climate index signal via detrending
-    results2.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
-    results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group)          # standardize residuals over all years for each loc_id
-
-    #
-    results = results1.merge(results2, on=['loc_id', 'tropical_year'], how='left')
-    # print(results)
-
-    return results
-
 #
-def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nlag_conflict, clim_index, response_var='count', telecon_path=None, weather_controls=False, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
@@ -387,8 +248,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    # conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1.csv'
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GEDEvent_v24_1_CLEANED.csv'
+    # conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1_CLEANED_2.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -409,29 +270,16 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     if (clim_index == 'NINO3'):
         annual_index = compute_annualized_NINO3_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         # align to tropical year
         filtered_gdf['date_start'] = pd.to_datetime(filtered_gdf['date_start'])
         filtered_gdf['tropical_year'] = filtered_gdf['date_start'].dt.year #- (filtered_gdf['date_start'].dt.month <= 9).astype(int) # January to May belong to previous year NDJ index
     elif (clim_index == 'DMI'):
         annual_index = compute_annualized_DMI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     elif (clim_index == 'ANI'):
         annual_index = compute_annualized_ANI_index(start_year, end_year)
         annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'EEI'):
-        annual_index = compute_annualized_EEI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
-        filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
-    elif (clim_index == 'ECI'):
-        annual_index = compute_annualized_ECI_index(start_year, end_year)
-        annual_index.rename(columns={'year': 'tropical_year'}, inplace=True)
-        annual_index['INDEX'] = annual_index['INDEX'] / annual_index['INDEX'].std()
         filtered_gdf.rename(columns={'year': 'tropical_year'}, inplace=True)
     else:
         raise ValueError("Specified 'clim_index' not found...")
@@ -449,28 +297,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
     final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
     final_gdf = final_gdf[['loc_id', 'tropical_year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
 
-    ###### --- COMPUTE WEATHER (AIR TEMP and PRECIP) CONTROLS
-    if add_weather_controls==True:
-        weather_controls = compute_weather_controls((start_year+1), end_year, polygons_gdf, annual_index)
-
-        for i in range(nlag_psi+1):
-            lag_string_var1 = 't2m_lag' + str(i) + 'y'
-            weather_controls[lag_string_var1] = weather_controls['t2m'].shift(i)
-        weather_controls['t2m_lagF1y'] = weather_controls['t2m'].shift(-1)
-        weather_controls.drop('t2m', axis=1, inplace=True)
-        for i in range(nlag_psi+1):
-            lag_string_var2 = 'tp_lag' + str(i) + 'y'
-            weather_controls[lag_string_var2] = weather_controls['tp'].shift(i)
-        weather_controls['tp_lagF1y'] = weather_controls['tp'].shift(-1)
-        weather_controls.drop('tp', axis=1, inplace=True)
-
-        final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'tropical_year'], how='left')
-
-    ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
+    # Add the observed annualized climate index values to panel dataset
     for i in range(nlag_psi+1):
         lag_string = 'INDEX_lag' + str(i) + 'y'
-        annual_index[lag_string] = annual_index['INDEX'].shift(i)
-    annual_index['INDEX_lagF1y'] = annual_index['INDEX'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
+        annual_index[lag_string] = annual_index['INDEX'].shift((i))
+    annual_index['INDEX_lagF1y'] = annual_index['INDEX'].shift((-1)) # Include one forward, i.e., future lag to test for spurious results
     # annual_index['INDEX_lagF2y'] = annual_index['INDEX'].shift((-2)) # Include one forward, i.e., future lag to test for spurious results
     annual_index.drop('INDEX', axis=1, inplace=True)
 
@@ -485,7 +316,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
     final_gdf.reset_index(drop=True, inplace=True)
 
-    ###### --- COMPUTE AGGREGATED TELECONNECTION STRENGTH FOR EACH SPATIAL UNIT
+    #
     if telecon_path is not None:
         # Match all gridded psi values to a polygon via loc_id and then aggregate psi values
         # in each Polygon by taking the MAX psi value.
@@ -519,9 +350,35 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
         final_gdf = final_gdf.merge(mean_psi, on='loc_id', how='left')
 
+    if weather_controls==True:
+        print('Adding weather controls')
+        # file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
+        # ds1 = xr.open_dataset(file_path_VAR1)
+
+        # # change dates to time format:
+        # dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
+        # ds1 = ds1.assign_coords(date=dates)
+        # ds1 = ds1.rename({'date': 'time'})
+
+        # year = 2020
+        # year_data = ds1.sel(time=slice(f'{year}-01-01', f'{year}-12-31'))
+        
+        # geometry = final_gdf['geometry'][0]
+        # print(geometry)
+        # if ds1.rio.crs is None:
+        #     ds1 = ds1.rio.write_crs("EPSG:4326")  # WGS84 latitude-longitude
+        # geometry = geometry.to_crs(ds1.rio.crs)
+        
+        # # geometries = [shapely.geometry.mapping(geom) for geom in geometry]
+        # clipped_data = year_data.rio.clip(geometry, geometry.crs)
+        # average_temperature = clipped_data['temperature'].mean().item()
+        # print(average_temperature)
+
+        # print(final_gdf)
+
     final_gdf = final_gdf.dropna(subset=['psi']) # remove all locations that do not have a psi value
 
-    ###### --- TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
+    # transform do desired response variable
     if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
         final_gdf['conflict_count'] = (final_gdf['conflict_count'] > 0).astype(int)
         final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
@@ -545,22 +402,21 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
         # norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        total_aggregate.plot(
-            column='conflict_binary',    
-            cmap='turbo',   #turbo    YlOrRd     PRGn
+        final_gdf.plot(
+            column='psi',    
+            cmap='Reds',   #turbo    YlOrRd     PRGn
             legend=True,                   
-            legend_kwds={'orientation': "vertical", 'shrink': 0.6},
+            legend_kwds={'label': r"$\Psi$", 'orientation': "horizontal"},
             ax=ax,
+            #vmax=500
         )
-        colorbar = fig.axes[-1]
-        colorbar.set_ylabel(r"Count-years", rotation=90, fontsize=14)
-        ax.set_title(r'Conflict presence count-years', fontsize=15)
+        ax.set_title(r'Teleconnection strength, $\Psi$ (spei6 w/ NINO3)', fontsize=15)
         ax.set_axis_off()
-        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Africa_conflict_presence.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/MAP_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         sns.histplot(mean_psi['psi'], bins=40, stat='density', kde=True, color='r')
-        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Africa_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/HIST_Global_psi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
     return final_gdf
@@ -569,15 +425,15 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_psi, nla
 
 ### Hex stepsize = 0.620401 for an area of 1.0!!!
 
-panel_data = prepare_gridded_panel_data(grid_polygon='hex', localities='Africa', stepsize=1.5,
-                                        nlag_psi=5, nlag_conflict=1,
-                                        clim_index = 'DMI',
+panel_data = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=1.75,
+                                        nlag_psi=4, nlag_conflict=1,
+                                        clim_index = 'NINO3',
                                         response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_dmi_res0.5_19502023.nc',
-                                        add_weather_controls=False,
-                                        show_grid=True, show_gridded_aggregate=True)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/Binary_Africa_DMI_hex1d5_CON1_nocontrols.csv', index=False)
-# panel_data.to_csv('/Users/tylerbagwell/Desktop/test_panel.csv', index=False)
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_cai_1d0.nc',
+                                        weather_controls=True,
+                                        show_grid=False, show_gridded_aggregate=False)
+
+# panel_data.to_csv('/Users/tylerbagwell/Desktop/Africa_binary_nino3_NEW_square2_CON1_RandPsi.csv', index=False)
 # print(panel_data)
 # nan_mask = panel_data.isna()
 # print(nan_mask)

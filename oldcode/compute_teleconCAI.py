@@ -8,7 +8,7 @@ import sys
 from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
-from prepare_index import *
+from oldcode.prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 

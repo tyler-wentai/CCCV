@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 import xarray as xr
 from pingouin import partial_corr
-from prepare_index import *
+from oldcode.prepare_index import *
 from pathlib import Path
 import warnings
 

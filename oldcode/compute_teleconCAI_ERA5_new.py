@@ -1,18 +1,22 @@
+import netCDF4 as nc
 import numpy as np
-from scipy.stats import linregress
+import matplotlib.pyplot as plt
+from scipy.signal import detrend
+from scipy.stats import pearsonr, spearmanr, linregress
 import pandas as pd
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
-from utils.calc_annual_index import *
+import statsmodels.api as sm
+from oldcode.prepare_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'DMI'
+clim_index = 'NINO3'
 
 start_year  = 1950
 end_year    = 2023
@@ -79,9 +83,9 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -91,9 +95,9 @@ ds2 = ds2.assign_coords(
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -125,50 +129,58 @@ assert np.array_equal(var1_common['time'], clim_ind_common.index)
 assert np.array_equal(var2_common['time'], clim_ind_common.index)
 
 
-def detrend_then_standardize_monthly(data, israin: bool = False):
-    """
-    1. Remove the mean seasonal cycle (12-month climatology)
-    2. Detrend each calendar-month slice separately
-    3. Divide by the post-detrend sigma for that month
-    """
-    # --- set‑up -------------------------------------------------------------
-    data   = np.asarray(data, dtype=float)
-    n      = data.size
-    months = np.arange(n) % 12            # 0...11
+def standardize_and_detrend_monthly(data, israin=False):
+    data = np.array(data)
+    n = len(data)
+    months = np.arange(n) % 12  # Assign month indices 0-11
+    means = np.array([data[months == m].mean() for m in range(12)])
+    stds = np.array([data[months == m].std() for m in range(12)])
 
-    # --- 1. climatology 
-    clim_mean = np.array([data[months == m].mean() for m in range(12)])
-    anom      = data - clim_mean[months]  # mean removed
+    if israin==False:
+        standardized = (data - means[months]) / stds[months]
+    else:
+        stds = np.where(stds == 0, 1, stds) # Just making sure we do not divide by zero here, dividing by 1 won't affect a gridpoint that experience no rain anyway, still will be 0.
+        standardized = (data - means[months]) / stds[months]
 
-    # --- 2. detrend each calendar month 
+    data = standardized.tolist()
+    n = len(data)
     df = pd.DataFrame({
-        "anom" : anom,
-        "month": months,
-        "time" : np.arange(n, dtype=float)
+        'value': data,
+        'month': np.arange(n) % 12,  # Assign months 0-11
+        'time': np.arange(n)         # Time index
     })
+    
+    def remove_trend(group):
+        if len(group) < 2:
+            return group['value']
+        slope, intercept, _, _, _ = linregress(group['time'], group['value'])
+        return group['value'] - (slope * group['time'] + intercept)
+    
+    # Apply detrending per month
+    df['detrended'] = df.groupby('month').apply(remove_trend, include_groups=False).reset_index(level=0, drop=True)
+    return df['detrended'].tolist()
 
-    def _remove_trend(group):
-        if len(group) < 2: # safety for very short series
-            return group["anom"]
-        slope, intercept, *_ = linregress(group["time"], group["anom"])
-        return group["anom"] - (slope * group["time"] + intercept)
+def standardize_monthly(data, israin=False):
+    data = np.array(data)
+    n = len(data)
+    months = np.arange(n) % 12  # Assign month indices 0-11
 
-    df["detr"] = (
-        df.groupby("month", group_keys=False)
-            .apply(_remove_trend, include_groups=False))
+    # Calculate monthly means and standard deviations
+    means = np.array([data[months == m].mean() for m in range(12)])
+    stds = np.array([data[months == m].std() for m in range(12)])
 
-    # --- 3. standardize 
-    sigma = np.array([df.loc[df["month"] == m, "detr"].std(ddof=0) for m in range(12)]) # population sigma
+    if not israin:
+        standardized = (data - means[months]) / stds[months]
+    else:
+        # Avoid division by zero for months with no rainfall
+        stds = np.where(stds == 0, 1, stds)
+        standardized = (data - means[months]) / stds[months]
 
-    if israin:
-        sigma = np.where(sigma == 0, 1.0, sigma)   # keep dry points at 0
-
-    standardized = df["detr"].values / sigma[months]
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d519502023_FINAL.npy')
-anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d519502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy')
+anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5' + str(start_year) + str(end_year) + 'npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -192,15 +204,15 @@ else:
         if (i%10==0): 
             print("...", i)
         for j in range(n_long):
-            var1_std[:, i, j] = detrend_then_standardize_monthly(var1_common[:, i, j])
+            var1_std[:, i, j] = standardize_and_detrend_monthly(var1_common[:, i, j])
             has_nan = np.isnan(var2_common[:, i, j]).any()
             if (has_nan==False):
-                var2_std[:, i, j] = detrend_then_standardize_monthly(var2_common[:, i, j], israin=True)
+                var2_std[:, i, j] = standardize_and_detrend_monthly(var2_common[:, i, j], israin=True)
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
+    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy', var1_std)
+    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy', var2_std)
 
 
 # Compute the annualized index value:
@@ -210,21 +222,19 @@ clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
 ## --- NINO3
-# jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
-# jan_df['year'] = jan_df['year'] - 1  # Shift back a year
-# jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
+dec_df['year'] = dec_df['year'] + 1  # Shift to next year
+dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
 
-# nov_dec_df = clim_ind_common[clim_ind_common['month'].isin([11, 12])].copy() # prepare November and December data for current year
-# nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
-# dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
+jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
 
-# yearly = pd.merge(jan_df, nov, on='year', how='inner') # merge November_t, January_t+1 data
-# yearly = pd.merge(yearly, dec, on='year', how='inner') # merge November_t, December_t, January_t+1 data
+yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
+yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
 
-# yearly['avg_ANOM'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
-
-# print(index_AVG)
+yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 # may_to_dec_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 # index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
@@ -246,18 +256,16 @@ clim_ind_common['month'] = clim_ind_common.index.month
 # index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- DMI
-sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
 
-yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
 
-yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
-
-print(index_AVG)
+# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- ANI
 # jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August (JJA) data for current year
@@ -271,19 +279,16 @@ print(index_AVG)
 # yearly['avg_ANOM'] = yearly[['JUN_ANOM', 'JUL_ANOM', 'AUG_ANOM']].mean(axis=1) # Calculate the average JJA ANOM value
 # index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
-# print(index_AVG)
-
 ####
-# n_months = 12 # NINO3
-n_months = 8 # DMI
-# n_months = 8 # ANI 
+n_months = 12 # NINO3
+# n_months = 9 # DMI
+# n_months = 10 # ANI
 
-corrs_array_1   = np.empty((n_months,n_lat,n_long))
-pvals_array_1   = np.empty((n_months,n_lat,n_long))
-corrs_array_2   = np.empty((n_months,n_lat,n_long))
-pvals_array_2   = np.empty((n_months,n_lat,n_long))
-monthly_psi     = np.empty((n_months,n_lat,n_long))
-psi             = np.empty((n_lat,n_long))
+corrs_array_1 = np.empty((n_months,n_lat,n_long))
+pvals_array_1 = np.empty((n_months,n_lat,n_long))
+corrs_array_2 = np.empty((n_months,n_lat,n_long))
+pvals_array_2 = np.empty((n_months,n_lat,n_long))
+psi = np.empty((n_lat,n_long))
 
 # index_dat['avg_ANOM_ENSO'] = index_dat['avg_ANOM_ENSO'].shift(-1) # NEED TO TEST WHICH YEAR OF ENSO DJF TO CORRELATE!!!!
 # index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO'])
@@ -302,8 +307,16 @@ for i in range(n_lat):
         current_vars['month'] = current_vars.index.month
 
         # iterate through the months
-        ### NINO3 / NINO34
-        # for k in range(1,int(n_months+1),1):
+        for k in range(1,13,1):
+            # may-dec of year t
+            if (k<=8):
+                var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+            else:
+                var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
+                var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
+
+        # for k in range(1,10,1):
+        #     #var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
         #     # may-dec of year t
         #     if (k<=8):
         #         var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
@@ -311,23 +324,19 @@ for i in range(n_lat):
         #         var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
         #         var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
 
-        ### DMI
-        for k in range(1,int(n_months+1),1):
-            # may-dec of year t
-            var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
-
-        ### ANI
-        # for k in range(1,int(n_months+1),1):
+        # for k in range(1,11,1):
+        #     #var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
         #     # may-dec of year t
-        #     var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+        #     var_ts = current_vars[current_vars['month'] == int(k+2)].copy()
 
             # compute correlations of yearly month, k, air anomaly with index 
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
 
             has_nan = var_ts[[var1str, var2str, 'avg_ANOM']].isna().any().any()
             if not has_nan:
-                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)
-                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)
+                corr_1 = partial_corr(data=var_ts, x=var1str, y='avg_ANOM', covar=var2str)
+                # corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM', covar=var1str)
+                corr_2 = partial_corr(data=var_ts, x=var2str, y='avg_ANOM')
 
                 corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
                 corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]
@@ -340,11 +349,6 @@ for i in range(n_lat):
                 pvals_array_1[int(k-1),i,j] = 1.
                 pvals_array_2[int(k-1),i,j] = 1.
 
-            # save monthly psi values
-            var1_psi = abs(corr_1['r'].iloc[0]) if corr_1['p-val'].iloc[0] < 0.05 else 0
-            var2_psi = abs(corr_2['r'].iloc[0]) if corr_2['p-val'].iloc[0] < 0.05 else 0
-            monthly_psi[int(k-1),i,j] = var1_psi + var2_psi
-
         corrs1 = pd.Series(corrs_array_1[:,i,j])
         corrs2 = pd.Series(corrs_array_2[:,i,j])
         pvals1 = pd.Series(pvals_array_1[:,i,j])
@@ -356,6 +360,7 @@ for i in range(n_lat):
             corr1_total_sum = np.abs(corrs1[pvals1 < 0.05]).sum()
             # var2
             corr2_total_sum = np.abs(corrs2[pvals2 < 0.05]).sum()
+            # corr2_total_sum = corrs2[pvals2 < 0.05].sum()
             # compute teleconnection (psi)
             psi[i,j] = corr1_total_sum + corr2_total_sum
             # psi[i,j] = corr2_total_sum
@@ -369,33 +374,15 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using t2m and tp.",
+                            description="Psi, teleconnection strength inspired by Cai et al. 2024 method using t2m and tp.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
                             resolution = resolution)
                         )
 
-pathA_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + clim_index +'_FINAL.nc'
-psi_array.to_netcdf(pathA_str)
-
-psiMonthly_array = xr.DataArray(data = monthly_psi,
-                            coords={
-                            "month": np.arange(1,(n_months+1),1),    
-                            "lat": common_lat,
-                            "lon": common_lon
-                        },
-                        dims = ["month", "lat", "lon"],
-                        attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using t2m and tp.",
-                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index,
-                            resolution = resolution)
-                        )
-
-pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_' + clim_index +'_FINAL.nc'
-psiMonthly_array.to_netcdf(pathB_str)
+path_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + clim_index +'.nc'
+psi_array.to_netcdf(path_str)
 
 sys.exit()
 
@@ -404,66 +391,62 @@ sys.exit()
 
 
 
+psi_T = xr.DataArray(data = corrs_array_1,
+                            coords={
+                            "month": np.arange(1,(n_months+1),1),    
+                            "lat": common_lat,
+                            "lon": common_lon
+                        },
+                        dims = ["month", "lat", "lon"],
+                        attrs=dict(
+                            description="psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = clim_index)
+                        )
+psi_T.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiT_NINO3_cai_0d5.nc')
 
+psi_P = xr.DataArray(data = corrs_array_2,
+                            coords={
+                            "month": np.arange(1,(n_months+1),1),    
+                            "lat": common_lat,
+                            "lon": common_lon
+                        },
+                        dims = ["month", "lat", "lon"],
+                        attrs=dict(
+                            description="psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = clim_index)
+                        )
+psi_P.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiP_NINO3_cai_0d5.nc')
 
+psi_T_pval = xr.DataArray(data = pvals_array_1,
+                            coords={
+                            "month": np.arange(1,(n_months+1),1),    
+                            "lat": common_lat,
+                            "lon": common_lon
+                        },
+                        dims = ["month", "lat", "lon"],
+                        attrs=dict(
+                            description="p-vals of psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = clim_index)
+                        )
+psi_T_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiT_NINO3_cai_0d5.nc')
 
-
-# psi_T = xr.DataArray(data = corrs_array_1,
-#                             coords={
-#                             "month": np.arange(1,(n_months+1),1),    
-#                             "lat": common_lat,
-#                             "lon": common_lon
-#                         },
-#                         dims = ["month", "lat", "lon"],
-#                         attrs=dict(
-#                             description="psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-#                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-#                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-#                             climate_index_used = clim_index)
-#                         )
-# psi_T.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiT_NINO3_cai_0d5.nc')
-
-# psi_P = xr.DataArray(data = corrs_array_2,
-#                             coords={
-#                             "month": np.arange(1,(n_months+1),1),    
-#                             "lat": common_lat,
-#                             "lon": common_lon
-#                         },
-#                         dims = ["month", "lat", "lon"],
-#                         attrs=dict(
-#                             description="psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-#                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-#                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-#                             climate_index_used = clim_index)
-#                         )
-# psi_P.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiP_NINO3_cai_0d5.nc')
-
-# psi_T_pval = xr.DataArray(data = pvals_array_1,
-#                             coords={
-#                             "month": np.arange(1,(n_months+1),1),    
-#                             "lat": common_lat,
-#                             "lon": common_lon
-#                         },
-#                         dims = ["month", "lat", "lon"],
-#                         attrs=dict(
-#                             description="p-vals of psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-#                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-#                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-#                             climate_index_used = clim_index)
-#                         )
-# psi_T_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiT_NINO3_cai_0d5.nc')
-
-# psi_P_pval = xr.DataArray(data = pvals_array_2,
-#                             coords={
-#                             "month": np.arange(1,(n_months+1),1),    
-#                             "lat": common_lat,
-#                             "lon": common_lon
-#                         },
-#                         dims = ["month", "lat", "lon"],
-#                         attrs=dict(
-#                             description="p-vals of psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-#                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-#                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-#                             climate_index_used = clim_index)
-#                         )
-# psi_P_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiP_NINO3_cai_0d5.nc')
+psi_P_pval = xr.DataArray(data = pvals_array_2,
+                            coords={
+                            "month": np.arange(1,(n_months+1),1),    
+                            "lat": common_lat,
+                            "lon": common_lon
+                        },
+                        dims = ["month", "lat", "lon"],
+                        attrs=dict(
+                            description="p-vals of psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
+                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+                            climate_index_used = clim_index)
+                        )
+psi_P_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiP_NINO3_cai_0d5.nc')

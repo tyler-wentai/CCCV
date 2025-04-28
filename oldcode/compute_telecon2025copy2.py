@@ -8,7 +8,7 @@ from datetime import datetime
 import xarray as xr
 import geopandas as gpd
 from pingouin import partial_corr
-from prepare_index import *
+from oldcode.prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -95,10 +95,10 @@ def compute_annualized_index(climate_index, start_year, end_year):
 
 #
 def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_index, enso_index):
-    var1_str = ds1_in.name
-    var2_str = ds2_in.name
+    var1_str = list(ds1_in.data_vars)[0]
+    var2_str = list(ds2_in.data_vars)[0]
 
-    var1, var2 = xr.align(ds1_in, ds2_in, join="inner")
+    var1, var2 = xr.align(ds1_in[var1_str], ds2_in[var2_str], join="inner")
 
     n_time, n_lat, n_long = var1.shape
 
@@ -118,13 +118,6 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             'z1': z1,
             'z_enso': z_enso
         })
-
-        # check for nans
-        if df['y'].isna().any() or df['z1'].isna().any():
-            r_val = np.nan
-            p_val = np.nan
-            return r_val, p_val
-
         if (climate_index == 'nino3' or climate_index == 'nino34'): 
             result = partial_corr(data=df, x='x', y='y', covar='z1', method='pearson')
         else:
@@ -150,8 +143,8 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
         elif (climate_index == 'dmi' or climate_index == 'iod_cai'):
             ### DMI (tropical year from March y_{t} to February y_{t+1})
             if (i<=10): 
-                m = i + 2
-                # m = i + 4
+                # m = i + 2
+                m = i + 4
                 y = 0
             else:
                 m = i - 10
@@ -262,18 +255,14 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
     return corr_monthly
 
 #
-def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year, end_year, plot_psi=False):
+def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_index, start_year, end_year, plot_psi=False):
     ""
+    ds1 = xr.open_dataset(var1_path)
+    var1_str = list(ds1.data_vars)[0]
 
-    ds = xr.open_dataset(nc_path)
-    ds = ds.isel(latitude=slice(0, None, int(nskip)), longitude=slice(0, None, int(nskip)))
-
-    var1_str = list(ds.data_vars)[0]
-    var2_str = list(ds.data_vars)[1]
-
-    ds1 = ds[var1_str]
-    ds2 = ds[var2_str]
-
+    ds2 = xr.open_dataset(var2_path)
+    var2_str = list(ds2.data_vars)[0]
+    
     print("1st variable accessed is: ", var1_str)
     print("2nd variable accessed is: ", var2_str)
 
@@ -288,6 +277,14 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
 
     lon2 = ds2['longitude']
     lat2 = ds2['latitude']
+
+    lat_int_mask1 = (lat1 % resolution == 0)
+    lon_int_mask1 = (lon1 % resolution == 0)
+    ds1 = ds1.sel(latitude=lat1[lat_int_mask1], longitude=lon1[lon_int_mask1])
+
+    lat_int_mask2 = (lat2 % resolution == 0)
+    lon_int_mask2 = (lon2 % resolution == 0)
+    ds2 = ds2.sel(latitude=lat2[lat_int_mask2], longitude=lon2[lon_int_mask2])
 
     # Function to convert longitude from 0-360 to -180 to 180
     def convert_longitude(ds):
@@ -305,16 +302,19 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
         ds2 = convert_longitude(ds2)
     ds2 = ds2.sortby('longitude')
 
-    print("Aligned 1st variable shape:", ds1.shape)
-    print("Aligned 2nd variable shape:", ds2.shape)
+    # ENSURE THAT ds1 AND ds2 ARE ALIGNED IN (valid_time, latitude, longitude)
+    ds1_aligned, ds2_aligned = xr.align(ds1, ds2, join="inner")
+
+    print("Aligned 1st variable shape:", ds1_aligned[var1_str].shape)
+    print("Aligned 2nd variable shape:", ds2_aligned[var2_str].shape)
 
     ### COMPUTE ANNUALIZED CLIMATE INDEX
     annualized_index = compute_annualized_index(climate_index, start_year, end_year)
     enso_index       = compute_annualized_index("nino34", start_year, end_year)
 
     ### COMPUTE MONTHLY CORRELATION MAPS FOR VAR1 and VAR2
-    corr_array1 = compute_bymonth_partialcorr_map(ds1, ds2, climate_index, annualized_index, enso_index)
-    corr_array2 = compute_bymonth_partialcorr_map(ds2, ds1, climate_index, annualized_index, enso_index)
+    corr_array1 = compute_bymonth_partialcorr_map(ds1_aligned, ds2_aligned, climate_index, annualized_index, enso_index)
+    corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index, enso_index)
 
     ### COMPUTE TELECONNECTION STRENGTH
     telecon_var1 = np.abs(corr_array1)
@@ -346,10 +346,9 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             climate_index_used = climate_index)
                             )
     
-    save_path_help = save_path + "/psi_" + climate_index + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + "_12months.nc"
+    save_path_help = save_path + "/psi_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi.to_netcdf(save_path_help)
-    print(save_path_help)
 
     ### SAVE MONTHLY VARIABLE TELECONNECTION STRENGTHS TO NETCDF
     psi_1 = xr.DataArray(corr_array1,
@@ -366,8 +365,8 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             climate_index_used = climate_index)
                             )
     
-    save_path_help = save_path + "/psi_" + climate_index + "_" + var1_str + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + "_12months.nc"
+    save_path_help = save_path + "/psi_of_" + var1_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi_1.to_netcdf(save_path_help)
 
     psi_2 = xr.DataArray(corr_array2,
@@ -384,9 +383,10 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
                             climate_index_used = climate_index)
                             )
     
-    save_path_help = save_path + "/psi_" + climate_index + "_" + var2_str + "_LAND_nskip{:.1f}".format(nskip) + "_" +\
-        str(start_year) + str(end_year) + "_12months.nc"
+    save_path_help = save_path + "/psi_of_" + var2_str + "_" + climate_index + "_res{:.2f}".format(resolution) + "_" +\
+        str(start_year) + str(end_year) + "_pval0.05_detrended1.nc"
     psi_2.to_netcdf(save_path_help)
+    print(save_path_help)
     
     ### PLOT TELECONNECTION
     if (plot_psi == True):
@@ -398,7 +398,8 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
             x="longitude", 
             y="latitude",
             ax=ax,
-            cmap="YlOrRd"
+            cmap="YlOrRd",
+            vmax=5.5
         )
         gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
         ax.set_title("Teleconnection with Country Outlines")
@@ -407,10 +408,11 @@ def compute_teleconnection(nc_path, save_path, nskip, climate_index, start_year,
 
 
 #
-compute_teleconnection(nc_path = '/Users/tylerbagwell/Downloads/data_stream-moda.nc',
+compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
+                       var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       nskip = 5,
-                       climate_index = 'ani', 
+                       resolution = 0.50,
+                       climate_index = 'dmi', 
                        start_year = 1950,
                        end_year = 2023,
                        plot_psi = True)

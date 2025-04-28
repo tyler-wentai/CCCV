@@ -9,40 +9,51 @@ from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
 import statsmodels.api as sm
-from prepare_index import *
+from oldcode.prepare_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-start_year  = 1970
+start_year  = 1960
 end_year    = 2023
 clim_index = 'DMI'
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/air.2m.mon.mean.nc' # Air temperature anomaly
-file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/precip.mon.total.v2020.nc' # Precip anomaly
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
+file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  # total precipitation
 
 ds1 = xr.open_dataset(file_path_VAR1)
 ds2 = xr.open_dataset(file_path_VAR2)
 
-var1str = 'air'
-var2str = 'precip'
+# change dates to time format:
+dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
+ds1 = ds1.assign_coords(date=dates)
+ds1 = ds1.rename({'date': 'time'})
 
-var1 = ds1[var1str]  # DataArray from the first dataset
-var2 = ds2[var2str]
+dates = pd.to_datetime(ds2['date'].astype(str), format='%Y%m%d')
+ds2 = ds2.assign_coords(date=dates)
+ds2 = ds2.rename({'date': 'time'})
+
+var1str = 't2m'
+var2str = 'tp'
 
 # Access longitude and latitude coordinates
-lon1 = ds1['lon']
-lat1 = ds1['lat']
-lon2 = ds2['lon']
-lat2 = ds2['lat']
+lon1 = ds1['longitude']
+lat1 = ds1['latitude']
+lon2 = ds2['longitude']
+lat2 = ds2['latitude']
+
+lat_int_mask = (lat1 % 1.0 == 0)
+lon_int_mask = (lon1 % 1.0 == 0)
+ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
+ds2 = ds2.sel(latitude=lat2[lat_int_mask], longitude=lon2[lon_int_mask])
 
 # Function to convert longitude from 0-360 to -180 to 180
 def convert_longitude(ds):
-    lon = ds['lon']
-    lon = ((lon + 180) % 360) - 180
-    ds = ds.assign_coords(lon=lon)
+    longitude = ds['longitude']
+    longitude = ((longitude + 180) % 360) - 180
+    ds = ds.assign_coords(longitude=longitude)
     return ds
 
 # Apply conversion if necessary
@@ -51,25 +62,21 @@ if lon1.max() > 180:
 if lon2.max() > 180:
     ds2 = convert_longitude(ds2)
 
-ds1 = ds1.sortby('lon')
-ds2 = ds2.sortby('lon')
+ds1 = ds1.sortby('longitude')
+ds2 = ds2.sortby('longitude')
 
 ds1 = ds1.assign_coords(
-    lon=np.round(ds1['lon'], decimals=2),
-    lat=np.round(ds1['lat'], decimals=2)
+    longitude=np.round(ds1['longitude'], decimals=2),
+    latitude=np.round(ds1['latitude'], decimals=2)
 )
 ds2 = ds2.assign_coords(
-    lon=np.round(ds2['lon'], decimals=2),
-    lat=np.round(ds2['lat'], decimals=2)
+    longitude=np.round(ds2['longitude'], decimals=2),
+    latitude=np.round(ds2['latitude'], decimals=2)
 )
 
 
 # load index data
-if (clim_index == 'NINO3'):
-    clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                            start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                            end_date=datetime(end_year, 12, 1, 0, 0, 0))
-elif (clim_index == 'DMI'):
+if (clim_index == 'DMI'):
     ENSO_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
                             start_date=datetime(start_year, 1, 1, 0, 0, 0),
                             end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -88,33 +95,35 @@ else:
     raise ValueError("Specified 'clim_index' not found...")
 
 
-common_lon  = np.intersect1d(ds1['lon'], ds2['lon']) #probably should check that this is not null
-common_lat  = np.intersect1d(ds1['lat'], ds2['lat'])
+common_lon  = np.intersect1d(ds1['longitude'], ds2['longitude']) #probably should check that this is not null
+common_lat  = np.intersect1d(ds1['latitude'], ds2['latitude'])
 common_time = np.intersect1d(ds1['time'], ds2['time'])
 common_time = np.intersect1d(common_time, clim_ind.index.to_numpy())
 common_time = np.intersect1d(common_time, ENSO_ind.index.to_numpy())
 
-ds1_common      = ds1.sel(time=common_time, lon=common_lon, lat=common_lat)
-ds2_common      = ds2.sel(time=common_time, lon=common_lon, lat=common_lat)
+ds1_common      = ds1.sel(time=common_time, longitude=common_lon, latitude=common_lat)
+ds2_common      = ds2.sel(time=common_time, longitude=common_lon, latitude=common_lat)
 clim_ind_common = clim_ind.loc[clim_ind.index.isin(pd.to_datetime(common_time))]
 ENSO_ind_common = ENSO_ind.loc[ENSO_ind.index.isin(pd.to_datetime(common_time))]
 
-var1_common = ds1_common['air']
+var1_common = ds1_common[var1str]
 var2_common = ds2_common[var2str]
 
 # Check shapes
 print("var1_common shape:", var1_common.shape)
 print("var2_common shape:", var2_common.shape)
 print("clim_ind shape:   ", clim_ind_common.shape)
+print("clim_ind shape:   ", ENSO_ind_common.shape)
 
 n_time, n_lat, n_long = var1_common.shape
 
 # Verify that coordinates are identical
-assert np.array_equal(var1_common['lon'], var2_common['lon'])
-assert np.array_equal(var1_common['lat'], var2_common['lat'])
+assert np.array_equal(var1_common['longitude'], var2_common['longitude'])
+assert np.array_equal(var1_common['latitude'], var2_common['latitude'])
 assert np.array_equal(var1_common['time'], var2_common['time'])
 assert np.array_equal(var1_common['time'], clim_ind_common.index)
 assert np.array_equal(var2_common['time'], clim_ind_common.index)
+assert np.array_equal(clim_ind_common.index, ENSO_ind_common.index)
 
 
 def standardize_and_detrend_monthly(data, israin=False):
@@ -148,9 +157,27 @@ def standardize_and_detrend_monthly(data, israin=False):
     df['detrended'] = df.groupby('month').apply(remove_trend, include_groups=False).reset_index(level=0, drop=True)
     return df['detrended'].tolist()
 
+def standardize_monthly(data, israin=False):
+    data = np.array(data)
+    n = len(data)
+    months = np.arange(n) % 12  # Assign month indices 0-11
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom.npy')
-anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom.npy')
+    # Calculate monthly means and standard deviations
+    means = np.array([data[months == m].mean() for m in range(12)])
+    stds = np.array([data[months == m].std() for m in range(12)])
+
+    if not israin:
+        standardized = (data - means[months]) / stds[months]
+    else:
+        # Avoid division by zero for months with no rainfall
+        stds = np.where(stds == 0, 1, stds)
+        standardized = (data - means[months]) / stds[months]
+
+    return standardized.tolist()
+
+
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom_ERA5.npy')
+anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_ERA5.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -181,11 +208,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    print(var1_std)
-    print(var1_std)
-
-    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom.npy", var1_std)
-    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom.npy", var2_std)
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom_ERA5.npy", var1_std)
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_ERA5.npy", var2_std)
 
 
 # Compute the annualized index value:
@@ -345,64 +369,4 @@ psi_array = xr.DataArray(data = psi,
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index)
                         )
-psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_cai_noENSO_ENSOAvg.nc')
-
-psi_T = xr.DataArray(data = corrs_array_1,
-                            coords={
-                            "month": np.arange(1,(n_months+1),1),    
-                            "lat": common_lat,
-                            "lon": common_lon
-                        },
-                        dims = ["month", "lat", "lon"],
-                        attrs=dict(
-                            description="psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index)
-                        )
-psi_T.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiT_DMI_cai_noENSO.nc')
-
-psi_P = xr.DataArray(data = corrs_array_2,
-                            coords={
-                            "month": np.arange(1,(n_months+1),1),    
-                            "lat": common_lat,
-                            "lon": common_lon
-                        },
-                        dims = ["month", "lat", "lon"],
-                        attrs=dict(
-                            description="psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index)
-                        )
-psi_P.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiP_DMI_cai_noENSO.nc')
-
-psi_T_pval = xr.DataArray(data = pvals_array_1,
-                            coords={
-                            "month": np.arange(1,(n_months+1),1),    
-                            "lat": common_lat,
-                            "lon": common_lon
-                        },
-                        dims = ["month", "lat", "lon"],
-                        attrs=dict(
-                            description="p-vals of psi_T, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index)
-                        )
-psi_T_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiT_DMI_cai_noENSO.nc')
-
-psi_P_pval = xr.DataArray(data = pvals_array_2,
-                            coords={
-                            "month": np.arange(1,(n_months+1),1),    
-                            "lat": common_lat,
-                            "lon": common_lon
-                        },
-                        dims = ["month", "lat", "lon"],
-                        attrs=dict(
-                            description="p-vals of psi_P, air temperature teleconnection strength inspired by Cai et al. 2024 method with influence of ENSO removed.",
-                            psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
-                            psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index)
-                        )
-psi_P_pval.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/pval_psiP_DMI_cai_noENSO.nc')
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_ERA5_cai_noENSO_ENSOAvg.nc')

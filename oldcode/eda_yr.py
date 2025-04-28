@@ -6,7 +6,7 @@ from statsmodels.tsa.stattools import acf
 import statsmodels.api as sm
 import sys
 from datetime import datetime
-from prepare_index import *
+from oldcode.prepare_index import *
 
 # ONI: Oceanic Nino Index (from NOAA, https://www.ncei.noaa.gov/access/monitoring/enso/sst#oni)
 # loc1 = Gulf of Guinea

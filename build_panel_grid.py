@@ -10,7 +10,7 @@ import xarray as xr
 import seaborn as sns
 from shapely.geometry import mapping
 import statsmodels.api as sm
-from prepare_index import *
+from oldcode.prepare_index import *
 from utils.calc_annual_index import *
 import cartopy.crs as ccrs
 from shapely.geometry import Polygon

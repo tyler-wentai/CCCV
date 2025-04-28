@@ -8,7 +8,7 @@ from datetime import datetime
 import xarray as xr
 import geopandas as gpd
 from pingouin import partial_corr
-from prepare_index import *
+from oldcode.prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 

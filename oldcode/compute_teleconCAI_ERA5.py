@@ -9,16 +9,16 @@ from datetime import datetime, timedelta
 import xarray as xr
 from pingouin import partial_corr
 import statsmodels.api as sm
-from prepare_index import *
+from oldcode.prepare_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'NINO3'
+clim_index = 'ECI'
 
-start_year  = 1950
+start_year  = 1970
 end_year    = 2023
 
 file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
@@ -28,17 +28,14 @@ file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  
 ds1 = xr.open_dataset(file_path_VAR1)
 ds2 = xr.open_dataset(file_path_VAR2)
 
-ds1 = ds1.assign_coords(valid_time=ds1.valid_time.dt.floor('D'))
-ds2 = ds2.assign_coords(valid_time=ds2.valid_time.dt.floor('D'))
-
 # change dates to time format:
-# dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
-# ds1 = ds1.assign_coords(date=dates)
-ds1 = ds1.rename({'valid_time': 'time'})
+dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
+ds1 = ds1.assign_coords(date=dates)
+ds1 = ds1.rename({'date': 'time'})
 
-# dates = pd.to_datetime(ds2['date'].astype(str), format='%Y%m%d')
-# ds2 = ds2.assign_coords(date=dates)
-ds2 = ds2.rename({'valid_time': 'time'})
+dates = pd.to_datetime(ds2['date'].astype(str), format='%Y%m%d')
+ds2 = ds2.assign_coords(date=dates)
+ds2 = ds2.rename({'date': 'time'})
 
 var1str = 't2m'
 var2str = 'tp'
@@ -49,10 +46,8 @@ lat1 = ds1['latitude']
 lon2 = ds2['longitude']
 lat2 = ds2['latitude']
 
-resolution = 0.5
-
-lat_int_mask = (lat1 % resolution == 0)
-lon_int_mask = (lon1 % resolution == 0)
+lat_int_mask = (lat1 % 0.5 == 0)
+lon_int_mask = (lon1 % 0.5 == 0)
 ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 ds2 = ds2.sel(latitude=lat2[lat_int_mask], longitude=lon2[lon_int_mask])
 
@@ -81,20 +76,16 @@ ds2 = ds2.assign_coords(
     latitude=np.round(ds2['latitude'], decimals=2)
 )
 
-
 # load index data
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -120,6 +111,7 @@ print("var2_common shape:", var2_common.shape)
 print("clim_ind shape:   ", clim_ind_common.shape)
 
 n_time, n_lat, n_long = var1_common.shape
+
 
 # Verify that coordinates are identical
 assert np.array_equal(var1_common['longitude'], var2_common['longitude'])
@@ -179,8 +171,8 @@ def standardize_monthly(data, israin=False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy')
-anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5' + str(start_year) + str(end_year) + 'npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom_ERA5_0d5.npy')
+anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_ERA5_0d5.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -211,8 +203,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy', var1_std)
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5' + str(start_year) + str(end_year) + '.npy', var2_std)
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/air_anom_ERA5_0d5.npy", var1_std)
+    np.save("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_ERA5_0d5.npy", var2_std)
 
 
 # Compute the annualized index value:
@@ -239,21 +231,6 @@ index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=Tr
 # may_to_dec_df = ENSO_ind_common[ENSO_ind_common['month'].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])].copy() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 # index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 # index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
-
-## --- NINO34
-# dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
-# dec_df['year'] = dec_df['year'] + 1  # Shift to next year
-# dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
-
-# jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
-# jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-# feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
-
-# yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
-# yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
-
-# yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- DMI
 # sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
@@ -377,19 +354,11 @@ psi_array = xr.DataArray(data = psi,
                             description="Psi, teleconnection strength inspired by Cai et al. 2024 method using t2m and tp.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
-                            climate_index_used = clim_index,
-                            resolution = resolution)
+                            climate_index_used = clim_index)
                         )
-
-path_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + clim_index +'.nc'
-psi_array.to_netcdf(path_str)
+psi_array.to_netcdf('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ECI_cai_0d5.nc')
 
 sys.exit()
-
-
-
-
-
 
 psi_T = xr.DataArray(data = corrs_array_1,
                             coords={

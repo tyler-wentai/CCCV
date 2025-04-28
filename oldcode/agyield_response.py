@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import pandas as pd
 import xarray as xr
-from onset_state_panel import initalize_state_onset_panel
+from build_panel_state import initalize_state_onset_panel
 
 print('\n\nSTART ---------------------\n')
 

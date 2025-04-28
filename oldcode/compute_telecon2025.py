@@ -7,8 +7,7 @@ import sys
 from datetime import datetime
 import xarray as xr
 import geopandas as gpd
-from pingouin import partial_corr
-from prepare_index import *
+from oldcode.prepare_index import *
 
 print('\n\nSTART ---------------------\n')
 
@@ -83,38 +82,18 @@ def compute_annualized_index(climate_index, start_year, end_year):
     return ann_ind
 
 #
-def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_index):
-    var1_str = list(ds1_in.data_vars)[0]
-    var2_str = list(ds2_in.data_vars)[0]
-
-    var1, var2 = xr.align(ds1_in[var1_str], ds2_in[var2_str], join="inner")
-
-    n_time, n_lat, n_long = var1.shape
+def compute_bymonth_corr_map(ds_in, climate_index, annualized_index):
+    var_str = list(ds_in.data_vars)[0]
+    n_time, n_lat, n_long = ds_in[var_str].shape
 
     n_months = 12
     corr_monthly = np.empty((n_months, n_lat, n_long))
 
-    def partial_corr_func(a, b, c):
-        """
-        Computes partial correlation between arrays a and b, controlling for array c.
-        Returns (r, pval).
-        """
-        # Convert arrays to a DataFrame for pingouin
-        df = pd.DataFrame({
-            'a': a,
-            'b': b,
-            'c': c
-        })
-        # Compute partial correlation with pingouin
-        result = partial_corr(data=df, x='a', y='b', covar='c', method='pearson')
-        # Extract r and p-values (first row, since partial_corr returns a DataFrame)
-        r_val = result['r'].iloc[0]
-        p_val = result['p-val'].iloc[0]
-        
-        return r_val, p_val
+    def pearsonr_func(a, b):
+        return pearsonr(a, b)
 
     for i in range(1,n_months+1):
-        print("...(var:", var1_str, ", covar:", var2_str, "] Computing tropical month:", i, "of", n_months)
+        print("...[var:", var_str, "] Computing tropical month:", i, "of", n_months)
         if (climate_index == 'nino3' or climate_index == 'nino34'): 
             ### NINO3 or NINO3.4 (tropical year from June y_{t-1} to May y_{t})
             if (i<=7): 
@@ -158,37 +137,26 @@ def compute_bymonth_partialcorr_map(ds1_in, ds2_in, climate_index, annualized_in
             coords=[ann_help.index],   # use the pandas DatetimeIndex as the coords
             dims=["valid_time"])        # name the dimension 'time'
 
-        var1_aligned, ind_aligned = xr.align(var1, ann_ind_ts, join="inner")
-        var2_aligned, ind_aligned = xr.align(var2, ann_ind_ts, join="inner")
+        var_aligned, ind_aligned = xr.align(ds_in[var_str], ann_ind_ts, join="inner")
 
-        # standardize the aligned variable data
-        mean1_data           = var1_aligned.mean(dim='valid_time', skipna=True)
-        std1_data            = var1_aligned.std(dim='valid_time', skipna=True)
-        var1_standardized    = (var1_aligned - mean1_data) / std1_data
-        var1_standardized    = var1_standardized.where(std1_data != 0, 0) # handle the special case: if std == 0 at a grid cell, set all times there to 0
-
-        mean2_data           = var2_aligned.mean(dim='valid_time', skipna=True)
-        std2_data            = var2_aligned.std(dim='valid_time', skipna=True)
-        var2_standardized    = (var2_aligned - mean2_data) / std2_data
-        var2_standardized    = var2_standardized.where(std2_data != 0, 0) # handle the special case: if std == 0 at a grid cell, set all times there to 0
-
-        print("......", var1_standardized.shape)
-        print("......", var2_standardized.shape)
-        print("......", ind_aligned.shape)
+        # standardize the align variable data
+        mean_data           = var_aligned.mean(dim='valid_time', skipna=True)
+        std_data            = var_aligned.std(dim='valid_time', skipna=True)
+        var_standardized    = (var_aligned - mean_data) / std_data
+        var_standardized    = var_standardized.where(std_data != 0, 0) # handle the special case: if std == 0 at a grid cell, set all times there to 0
 
         # compute correlations and their p-values
         corr_map, pval_map = xr.apply_ufunc(
-            partial_corr_func,
-            var1_standardized,      # first input (x), the variable
-            ind_aligned,            # second input (y), the climate index
-            var2_standardized,      # third input (z), the covariate to control for
-            input_core_dims=[["valid_time"], ["valid_time"], ["valid_time"]],
-            output_core_dims=[[], []],  # both correlation and p-value are scalars per lat/lon
-            vectorize=True
+            pearsonr_func,
+            var_standardized,       # first input
+            ind_aligned,            # second input
+            input_core_dims=[["valid_time"], ["valid_time"]],   # dimension(s) over which to compute
+            output_core_dims=[[], []],                          # correlation, p-value are scalars per grid
+            vectorize=True,                                     # run function for each (lat, lon) point
         )
 
         # set all correlations to zero if its p-value is less than the threshold
-        threshold = 0.01
+        threshold = 0.05
         pval_mask = pval_map < threshold
         pval_mask = pval_mask.values
 
@@ -258,8 +226,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
     annualized_index = compute_annualized_index(climate_index, start_year, end_year)
 
     ### COMPUTE MONTHLY CORRELATION MAPS FOR VAR1 and VAR2
-    corr_array1 = compute_bymonth_partialcorr_map(ds1_aligned, ds2_aligned, climate_index, annualized_index)
-    corr_array2 = compute_bymonth_partialcorr_map(ds2_aligned, ds1_aligned, climate_index, annualized_index)
+    corr_array1 = compute_bymonth_corr_map(ds1_aligned, climate_index, annualized_index)
+    corr_array2 = compute_bymonth_corr_map(ds2_aligned, climate_index, annualized_index)
 
     ### COMPUTE TELECONNECTION STRENGTH
     telecon_var1 = np.abs(corr_array1)
@@ -270,8 +238,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 
     telecon_total = telecon_var1 + telecon_var2
 
-    psi_str = "Teleconnection strength (psi) for" + climate_index + "with" +\
-        var1_str + "and" + var2_str + "computed by partial correlation."
+    psi_str = "Teleconnection strength (psi) for" + climate_index + "with" + var1_str + "and" + var2_str
     psi = xr.DataArray(telecon_total,
                        coords = {"latitude":  ds1['latitude'],
                                  "longitude":  ds1['longitude']
@@ -285,7 +252,7 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
                             )
     
     save_path = save_path + "/psi_" + climate_index + "_res{:.1f}".format(resolution) + "_" +\
-        str(start_year) + str(end_year) + "_pv0.01.nc"
+        str(start_year) + str(end_year) + ".nc"
     psi.to_netcdf(save_path)
     
     ### PLOT TELECONNECTION
@@ -298,7 +265,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
             x="longitude", 
             y="latitude",
             ax=ax,
-            cmap="Reds"
+            cmap="YlOrRd",
+            vmax=5.5
         )
         gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=0.5)
         ax.set_title("Teleconnection with Country Outlines")
@@ -312,8 +280,8 @@ def compute_teleconnection(var1_path, var2_path, save_path, resolution, climate_
 compute_teleconnection(var1_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc', 
                        var2_path = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc',
                        save_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections',
-                       resolution = 0.25,
-                       climate_index = 'nino34', 
-                       start_year = 1950,
+                       resolution = 0.5,
+                       climate_index = 'dmi', 
+                       start_year = 1970,
                        end_year = 2023,
                        plot_psi = True)

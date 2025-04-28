@@ -8,9 +8,13 @@ from datetime import datetime
 import math
 import xarray as xr
 import seaborn as sns
-from prepare_index import *
+from oldcode.prepare_index import *
 
-print('\n\nSTART ---------------------\n')
+print("\n")
+
+
+
+
 
 replacements = {
                 'Bosnia-Herzegovina':'Bosnia and Herzegovina',
@@ -31,9 +35,7 @@ replacements = {
 
 start_year = 1989
 end_year = 2023
-
-
-### ---- Initialize and prepare the geo data ---- ###
+years = list(range(start_year, end_year + 1))
 
 remove_sovereignty = ['Antigua and Barbuda', 'Federated States of Micronesia', 'Kiribati', 'Nauru', 'Marshall Islands', 'Maldives', 
                         'Palau', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Seychelles',
@@ -49,110 +51,104 @@ gdf1 = gdf1[gdf1['SOVEREIGNT'].isin(regions)]
 gdf1 = gdf1[gdf1['SOVEREIGNT'] == gdf1['ADMIN']]
 gdf1 = gdf1[~gdf1['SOVEREIGNT'].isin(remove_sovereignty)]
 
+# print(sorted(gdf1['SOVEREIGNT']))
+
+
+# print(gdf1)
 
 
 
-### ---- Initialize and prepare the conflict data ---- ###
 
 conflictdata_path = '/Users/tylerbagwell/Desktop/GEDEvent_v24_1.csv'
 conflict_df = pd.read_csv(conflictdata_path)
 
-conflict_df['country_name'] = conflict_df['country'].replace(replacements) # this is used to make names of countries match between data sets
-conflict_df.drop(['country'], axis=1, inplace=True)
-conflict_df.rename(columns={'country_name': 'country'}, inplace=True)
-
-# 1. Remove events that do not belong to years containing an active conflict dyad
-conflict_df = conflict_df[conflict_df['type_of_violence']==3]
+# print(conflict_df.shape)
+# conflict_df = conflict_df[conflict_df['type_of_violence']==1]
+# conflict_df = conflict_df[conflict_df['best']>=1]
 conflict_df = conflict_df[conflict_df['active_year']==1]
 
-# 2. 
-grouped = conflict_df.groupby(['dyad_new_id', 'year', 'country'])['best'].sum().reset_index()
-grouped['onset'] = (grouped['best'] >= 25).astype(int)
-grouped = grouped.sort_values(['dyad_new_id', 'country', 'year'])
+# print(conflict_df.shape)
 
-years = range(start_year, (end_year+1))
-
-# Get unique dyad_id and country combinations
-dyad_country = grouped[['dyad_new_id', 'country']].drop_duplicates()
-
-
-complete = dyad_country.assign(key=1).merge(
-    pd.DataFrame({'year': years, 'key': 1}),
-    on='key'
-).drop('key', axis=1)
-
-complete = complete.merge(
-    grouped[['dyad_new_id', 'country', 'year', 'onset']],
-    on=['dyad_new_id', 'country', 'year'],
-    how='left'
-)
-complete['onset'] = complete['onset'].fillna(0).astype(int)
-complete = complete.sort_values(['dyad_new_id', 'country', 'year'])
-
-complete['onset_lag1y'] = complete.groupby(['dyad_new_id', 'country'])['onset'].shift(1)
-complete = complete.dropna(subset=['onset_lag1y'])
-
-# Set flag to 0 if current flag is 1 and previous flag is also 1
-complete['onset'] = np.where(
-    (complete['onset'] == 1) & (complete['onset_lag1y'] == 1),
-    0,
-    complete['onset']
+country_years = (
+    conflict_df.groupby(['country', 'conflict_new_id'])['year']
+      .min()
+      .reset_index()
+      .groupby('country')['year']
+      .apply(lambda years: sorted(years.unique()))
+      .reset_index(name='onset_years')
 )
 
-onset_sum = complete.groupby(['country', 'year'])['onset'].sum().reset_index()  # total count of unique dyad onsets for each country-year
-onset_sum['onset'] = (onset_sum['onset'] > 0).astype(int)                       # boolean of at least one dyad onset for each country-year
+country_years['country_name'] = country_years['country'].replace(replacements) # this is used to make names of countries match between data sets
+country_years.drop(['country'], axis=1, inplace=True)
+country_years.rename(columns={'country_name': 'country'}, inplace=True)
 
+# print(country_years)
+# print(country_years.iloc[0])
 
-
-### add in the missing countries not in the conflict data set
 
 countriesA = set(gdf1['SOVEREIGNT'])
-countriesB = set(onset_sum['country'])
+countriesB = set(country_years['country'])
 
 missing_countries = list(countriesA - countriesB)
+df_missing  = pd.DataFrame({'country': missing_countries})
+df_missing['onset_years'] = [[] for _ in range(len(df_missing))]
 
-missing_df = pd.MultiIndex.from_product(
-    [missing_countries, years],
+
+country_years = pd.concat([country_years, df_missing], ignore_index=True)
+# print(country_years)
+# print(sorted(countries))
+
+# 3. Create a Cartesian product of countries and years
+panel = pd.MultiIndex.from_product(
+    [countriesA, years],
     names=['country', 'year']
-).to_frame(index=False)
+    ).to_frame(index=False)
 
-missing_df['onset'] = 0
-
-# Append the missing_df to the existing flags_sum
-onset_sum = pd.concat([onset_sum, missing_df], ignore_index=True)
-panel = onset_sum.sort_values(['country', 'year']).reset_index(drop=True)
+# 4. Merge with 'country_years' to access 'onset_years'
+panel = panel.merge(country_years, on='country', how='left')
 
 
+# 5. Create 'conflict_onset' indicator
+panel['conflict_onset'] = panel.apply(
+    lambda row: 1 if row['year'] in row['onset_years'] else 0,
+    axis=1
+)
+
+# 6. (Optional) Drop 'first_years' if no longer needed
+panel = panel.drop('onset_years', axis=1)
+
+# 7. (Optional) Sort the panel for readability
+panel = panel.sort_values(['country', 'year']).reset_index(drop=True)
 
 
 
 
-### add the climate index to the panel 
+
 nlag_psi = 4
 
-# annual_index = compute_annualized_NINO3_index((start_year-nlag_psi-1), end_year)
-annual_index = compute_annualized_DMI_index((start_year-nlag_psi-1), end_year)
+annual_index = compute_annualized_NINO3_index((start_year-nlag_psi-1), end_year)
+# annual_index = compute_annualized_DMI_index((start_year-nlag_psi-1), end_year)
 
 for i in range(nlag_psi+1):
     lag_string = 'INDEX_lag' + str(i) + 'y'
     annual_index[lag_string] = annual_index['INDEX'].shift((i))
 lag_string = 'INDEX_lagF' + str(1) + 'y'                            # Add a forward lag
-# annual_index[lag_string] = annual_index['INDEX'].shift((-1))        # Add a forward lag
+annual_index[lag_string] = annual_index['INDEX'].shift((-1))        # Add a forward lag
 annual_index.drop('INDEX', axis=1, inplace=True)
 
 panel = panel.merge(annual_index, on='year', how='left')
 
-# panel = panel[panel['year'] != 2023] # !!!!!!!!!!!!!!!!!!!!!!!!
+panel = panel[panel['year'] != 2023]
 panel = panel.reset_index(drop=True)
+print(panel)
 
 
+# print(panel)
 
-### add the teleconnection strength (psi) to the panel 
+
 print('Computing gdf for psi...')
-
-telecon_path = "/Users/tylerbagwell/Desktop/psi_callahan_DMI.nc"
+telecon_path = "/Users/tylerbagwell/Desktop/psi_callahan_NINO3_0dot5_soilw.nc"
 psi = xr.open_dataarray(telecon_path)
-psi['lon'] = xr.where(psi['lon'] > 180, psi['lon'] - 360, psi['lon']) ### REMOVE IF NOT USING psi_Hsiang2011_nino3.nc !!!!
 if 'lat' not in psi.coords or 'lon' not in psi.coords:
     raise ValueError("DataArray must have 'lat' and 'lon' coordinates.")
 
@@ -182,20 +178,16 @@ mean_psi.rename(columns={'SOVEREIGNT': 'country'}, inplace=True)
 
 panel = panel.merge(mean_psi, on='country', how='left')
 
-
+# print(panel)
 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 psi_geom.plot(
             column='psi',    
-            cmap='bwr',   #turbo    YlOrRd
+            cmap='YlOrRd',   #turbo    YlOrRd
             legend=True,                   
             legend_kwds={'label': "psi", 'orientation': "horizontal"},           
-            ax=ax,
+            ax=ax
         )
-plt.title('Country aggregated teleconnection strength, Hsiang 2011 Method')
-fig.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/Hsiang_2011_ENSO_Teleconnection_CountryAggregate.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
-print(panel)
 
-panel.to_csv('/Users/tylerbagwell/Desktop/Onset_global_dmi_Callahan_CON3.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/Onset_global_nino3.csv', index=False)
