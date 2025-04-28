@@ -38,7 +38,7 @@ path_maritime_0 = "data/map_packages/ne_10m_bathymetry_L_0.shx"
 gdf1 = gpd.read_file(path_land)
 gdf2 = gpd.read_file(path_maritime_0)
 
-ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_ANI_FINAL.nc')
+ds = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosDMI.nc')
 var_name = list(ds.data_vars)[0]
 da = ds[var_name]
 # da = da.sum(dim='month')
