@@ -243,17 +243,35 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     ######## PLOTTING
     if (plot_telecon==True):
+
+        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+        df = pd.read_csv(onset_path)    
+        gdf = gpd.GeoDataFrame(
+            df, 
+            geometry=gpd.points_from_xy(df.onset_lon, df.onset_lat),
+            crs="EPSG:4326"
+        )
+
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
+        # create a custom colormap
+        import matplotlib.colors as mcolors
+        bounds = [0, 1.80, np.max(last_obs['pop_avg_psi'])]
+        cmap = mcolors.ListedColormap(["gainsboro", "blue"])
+        norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
         var_in = 'pop_avg_psi'
         ## plot 1
         # Plot the geometries, coloring them by the psi value.
         ax = last_obs.plot(column=var_in,
-                           cmap='YlOrRd',
+                           cmap=cmap,
+                           norm=norm,
                            legend=True,
                            figsize=(10, 6), 
                            edgecolor='black',
-                           linewidth=0.25)
+                           linewidth=0.25,
+                           vmin=1.80)
+        x, y = gdf['onset_lon'].values, gdf['onset_lat'].values
+        ax.scatter(x, y, color='red', s=1.0, marker='o', zorder=5)
         plt.title(var_in)
         plt.show()
 
@@ -275,10 +293,10 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_FINAL.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_FINAL.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino3',
+                                    clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_new.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMI_new.csv', index=False)
 # print(panel)

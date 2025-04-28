@@ -67,7 +67,7 @@ gl.yformatter = LATITUDE_FORMATTER
 gl.top_labels       = False 
 
 x, y = gdf['onset_lon'].values, gdf['onset_lat'].values
-ax.scatter(x, y, color='red', s=0.2, marker='o', transform=ccrs.PlateCarree(), zorder=5)
+ax.scatter(x, y, color='green', s=0.2, marker='o', transform=ccrs.PlateCarree(), zorder=5)
 
 # ------------------------------------------------------------------------------
 

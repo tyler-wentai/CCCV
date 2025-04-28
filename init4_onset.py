@@ -622,6 +622,14 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         total_aggregate = final_gdf.groupby(['loc_id'])['psi'].mean().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
+        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+        df = pd.read_csv(onset_path)    
+        gdf = gpd.GeoDataFrame(
+            df, 
+            geometry=gpd.points_from_xy(df.onset_lon, df.onset_lat),
+            crs="EPSG:4326"
+        )
+
         import cartopy.feature as cfeature
         import matplotlib.ticker as mticker
         from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
@@ -638,11 +646,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        psi_quants = total_aggregate['psi'].quantile([0.0,0.665,1.0])
-        print(psi_quants)
-        psi_quants = psi_quants.round(3).tolist()
-        bounds = psi_quants
-        cmap = mcolors.ListedColormap(["gainsboro", "red"])
+        bounds = [0, 1.80, np.max(total_aggregate['psi'])] #psi_quants
+        cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
@@ -653,8 +658,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_global()
         gdf_plot = total_aggregate.plot(
             column='psi',    
-            cmap='PRGn', #cmap, #'tab20c_r',
-            #norm=norm,   
+            cmap=cmap, #'PRGn',
+            norm=norm,   
             legend=True,                   
             legend_kwds={
                 'label': "Teleconnection percentile", 
@@ -667,8 +672,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         )
         ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
         ax.coastlines()
+        ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black', linewidth=0.5)
         ax.add_patch(index_box)
         cbar = gdf_plot.get_figure().axes[-1]
+        x, y = gdf['onset_lon'].values, gdf['onset_lat'].values
+        ax.scatter(x, y, color='red', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
         # cbar.set_yticklabels(['0%', '90%', '100%'])
         plt.title('ENSO Teleconnection', fontsize=11)
         plt.tight_layout()
@@ -719,13 +727,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=2.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=1.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',
+                                        clim_index = 'dmi',
                                         response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_NINO3_FINAL.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_FINAL.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3spi6_square2.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMI_square1.csv', index=False)
 
 
