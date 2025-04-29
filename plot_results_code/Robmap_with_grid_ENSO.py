@@ -91,7 +91,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3_square5_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -105,7 +105,7 @@ gdf.set_crs(epsg=4326, inplace=True)
 
 gdf_agg =gdf.groupby('loc_id').agg({
     'geometry': 'first',
-    'pop_avg_psi': 'first',
+    'psi': 'first',
     'conflict_binary':'sum',
 }).reset_index()
 
@@ -148,7 +148,7 @@ index_box = mpatches.Rectangle((-150, -5), 60, 10,
 gl.top_labels       = False 
 ax.set_global()
 gdf_plot = gdf_agg.plot(
-    column='pop_avg_psi',    
+    column='psi',    
     cmap=cmap, #'tab20c_r', 
     legend=True,                   
     legend_kwds={
