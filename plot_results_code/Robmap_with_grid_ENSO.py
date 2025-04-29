@@ -91,7 +91,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -105,8 +105,8 @@ gdf.set_crs(epsg=4326, inplace=True)
 
 gdf_agg =gdf.groupby('loc_id').agg({
     'geometry': 'first',
-    'psi': 'first',
-    'conflict_count':'sum',
+    'pop_avg_psi': 'first',
+    'conflict_binary':'sum',
 }).reset_index()
 
 # Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
@@ -114,6 +114,14 @@ gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
 
 # Optionally, set the CRS using the CRS from the original GeoDataFrame
 gdf_agg.set_crs(gdf.crs, inplace=True)
+
+onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+df_onset = pd.read_csv(onset_path)    
+gdf_onset = gpd.GeoDataFrame(
+    df_onset, 
+    geometry=gpd.points_from_xy(df_onset.onset_lon, df_onset.onset_lat),
+    crs="EPSG:4326"
+)
 
 
 # Define a polygon with lat/lon coordinates
@@ -140,7 +148,7 @@ index_box = mpatches.Rectangle((-150, -5), 60, 10,
 gl.top_labels       = False 
 ax.set_global()
 gdf_plot = gdf_agg.plot(
-    column='psi',    
+    column='pop_avg_psi',    
     cmap=cmap, #'tab20c_r', 
     legend=True,                   
     legend_kwds={
@@ -156,9 +164,11 @@ ax.add_patch(index_box)
 cbar = gdf_plot.get_figure().axes[-1]
 # cbar.set_yticklabels(['0%', '80%', '100%'])
 cbar.set_title("Teleconnection\nstrength", fontsize=9)
+x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
+ax.scatter(x, y, color='blue', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
 plt.title('ENSO (NINO3) Teleconnection Strength', fontsize=10)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

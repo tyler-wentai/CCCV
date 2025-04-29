@@ -2,7 +2,7 @@ library(brms)
 library(dplyr)
 library(ggplot2)
 
-panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_ANI.csv'
+panel_data_path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3.csv'
 dat <- read.csv(panel_data_path)
 
 sum(dat$conflict_binary)
@@ -64,16 +64,18 @@ mod1 <- lm(conflict_binary ~ cindex_lag0y + I(cindex_lag0y*pop_avg_psi) + loc_id
            dat = dat_help)
 summary(mod1)
 
+
+dat$cindex_x_psi <- dat$cindex_lag0y*dat$pop_avg_psi
 mod_glm <- glm(
-  conflict_binary ~ cindex_lag1y + bool1989 + year + loc_id - 1,
-  data   = dat_help,
+  conflict_binary ~ bool1989 + year + loc_id - 1,
+  data   = dat,
   family = binomial(link = "logit")
 )
 summary(mod_glm)
 exp(coef(mod_glm)) #Odds-ratios and 95% CI
 exp(confint(mod_glm))
 
-
+BIC(mod_glm)
 
 
 
@@ -170,21 +172,68 @@ waic(fit1)
 library(combinat)
 base_cindex <- dat_agg$cindex_lag0y
 
-B <- 10000
+B <- 10
 S <- c()
 for (i in 1:B){
+  print(paste0("...step: ", i))
   dat_agg$cindex_lag0y <- base_cindex[sample(seq_along(base_cindex))]
-  fit <- lm(conflict_proportion ~ I(cindex_lag0y^1) + year + bool1989, data=dat_agg)
-  S <- append(S, coef(fit)["I(cindex_lag0y^1)"])
+  dat$cindex_x_psi <- dat$cindex_lag0y*dat$pop_avg_psi
+  mod_glm <- glm(
+    conflict_binary ~ cindex_x_psi + bool1989 + year + loc_id - 1,
+    data   = dat,
+    family = binomial(link = "logit")
+  )
+  #fit <- lm(conflict_proportion ~ I(cindex_lag0y^1) + year + bool1989, data=dat_agg)
+  S <- append(S, coef(mod_glm)["cindex_x_psi"])
 }
 
 
 hist(S, breaks='scott')
-abline(v=0.0038766, col='red', lwd=2.0)
+abline(v=3.928e-02, col='red', lwd=2.0)
 #abline(v=0.02324835, col='black', lwd=2.0, lty=1)
 
 
 quantile(S, 0.903)
+
+
+
+
+
+##### RANDOMIZE CINDEX FOR DAT
+library(combinat)
+
+cindex_lag0y <- subset(dat, dat$loc_id==122)$cindex_lag0y
+base_year <- subset(dat, dat$loc_id==122)$year
+
+B <- 200
+S <- c()
+for (i in 1:B){
+  print(paste0("...step: ", i))
+  random_year <- base_year[sample(seq_along(base_year))]
+  
+  df <- data.frame(cbind(cindex_lag0y, year=random_year))
+  
+  dat$cindex_lag0y <- df$cindex_lag0y[ match(dat$year, df$year) ]
+  
+  
+  dat$cindex_x_psi <- dat$cindex_lag0y*dat$pop_avg_psi
+  mod_glm <- glm(
+    conflict_binary ~ cindex_x_psi + bool1989 + year + loc_id - 1,
+    data   = dat,
+    family = binomial(link = "logit")
+  )
+  #fit <- lm(conflict_proportion ~ I(cindex_lag0y^1) + year + bool1989, data=dat_agg)
+  S <- append(S, coef(mod_glm)["cindex_x_psi"])
+}
+
+hist(S, breaks='scott')
+abline(v=3.928e-02, col='red', lwd=2.0)
+#abline(v=0.02324835, col='black', lwd=2.0, lty=1)
+
+
+quantile(S, 0.995)
+
+
 
 
 

@@ -658,29 +658,29 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_global()
         gdf_plot = total_aggregate.plot(
             column='psi',    
-            cmap=cmap, #'PRGn',
-            norm=norm,   
+            cmap='gist_heat_r', #cmap, #'PRGn',
+            #norm=norm,   
             legend=True,                   
             legend_kwds={
                 'label': "Teleconnection percentile", 
                 'orientation': "vertical", 
                 'shrink': 0.6,
-                'ticks': bounds
+                #'ticks': bounds
             },
             ax=ax,
             transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
         )
         ax.add_geometries(polygons_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
         ax.coastlines()
-        ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black', linewidth=0.5)
+        # ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black', linewidth=0.5)
         ax.add_patch(index_box)
         cbar = gdf_plot.get_figure().axes[-1]
         x, y = gdf['onset_lon'].values, gdf['onset_lat'].values
-        ax.scatter(x, y, color='red', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
+        ax.scatter(x, y, color='blue', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
         # cbar.set_yticklabels(['0%', '90%', '100%'])
-        plt.title('ENSO Teleconnection', fontsize=11)
+        plt.title('NINO3 Teleconnection', fontsize=11)
         plt.tight_layout()
-        # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_geq80percent_NonAfrica.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.show()
 
         ##
@@ -727,13 +727,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=3.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'nino3',
                                         response_var='binary',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Africa_NINO3_square2_maydec.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3_square3.csv', index=False)
 
 
