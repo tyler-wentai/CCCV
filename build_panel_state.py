@@ -220,6 +220,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     start_year  = int(panel_start_year - 5) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
     end_year    = int(panel_end_year)
 
+    if clim_index=='nino3' or clim_index=='nino34': end_year += 1 # Needed since annualized NINO3/NINO34 in computed with values from t+1 year
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
 
     annual_index['cindex']
@@ -293,10 +294,10 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_FINAL.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMI_new.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMI.csv', index=False)
 # print(panel)

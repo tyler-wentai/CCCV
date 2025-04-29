@@ -27,7 +27,7 @@ import regionmask
 
 # --- load the data -----------------------------------------------------------
 ds  = xr.open_dataset(
-    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psispi6_ANI_FINAL.nc'
+    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosANI.nc'
 )
 da  = ds['__xarray_dataarray_variable__']                         # choose the field you want to plot
 da   = da.squeeze()                    # drop length‑1 dimensions, if any
@@ -63,7 +63,7 @@ index_box1 = mpatches.Rectangle(
 fig, ax = plt.subplots(figsize=(7, 5.),
                         subplot_kw={'projection': ccrs.Robinson()})
 
-ax.set_title('Cumulative correlation of (SPI6, Atlantic Niño Index JJA) over tropical year', fontsize=8.5, pad=7)
+ax.set_title('Cumulative correlation of (MRSOS, Atlantic Niño Index JJA) over tropical year', fontsize=8.5, pad=7)
 
 # nice gridlines
 gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
@@ -105,7 +105,7 @@ cbar.set_label('← more dry               more wet →', fontsize=9)  # label s
 cbar.ax.set_title('Cumulative corr.', pad=10, fontsize=8)
 cbar.ax.tick_params(labelsize=7)                # tick‑label size
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_spi6ANI_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosANI_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

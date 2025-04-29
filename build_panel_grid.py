@@ -727,13 +727,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=1.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'dmi',
-                                        response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_FINAL.nc',
+                                        clim_index = 'nino3',
+                                        response_var='binary',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMI_square1.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Africa_NINO3_square2_maydec.csv', index=False)
 
 
