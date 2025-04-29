@@ -19,7 +19,7 @@ print('\n\nSTART ---------------------\n')
 land_regs   = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
 #### --- NINO3
-ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_NINO3_FINAL.nc')
+ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_NINO3.nc')
 var1_name = list(ds1.data_vars)[0]
 da1 = ds1[var1_name]
 
@@ -35,7 +35,7 @@ med1    = np.median(clean1)
 mean1   = np.mean(clean1)
 
 #### --- DMI
-ds2 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_DMI_FINAL.nc')
+ds2 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_DMI.nc')
 var2_name = list(ds2.data_vars)[0]
 da2 = ds2[var2_name]
 
@@ -51,7 +51,7 @@ med2    = np.median(clean2)
 mean2   = np.mean(clean2)
 
 #### --- ANI
-ds3 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_ANI_FINAL.nc')
+ds3 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_ANI.nc')
 var3_name = list(ds3.data_vars)[0]
 da3 = ds3[var3_name]
 
@@ -95,7 +95,7 @@ for i, (ax, (data, med, mean, name, title)) in enumerate(zip(axs, datasets)):
     ax.axvline(0.45, color='g', linestyle='--', linewidth=1.5, label=f'Monthly threshold')
     ax.set_ylabel('Density', fontsize=10)
     ax.set_title(title, fontsize=10, loc='left')
-    # ax.set_xlim([0.2, 1.1])
+    ax.set_xlim([0.2, 1.1])
     ax.legend(frameon=False, fontsize=9)
 
     # only give the xlabel to the bottom axis
