@@ -646,7 +646,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        bounds = [0, 1.80, np.max(total_aggregate['psi'])] #psi_quants
+        bounds = [np.min(total_aggregate['psi']), 0, np.max(total_aggregate['psi'])] #psi_quants
         cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -658,8 +658,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         ax.set_global()
         gdf_plot = total_aggregate.plot(
             column='psi',    
-            cmap='gist_heat_r', #cmap, #'PRGn',
-            #norm=norm,   
+            cmap='PRGn', #cmap, #'PRGn',
+            norm=TwoSlopeNorm(vmin=bounds[0], vcenter=bounds[1], vmax=bounds[2]),   
             legend=True,                   
             legend_kwds={
                 'label': "Teleconnection percentile", 
@@ -727,13 +727,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=5.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'nino3',
-                                        response_var='binary',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc',
+                                        response_var='count',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosNINO3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3_square5_wGeometry.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_mrsosNINO3_square4_wGeometry.csv', index=False)
 
 

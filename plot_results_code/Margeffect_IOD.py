@@ -42,11 +42,11 @@ from matplotlib.legend_handler import HandlerTuple
 
 
 path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_stronggroup.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_stronggroup.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_high1d35_ci90_linear.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_high1d35_ci90_linear.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_weakgroup.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_DMI_state_ci95_weakgroup.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_low1d35_ci90_linear.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_low1d35_ci90_linear.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -298,7 +298,7 @@ ax2.set_xlim(-1.00, 1.00)
 # ax2.set_ylim(0.1, 3.85)
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

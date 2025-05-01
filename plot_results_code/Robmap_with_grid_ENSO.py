@@ -91,7 +91,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3_square5_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_mrsosNINO3_square4_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -106,7 +106,7 @@ gdf.set_crs(epsg=4326, inplace=True)
 gdf_agg =gdf.groupby('loc_id').agg({
     'geometry': 'first',
     'psi': 'first',
-    'conflict_binary':'sum',
+    'conflict_count':'sum',
 }).reset_index()
 
 # Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
@@ -136,20 +136,22 @@ gl.yformatter = LATITUDE_FORMATTER
 
 # create a custom colormap
 # bounds = [0, 1.4415020, np.max(gdf_agg['psi'])]
+bounds = [np.min(gdf_agg['psi']), 0, np.max(gdf_agg['psi'])] #psi_quants
 # cmap = mcolors.ListedColormap(["gainsboro", "red"])
 # norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-cmap = 'gist_heat_r'
+cmap = 'PRGn' #'gist_heat_r'
 
 index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                        fill=True, facecolor='green', edgecolor=None, linewidth=1.5, alpha=0.30,
+                        fill=True, facecolor='gray', edgecolor=None, linewidth=1.5, alpha=0.30,
                         transform=ccrs.PlateCarree())
 
 gl.top_labels       = False 
 ax.set_global()
 gdf_plot = gdf_agg.plot(
     column='psi',    
-    cmap=cmap, #'tab20c_r', 
+    cmap=cmap, #'tab20c_r',
+    norm=TwoSlopeNorm(vmin=bounds[0], vcenter=bounds[1], vmax=bounds[2]) ,
     legend=True,                   
     legend_kwds={
         'orientation': "vertical", 
@@ -163,12 +165,12 @@ ax.coastlines()
 ax.add_patch(index_box)
 cbar = gdf_plot.get_figure().axes[-1]
 # cbar.set_yticklabels(['0%', '80%', '100%'])
-cbar.set_title("Teleconnection\nstrength", fontsize=9)
+cbar.set_title("Teleconnection", fontsize=9)
 x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
 ax.scatter(x, y, color='blue', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
-plt.title('ENSO (NINO3) Teleconnection Strength', fontsize=10)
+plt.title('ENSO (mrsos+NINO3) Teleconnection', fontsize=10)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosNINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

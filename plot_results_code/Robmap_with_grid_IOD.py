@@ -16,7 +16,7 @@ import matplotlib.patches as mpatches
 print('\n\nSTART ---------------------\n')
 
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMIfinal_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMI_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -40,6 +40,14 @@ gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
 # Optionally, set the CRS using the CRS from the original GeoDataFrame
 gdf_agg.set_crs(gdf.crs, inplace=True)
 
+onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+df_onset = pd.read_csv(onset_path)    
+gdf_onset = gpd.GeoDataFrame(
+    df_onset, 
+    geometry=gpd.points_from_xy(df_onset.onset_lon, df_onset.onset_lat),
+    crs="EPSG:4326"
+)
+
 
 # Define a polygon with lat/lon coordinates
 fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
@@ -52,7 +60,7 @@ gl.xformatter = LONGITUDE_FORMATTER
 gl.yformatter = LATITUDE_FORMATTER
 
 # create a custom colormap
-bounds = [0, 1.80, np.max(gdf_agg['psi'])]
+bounds = [0, 1.35, np.max(gdf_agg['psi'])]
 cmap = mcolors.ListedColormap(["gainsboro", "red"])
 norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -103,6 +111,8 @@ ax.add_patch(index_box2)
 cbar = gdf_plot.get_figure().axes[-1]
 # cbar.set_yticklabels(['0%', '80%', '100%'])
 cbar.set_title("Teleconnection\nstrength\n(percentile)", fontsize=9)
+x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
+ax.scatter(x, y, color='blue', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
 plt.title('Indian Ocean Dipole (DMI) Teleconnection Group Paritioning', fontsize=10)
 plt.tight_layout()
 plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/RobMAP_DMI_psi_percent.png', dpi=300, bbox_inches='tight', pad_inches=0.1)

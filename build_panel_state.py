@@ -256,7 +256,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
         # create a custom colormap
         import matplotlib.colors as mcolors
-        bounds = [0, 1.80, np.max(last_obs['pop_avg_psi'])]
+        bounds = [np.min(last_obs['pop_avg_psi']), 0, np.max(last_obs['pop_avg_psi'])]
         cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -294,10 +294,10 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosDMI.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino3',
+                                    clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosDMI.csv', index=False)
 # print(panel)

@@ -41,12 +41,12 @@ from matplotlib.legend_handler import HandlerTuple
 # ##
 
 
-path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_NINO3_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_state_group_strong95.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_state_group_strong95.csv'
+path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_mrsosNINO3_square4.csv"
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_mrsosNINO3_dry_ci90_linear.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_mrsosNINO3_dry_ci90_linear.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_state_group_weak95.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_Global_NINO3_state_group_weak95.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_mrsosNINO3_wet_ci90_linear.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_mrsosNINO3_wet_ci90_linear.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -244,10 +244,10 @@ ax1.set_title('Marginal Effect of ENSO (N=73)\n', fontsize=10, color='black')
 sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
 # ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
 # ax1.axvline(0, color='gray', linestyle='--', linewidth=1)
-sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
-ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
-sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='red', ax=ax2)
-ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='red', alpha=0.25, edgecolor=None)
+sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='green', ax=ax2)
+ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='green', alpha=0.35, edgecolor=None)
+sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='purple', ax=ax2)
+ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='purple', alpha=0.25, edgecolor=None)
 
 # ax2.axvline(0, color='black', linestyle='--', linewidth=1)
 
@@ -276,29 +276,29 @@ ax1.axvspan(-2.05, -0.5, color=colors[0], alpha=0.20, edgecolor='none', linewidt
 # ax1.axvspan(-2.05, -1.5, color=colors[0], alpha=0.15, edgecolor='none', linewidth=0.0, zorder=0)
 
 #
-# plt.text(+0.0, +3.5, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
-# plt.text(+1.0,  +3.5, 'El Niño', fontsize=9, color='k', horizontalalignment='left')
-# plt.text(-1.0,  +3.5, 'La Niña', fontsize=9, color='k', horizontalalignment='right')
+plt.text(+0.0, +7.25, 'Neutral', fontsize=9, color='k', horizontalalignment='center')
+plt.text(+1.0,  +7.25, 'El Niño', fontsize=9, color='k', horizontalalignment='left')
+plt.text(-1.0,  +7.25, 'La Niña', fontsize=9, color='k', horizontalalignment='right')
 
-line_weak = mlines.Line2D([], [], color='dimgray')
-patch_weak = mpatches.Patch(color='dimgray', alpha=0.35)
+line_weak = mlines.Line2D([], [], color='green')
+patch_weak = mpatches.Patch(color='green', alpha=0.35)
 # Strong: darkorange line and fill
-line_strong = mlines.Line2D([], [], color='red')
-patch_strong = mpatches.Patch(color='red', alpha=0.25)
+line_strong = mlines.Line2D([], [], color='purple')
+patch_strong = mpatches.Patch(color='purple', alpha=0.25)
 
 # Combine each line and its fill into a tuple
 handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
-labels = ['Strong', 'Weak']
+labels = ['Drying', 'Wetting']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
-ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.5], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.5], fontsize=9, frameon=False, title=r'El Nino effect', title_fontsize=8)
 
 ax1.set_ylim(0, 2.5)
 ax2.set_xlim(-2.00, 3.4)
 # ax2.set_ylim(-0.0075, 0.010)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_NINO3_State_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_GlobalState_mrsosNINO3_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
