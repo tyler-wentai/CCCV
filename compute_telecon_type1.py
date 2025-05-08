@@ -320,6 +320,7 @@ for i in range(n_lat):
             # may-dec of year t
             var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
 
+            ############
             # compute correlations of yearly month, k, air anomaly with index 
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
 

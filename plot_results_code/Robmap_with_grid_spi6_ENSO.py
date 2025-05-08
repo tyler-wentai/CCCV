@@ -27,7 +27,7 @@ import regionmask
 
 # --- load the data -----------------------------------------------------------
 ds  = xr.open_dataset(
-    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosNINO3.nc'
+    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_type2.nc'
 )
 da  = ds['__xarray_dataarray_variable__']                         # choose the field you want to plot
 da   = da.squeeze()                    # drop length‑1 dimensions, if any
@@ -44,6 +44,7 @@ da_land = da.where(mask == 0)              # set ocean cells → NaN
 da_nonzero = da_land.where(da_land != 0)
 std_land = da_nonzero.std(dim=('lat', 'lon'), skipna=True).item()
 print(std_land)
+
 
 
 nino3_color = 'gainsboro'  # or whatever color you like
@@ -77,18 +78,21 @@ gl.xformatter    = LONGITUDE_FORMATTER
 gl.yformatter    = LATITUDE_FORMATTER
 
 # same two‑class colouring you used before
-bounds = [-4*std_land, 0, +4*std_land]
+# bounds = [-4*std_land, 0, +4*std_land]
+bounds = [da_nonzero.min(), da_nonzero.max()]
 # cmap   = mcolors.ListedColormap(['gainsboro', 'red'])
 # norm   = mcolors.BoundaryNorm(bounds, cmap.N)
 
 # draw the grid with pcolormesh
 mesh = ax.pcolormesh(
     da_land.lon, da_land.lat, da_land,
-    cmap='PRGn',
-    norm=TwoSlopeNorm(
-        vmin=bounds[0], vcenter=bounds[1], vmax=bounds[2]
-    ),
-    transform=ccrs.PlateCarree()
+    cmap='YlOrRd',
+    #norm=TwoSlopeNorm(
+    #    vmin=bounds[0], vcenter=bounds[1]
+    #),
+    vmin=bounds[0],
+    vmax=bounds[1],
+    transform=ccrs.PlateCarree(),
 )
 
 ax.add_patch(index_box1)
@@ -105,7 +109,7 @@ cbar.set_label('← more dry               more wet →', fontsize=9)  # label s
 cbar.ax.set_title('Cumulative corr.', pad=10, fontsize=8)
 cbar.ax.tick_params(labelsize=7)                # tick‑label size
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosNINO3_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosNINO3_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
