@@ -256,7 +256,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
         last_obs = panel_gdf[panel_gdf['year'] == panel_end_year]
         # create a custom colormap
         import matplotlib.colors as mcolors
-        bounds = [np.min(last_obs['pop_avg_psi']), 0, np.max(last_obs['pop_avg_psi'])]
+        bounds = [np.min(last_obs['pop_avg_psi']), 0.5, np.max(last_obs['pop_avg_psi'])]
         cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -299,5 +299,5 @@ panel = initalize_state_onset_panel(panel_start_year=1950,
                                     clim_index='nino3',
                                     response_var = 'binary',
                                     plot_telecon=True)
-# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2.csv', index=False)
-# print(panel)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2.csv', index=False)
+print(panel)
