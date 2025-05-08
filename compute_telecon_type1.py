@@ -9,6 +9,7 @@ from utils.calc_annual_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
+# COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CAI ET AL. 2024 METHOD
 
 clim_index = 'ANI'
 
