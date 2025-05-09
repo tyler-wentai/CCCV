@@ -16,10 +16,10 @@ import xarray as xr
 clim_index = 'NINO3'
 
 start_year  = 1950
-end_year    = 2023 #note that spi only included observations up to 2022
+end_year    = 2019 #note that spi only included observations up to 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/spei6_ERA5_mon_194001-202412_v02.nc' 
-var1str = 'spei6' # soil moisture
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/precip.mon.total.0.25x0.25.v2020.nc' 
+var1str = 'precip' 
 
 
 
@@ -36,11 +36,12 @@ ds1 = ds1.rename({'lon': 'longitude'})
 lon1 = ds1['longitude']
 lat1 = ds1['latitude']
 
-resolution = 0.5
+resolution = 0.25
 
-lat_int_mask = (lat1 % resolution == 0)
-lon_int_mask = (lon1 % resolution == 0)
-ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
+# lat_int_mask = (lat1 % resolution == 0)
+# lon_int_mask = (lon1 % resolution == 0)
+# ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
+
 
 # Function to convert longitude from 0-360 to -180 to 180
 def convert_longitude(ds):
@@ -59,7 +60,6 @@ ds1 = ds1.assign_coords(
     longitude=np.round(ds1['longitude'], decimals=2),
     latitude=np.round(ds1['latitude'], decimals=2)
 )
-
 
 # load index data
 clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
@@ -130,7 +130,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
 
     df["detr"] = (
         df.groupby("month", group_keys=False)
-            .apply(_remove_trend))#, include_groups=False))
+            .apply(_remove_trend, include_groups=False))
 
     # --- 3. standardize 
     sigma = np.array([df.loc[df["month"] == m, "detr"].std(ddof=0) for m in range(12)]) # population sigma
@@ -142,7 +142,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spei6_anom_ERA5_0d5_19502023.npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_GPCC_0d25_19502019.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -166,7 +166,7 @@ else:
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/spei6_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '.npy', var1_std)
+    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_GPCC_0d25_' + str(start_year) + str(end_year) + '.npy', var1_std)
 
 
 # Compute the annualized index value:
@@ -253,7 +253,7 @@ psi             = np.empty((n_lat,n_long))
 # index_dat = index_dat.dropna(subset=['avg_ANOM_ENSO'])
 
 print("\nComputing psi array...")
-#warnings.filterwarnings('ignore', category=RuntimeWarning) #!!!!!!!
+# warnings.filterwarnings('ignore', category=RuntimeWarning) #!!!!!!!
 for i in range(n_lat):
     if (i%10==0): 
         print("...", i)
@@ -323,7 +323,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 spei6.",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using GPCC precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -341,7 +341,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 spei6.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using GPCC precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
