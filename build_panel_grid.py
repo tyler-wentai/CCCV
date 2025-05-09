@@ -646,7 +646,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        bounds = [np.min(total_aggregate['psi']), 0.5, np.max(total_aggregate['psi'])] #psi_quants
+        bounds = [np.min(total_aggregate['psi']), 0.470716178, np.max(total_aggregate['psi'])] #psi_quants
         cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -719,21 +719,21 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    # cols = [col for col in final_gdf.columns if col != 'geometry']
-    # final_gdf = final_gdf[cols]
+    cols = [col for col in final_gdf.columns if col != 'geometry']
+    final_gdf = final_gdf[cols]
 
     return final_gdf
 
 
 # 3.7225
 # stepsize=3.5
-panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
+panel = prepare_gridded_panel_data(grid_polygon='square', localities='Africa', stepsize=2.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',
+                                        clim_index = 'ani',
                                         response_var='count',
-                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_type2.nc',
+                                        telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_type2.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Africa_ANItype2_square2.csv', index=False)
 
 
