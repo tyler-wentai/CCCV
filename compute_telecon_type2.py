@@ -203,6 +203,26 @@ else:
     np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
 
 
+# var2_monthly_array = xr.DataArray(data = var2_std,
+#                             coords={
+#                             "time": common_time,    
+#                             "lat": common_lat,
+#                             "lon": common_lon
+#                         },
+#                         dims = ["time", "lat", "lon"],
+#                         attrs=dict(
+#                             description="Gridded monthly ERA5 tp anomaly data.",
+#                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
+#                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
+#                             climate_index_used = clim_index,
+#                             resolution = resolution)
+#                         )
+
+# path2_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/tp_anom_ERA5_0d5_19502023_wTimeLatLon.nc'
+# var2_monthly_array.to_netcdf(path2_str)
+
+
+
 # Compute the annualized index value:
 clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
 clim_ind_common = clim_ind_common.copy()
