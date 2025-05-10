@@ -27,7 +27,7 @@ import regionmask
 
 # --- load the data -----------------------------------------------------------
 ds  = xr.open_dataset(
-    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosDMI.nc'
+    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpDMI.nc'
 )
 da  = ds['__xarray_dataarray_variable__']                         # choose the field you want to plot
 da   = da.squeeze()                    # drop length‑1 dimensions, if any
