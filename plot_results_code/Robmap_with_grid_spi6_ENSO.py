@@ -27,7 +27,7 @@ import regionmask
 
 # --- load the data -----------------------------------------------------------
 ds  = xr.open_dataset(
-    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_ANI_type2.nc'
+    '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpNINO3.nc'
 )
 da  = ds['__xarray_dataarray_variable__']                         # choose the field you want to plot
 da   = da.squeeze()                    # drop length‑1 dimensions, if any
@@ -64,7 +64,7 @@ index_box1 = mpatches.Rectangle(
 fig, ax = plt.subplots(figsize=(7, 5.),
                         subplot_kw={'projection': ccrs.Robinson()})
 
-ax.set_title('Cumulative correlation of (MRSOS, NINO3 Index NDJ) over tropical year', fontsize=8.5, pad=7)
+ax.set_title('Cumulative correlation of (TP, NINO3 Index NDJ) over tropical year', fontsize=8.5, pad=7)
 
 # nice gridlines
 gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.4)
@@ -78,20 +78,20 @@ gl.xformatter    = LONGITUDE_FORMATTER
 gl.yformatter    = LATITUDE_FORMATTER
 
 # same two‑class colouring you used before
-# bounds = [-4*std_land, 0, +4*std_land]
-bounds = [da_nonzero.min(), da_nonzero.max()]
+bounds = [-4*std_land, 0, +4*std_land]
+# bounds = [da_nonzero.min(), da_nonzero.max()]
 # cmap   = mcolors.ListedColormap(['gainsboro', 'red'])
 # norm   = mcolors.BoundaryNorm(bounds, cmap.N)
 
 # draw the grid with pcolormesh
 mesh = ax.pcolormesh(
     da_land.lon, da_land.lat, da_land,
-    cmap='YlOrRd',
-    #norm=TwoSlopeNorm(
-    #    vmin=bounds[0], vcenter=bounds[1]
-    #),
-    vmin=bounds[0],
-    vmax=bounds[1],
+    cmap='PuOr_r',
+    norm=TwoSlopeNorm(
+       vmin=bounds[0], vcenter=bounds[1], vmax=bounds[2]
+    ),
+    # vmin=bounds[0],
+    # vmax=bounds[1],
     transform=ccrs.PlateCarree(),
 )
 
@@ -109,7 +109,7 @@ cbar.set_label('← more dry               more wet →', fontsize=9)  # label s
 cbar.ax.set_title('Cumulative corr.', pad=10, fontsize=8)
 cbar.ax.tick_params(labelsize=7)                # tick‑label size
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosNINO3_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_tpNINO3_corr.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
