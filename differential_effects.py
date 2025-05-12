@@ -10,26 +10,75 @@ import shapely
 
 print('\n\nSTART ---------------------\n')
 
+# dat = pd.read_csv('/Users/tylerbagwell/Desktop/Psi_tp_directional_Onset_Count_Global_DMItype2_square4_wGeometry.csv')
+# dat_agg =dat.groupby('loc_id').agg({
+#     'psi': 'first',
+#     'psi_tp_directional': 'first',
+# }).reset_index()
 
-# dat = pd.read_csv('/Users/tylerbagwell/Desktop/differential_MEANanom_tp.csv')
-# print(dat)
+# psi_threshold = 0.25
+# mask = dat_agg['psi'] > psi_threshold
+# dat_agg = dat_agg.loc[mask]
 
-# mask1 = dat['cindex_lag0y'] >= +0.75
-# mask2 = dat['cindex_lag0y'] <= -0.75
-# anom_pos = dat.loc[mask1, 'anom_tp']
-# anom_neg = dat.loc[mask2, 'anom_tp']
+# dat_agg['psi_tp_directional'] = np.abs(dat_agg['psi_tp_directional'])
 
-# # Plot overlapping histograms
 # plt.figure()
-# plt.hist(anom_pos, bins=30, alpha=0.5, label='cindex_lag0y ≥ 0', color='darkorange', density=True)
-# plt.hist(anom_neg, bins=30, alpha=0.5, label='cindex_lag0y < 0', color='blue', density=True)
-# plt.legend()
-# plt.xlabel('anom_tp')
-# plt.ylabel('Frequency')
-# plt.title('Histogram of anom_tp by cindex_lag0y Sign')
+# plt.scatter(dat_agg['psi_tp_directional'], dat_agg['psi'])
 # plt.show()
 
+# print(np.corrcoef(dat_agg['psi_tp_directional'], dat_agg['psi']))
+
 # sys.exit()
+
+dat = pd.read_csv('/Users/tylerbagwell/Desktop/differential_MEANanom_tp_threshold_0d471.csv')
+print(dat)
+
+stddev = np.std(dat['cindex_lag0y'])
+print(stddev)
+
+
+mask1 = dat['psi_tp_directional'] > +0.0
+anom1 = dat.loc[mask1]
+mask1 = anom1['cindex_lag0y'] < +10*stddev
+anom1 = anom1.loc[mask1, 'anom_tp']
+
+# mask2 = dat['psi_tp_directional'] < 0
+# anom2 = dat.loc[mask2]
+# mask2 = anom2['cindex_lag0y'] < +1.5*stddev
+# anom2 = anom2.loc[mask2, 'anom_tp']
+
+mask2 = dat['psi_tp_directional'] < -0.0
+anom2 = dat.loc[mask2]
+mask2 = anom2['cindex_lag0y'] > -10*stddev
+anom2 = anom2.loc[mask2, 'anom_tp']
+
+mean1 = np.mean(anom1)
+mean2 = np.mean(anom2)
+
+
+# Plot overlapping histograms
+plt.figure()
+plt.hist(anom1, bins='scott', alpha=0.5, label='cindex_lag0y ≥ 0', color='darkorange', density=True)
+plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=2, label=f'Mean ≥0 ({mean1:.2f})')
+plt.hist(anom2, bins='scott', alpha=0.5, label='cindex_lag0y < 0', color='blue', density=True)
+plt.axvline(mean2, color='blue', linestyle=':', linewidth=2, label=f'Mean <0 ({mean2:.2f})')
+plt.legend()
+plt.xlabel('anom_tp')
+plt.ylabel('Frequency')
+plt.title('Histogram of anom_tp by cindex_lag0y Sign')
+plt.show()
+
+# conflict_dat = dat[dat['conflict_count']==1]
+# print(conflict_dat)
+
+# plt.figure()
+# plt.hist(conflict_dat['anom_tp'], bins='scott', alpha=0.5, color='darkorange', density=False)
+# plt.legend()
+# plt.xlabel('anom_tp')
+# plt.show()
+
+
+sys.exit()
 
 path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/tp_anom_ERA5_0d5_19502023_wTimeLatLon.nc'
 
