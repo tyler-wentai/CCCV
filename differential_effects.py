@@ -80,7 +80,7 @@ plt.show()
 
 sys.exit()
 
-path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/tp_anom_ERA5_0d5_19502023_wTimeLatLon.nc'
+path = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_19502023_wTimeLatLon.nc'
 
 var1 = xr.open_dataset(path)
 # var1_yr = var1.resample(time="1Y").mean()
