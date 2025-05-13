@@ -35,75 +35,131 @@ print('\n\nSTART ---------------------\n')
 dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
 print(dat)
 
-# dat = dat[dat['psi'] > 0.405640972]
+dat = dat[dat['psi'] > 0.4]
 
 stddev = np.std(dat['cindex_lag0y'])
 print(stddev)
 
-
-mask1 = dat['psi_tp_directional'] > +0.1
+#1
+mask1 = dat['psi_tp_directional'] < +0.0
 anom1 = dat.loc[mask1]
 mask1 = (
-    (anom1['cindex_lag0y'] >  +1.0 * stddev)
+    (anom1['cindex_lag0y'] > +1.0 * stddev)
 )
-anom1 = anom1.loc[mask1, 'tp_anom']
+anom1 = anom1.loc[mask1]
 
-# mask2 = dat['psi_tp_directional'] < 0
-# anom2 = dat.loc[mask2]
-# mask2 = anom2['cindex_lag0y'] < +1.5*stddev
-# anom2 = anom2.loc[mask2, 'anom_tp']
+anom1_agg = anom1.groupby('loc_id').agg({
+    'psi': 'first',
+    'psi_tp_directional': 'first',
+    'tp_anom':'mean',
+}).reset_index()
 
-mask2 = dat['psi_tp_directional'] < -0.1
+#2
+mask2 = dat['psi_tp_directional'] < +0.0
 anom2 = dat.loc[mask2]
 mask2 = (
-    (anom2['cindex_lag0y'] >  +1.0 * stddev)
+    (anom2['cindex_lag0y'] < -1.0 * stddev)
 )
-anom2 = anom2.loc[mask2, 'tp_anom']
+anom2 = anom2.loc[mask2]
 
-mean1 = np.mean(anom1)
-mean2 = np.mean(anom2)
+anom2_agg = anom2.groupby('loc_id').agg({
+    'psi': 'first',
+    'psi_tp_directional': 'first',
+    'tp_anom':'mean',
+}).reset_index()
+
+mean1 = np.mean(anom1_agg['tp_anom'])
+mean2 = np.mean(anom2_agg['tp_anom'])
+
+### --- PLOT 1
+# plt.figure()
+# plt.hist(anom1_agg['tp_anom'], bins='scott', alpha=0.4, label='Pos. corr. w/ NINO3', color='darkorange', density=True, edgecolor='darkorange')
+# plt.hist(anom2_agg['tp_anom'], bins='scott', alpha=0.4, label='Neg. corr. w/ NINO3', color='blue', density=True, edgecolor='blue')
+# plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=1.5, label=f'{mean1:.2f}')
+# plt.axvline(mean2, color='blue', linestyle=':', linewidth=1.5, label=f'{mean2:.2f}')
+# # plt.xlim(-4.0,+4.0)
+# plt.legend(title='Teleconnected regions whose\nprecipitation anomalies are:')
+# plt.xlabel('dryer  ←  Avg. Precipitation anomaly (s.d.)  →  wetter')
+# plt.ylabel('Density')
+# plt.title('DMI induced DRYING')
+
+# plt.tight_layout()
+# # plt.savefig('/Users/tylerbagwell/Desktop/DMI_drying.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
 
 
+# sys.exit()
+# ### --- PLOT 2
+# conflict_dat = dat[dat['conflict_count']>=1]
+# # conflict_dat = conflict_dat[conflict_dat['psi_tp_directional'] < +0.0]
+# print(conflict_dat)
+
+# conflict_teleconnected = conflict_dat[conflict_dat['psi']>+0.5]
+
+# plt.figure()
+# plt.hist(conflict_dat['tp_anom'], bins='scott', alpha=0.5, color='darkorange', density=False)
+# plt.hist(conflict_teleconnected['tp_anom'], bins='scott', alpha=0.5, color='purple', edgecolor='black', density=False)
+# plt.legend()
+# plt.xlabel('anom_tp')
+# plt.show()
+
+# print(np.mean(conflict_dat['tp_anom']))
+# print(np.mean(conflict_teleconnected['tp_anom']))
+
+# sys.exit()
 
 
+dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
+print(dat)
 
+stddev = np.std(dat['cindex_lag0y'])
+print(stddev)
 
-# Plot overlapping histograms
-plt.figure()
-# plt.axvline(0.0, color='gray', linestyle='-', linewidth=2)
-plt.hist(anom1, bins='scott', alpha=0.5, label='Pos. corr. w/ NINO3', color='darkorange', density=True)
-plt.hist(anom2, bins='scott', alpha=0.5, label='Neg. corr. w/ NINO3', color='blue', density=True)
-plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=0.5, label=f'{mean1:.2f}')
-plt.axvline(mean2, color='blue', linestyle=':', linewidth=0.5, label=f'{mean2:.2f}')
-# plt.xlim(-4.0,+4.0)
-plt.legend(title='Teleconnected regions whose\nprecipitation anomalies are:')
-plt.xlabel('dryer  ←  Precipitation anomaly (s.d.)  →  wetter')
-# plt.axvspan(+0.0, +4.0, color='green', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
-# plt.axvspan(+0.0, -4.0, color='brown', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
-plt.ylabel('Density')
-plt.title('DMI induced DRYING')
+# dat = dat[dat['psi'] > 0.4]
 
-plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/DMI_drying.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+mask_pos = dat['cindex_lag0y'] > +1.0 * stddev
+dat_pos = dat.loc[mask_pos]
+agg_pos = dat_pos.groupby('loc_id').agg({
+    'psi': 'first',
+    'psi_tp_directional': 'first',
+    'tp_anom':'mean',
+}).reset_index()
+agg_pos.rename(columns={'tp_anom': 'tp_anom_pos'}, inplace=True)
+
+mask_neg = dat['cindex_lag0y'] < -1.0 * stddev
+dat_neg = dat.loc[mask_neg]
+agg_neg = dat_neg.groupby('loc_id').agg({
+    'psi': 'first',
+    'psi_tp_directional': 'first',
+    'tp_anom':'mean',
+}).reset_index()
+agg_neg.rename(columns={'tp_anom': 'tp_anom_neg'}, inplace=True)
+
+dat_posneg = agg_pos.merge(agg_neg, on='loc_id', how='inner')
+dat_posneg['tp_anom_diff'] = np.abs(dat_posneg['tp_anom_pos'] - dat_posneg['tp_anom_neg'])
+dat_posneg.drop(columns=['psi_y','psi_tp_directional_y'], inplace=True)
+dat_posneg.rename(columns={'psi_x': 'psi', 'psi_tp_directional_x':'psi_tp_directional'}, inplace=True)
+
+corr = np.corrcoef(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
+
+plt.scatter(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
 plt.show()
 
-conflict_dat = dat[dat['conflict_count']>=1]
-# conflict_dat = conflict_dat[conflict_dat['psi_tp_directional'] < +0.0]
-print(conflict_dat)
+# print(dat_posneg)
 
-conflict_teleconnected = conflict_dat[conflict_dat['psi']>+0.5]
 
-plt.figure()
-plt.hist(conflict_dat['tp_anom'], bins='scott', alpha=0.5, color='darkorange', density=False)
-plt.hist(conflict_teleconnected['tp_anom'], bins='scott', alpha=0.5, color='purple', edgecolor='black', density=False)
-plt.legend()
-plt.xlabel('anom_tp')
-plt.show()
 
-print(np.mean(conflict_dat['tp_anom']))
-print(np.mean(conflict_teleconnected['tp_anom']))
+
+
+
+
 
 sys.exit()
+
+
+
+
+
 
 ############ ------- ############
 ############ COMPUTE ############
