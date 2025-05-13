@@ -11,81 +11,85 @@ from scipy.signal import detrend
 
 print('\n\nSTART ---------------------\n')
 
-# # dat = pd.read_csv('/Users/tylerbagwell/Desktop/Psi_tp_directional_Onset_Count_Global_DMItype2_square4_wGeometry.csv')
-# # dat_agg =dat.groupby('loc_id').agg({
-# #     'psi': 'first',
-# #     'psi_tp_directional': 'first',
-# # }).reset_index()
+# dat = pd.read_csv('/Users/tylerbagwell/Desktop/Psi_tp_directional_Onset_Count_Global_DMItype2_square4_wGeometry.csv')
 
-# # psi_threshold = 0.25
-# # mask = dat_agg['psi'] > psi_threshold
-# # dat_agg = dat_agg.loc[mask]
+# dat_agg =dat.groupby('loc_id').agg({
+#     'psi': 'first',
+#     'psi_tp_directional': 'first',
+# }).reset_index()
 
-# # dat_agg['psi_tp_directional'] = np.abs(dat_agg['psi_tp_directional'])
+# psi_threshold = 0.25
+# mask = dat_agg['psi'] > psi_threshold
+# dat_agg = dat_agg.loc[mask]
 
-# # plt.figure()
-# # plt.scatter(dat_agg['psi_tp_directional'], dat_agg['psi'])
-# # plt.show()
+# dat_agg['psi_tp_directional'] = np.abs(dat_agg['psi_tp_directional'])
 
-# # print(np.corrcoef(dat_agg['psi_tp_directional'], dat_agg['psi']))
-
-# # sys.exit()
-
-# dat = pd.read_csv('/Users/tylerbagwell/Desktop/differential_MEANanom_tp_NINO3.csv')
-# print(dat)
-
-# dat = dat[dat['psi'] > 0.5]
-
-# stddev = np.std(dat['cindex_lag0y'])
-# print(stddev)
-
-
-# mask1 = dat['psi_tp_directional'] > +0.5
-# anom1 = dat.loc[mask1]
-# mask1 = anom1['cindex_lag0y'] < -1.0*stddev
-# anom1 = anom1.loc[mask1, 'anom_tp']
-
-# # mask2 = dat['psi_tp_directional'] < 0
-# # anom2 = dat.loc[mask2]
-# # mask2 = anom2['cindex_lag0y'] < +1.5*stddev
-# # anom2 = anom2.loc[mask2, 'anom_tp']
-
-# mask2 = dat['psi_tp_directional'] < -0.5
-# anom2 = dat.loc[mask2]
-# mask2 = anom2['cindex_lag0y'] > +1.0*stddev
-# anom2 = anom2.loc[mask2, 'anom_tp']
-
-# mean1 = np.mean(anom1)
-# mean2 = np.mean(anom2)
-
-
-# # Plot overlapping histograms
 # plt.figure()
-# plt.hist(anom1, bins='scott', alpha=0.5, label='Pos. corr. w/ NINO3', color='darkorange', density=True)
-# plt.hist(anom2, bins='scott', alpha=0.5, label='Neg. corr. w/ NINO3', color='blue', density=True)
-# plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=2, label=f'{mean1:.2f}')
-# plt.axvline(mean2, color='blue', linestyle=':', linewidth=2, label=f'{mean2:.2f}')
-# plt.xlim(-3,4.0)
-# plt.legend(title='Teleconnected regions whose\nprecipitation anomalies are:')
-# plt.xlabel('dryer  ←  Precipitation anomaly (s.d.)  →  wetter')
-# plt.ylabel('Density')
-# plt.title('NINO3 induced WETTING')
-
-# plt.tight_layout()
-# # plt.savefig('/Users/tylerbagwell/Desktop/NINO3_wetting.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.scatter(dat_agg['psi_tp_directional'], dat_agg['psi'])
 # plt.show()
 
-# # conflict_dat = dat[dat['conflict_count']==1]
-# # print(conflict_dat)
-
-# # plt.figure()
-# # plt.hist(conflict_dat['anom_tp'], bins='scott', alpha=0.5, color='darkorange', density=False)
-# # plt.legend()
-# # plt.xlabel('anom_tp')
-# # plt.show()
-
+# print(np.corrcoef(dat_agg['psi_tp_directional'], dat_agg['psi']))
 
 # sys.exit()
+
+dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
+print(dat)
+
+dat = dat[dat['psi'] > 0.405640972]
+
+stddev = np.std(dat['cindex_lag0y'])
+print(stddev)
+
+
+mask1 = dat['psi_tp_directional'] > +0.1
+anom1 = dat.loc[mask1]
+mask1 = anom1['cindex_lag0y'] < -1.0*stddev
+anom1 = anom1.loc[mask1, 'tp_anom']
+
+# mask2 = dat['psi_tp_directional'] < 0
+# anom2 = dat.loc[mask2]
+# mask2 = anom2['cindex_lag0y'] < +1.5*stddev
+# anom2 = anom2.loc[mask2, 'anom_tp']
+
+mask2 = dat['psi_tp_directional'] < -0.1
+anom2 = dat.loc[mask2]
+mask2 = anom2['cindex_lag0y'] > +1.0*stddev
+anom2 = anom2.loc[mask2, 'tp_anom']
+
+mean1 = np.mean(anom1)
+mean2 = np.mean(anom2)
+
+
+# Plot overlapping histograms
+plt.figure()
+# plt.axvline(0.0, color='gray', linestyle='-', linewidth=2)
+plt.hist(anom1, bins='scott', alpha=0.5, label='Pos. corr. w/ NINO3', color='darkorange', density=True)
+plt.hist(anom2, bins='scott', alpha=0.5, label='Neg. corr. w/ NINO3', color='blue', density=True)
+plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=0.5, label=f'{mean1:.2f}')
+plt.axvline(mean2, color='blue', linestyle=':', linewidth=0.5, label=f'{mean2:.2f}')
+# plt.xlim(-4.0,+4.0)
+plt.legend(title='Teleconnected regions whose\nprecipitation anomalies are:')
+plt.xlabel('dryer  ←  Precipitation anomaly (s.d.)  →  wetter')
+# plt.axvspan(+0.0, +4.0, color='green', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
+# plt.axvspan(+0.0, -4.0, color='brown', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
+plt.ylabel('Density')
+plt.title('NINO3 induced WETTING')
+
+plt.tight_layout()
+# plt.savefig('/Users/tylerbagwell/Desktop/NINO3_wetting.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.show()
+
+# conflict_dat = dat[dat['conflict_count']==1]
+# print(conflict_dat)
+
+# plt.figure()
+# plt.hist(conflict_dat['anom_tp'], bins='scott', alpha=0.5, color='darkorange', density=False)
+# plt.legend()
+# plt.xlabel('anom_tp')
+# plt.show()
+
+
+sys.exit()
 
 ############ ------- ############
 ############ COMPUTE ############
