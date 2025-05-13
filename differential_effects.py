@@ -35,7 +35,7 @@ print('\n\nSTART ---------------------\n')
 dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
 print(dat)
 
-dat = dat[dat['psi'] > 0.405640972]
+# dat = dat[dat['psi'] > 0.405640972]
 
 stddev = np.std(dat['cindex_lag0y'])
 print(stddev)
@@ -43,7 +43,9 @@ print(stddev)
 
 mask1 = dat['psi_tp_directional'] > +0.1
 anom1 = dat.loc[mask1]
-mask1 = anom1['cindex_lag0y'] < -1.0*stddev
+mask1 = (
+    (anom1['cindex_lag0y'] >  +1.0 * stddev)
+)
 anom1 = anom1.loc[mask1, 'tp_anom']
 
 # mask2 = dat['psi_tp_directional'] < 0
@@ -53,7 +55,9 @@ anom1 = anom1.loc[mask1, 'tp_anom']
 
 mask2 = dat['psi_tp_directional'] < -0.1
 anom2 = dat.loc[mask2]
-mask2 = anom2['cindex_lag0y'] > +1.0*stddev
+mask2 = (
+    (anom2['cindex_lag0y'] >  +1.0 * stddev)
+)
 anom2 = anom2.loc[mask2, 'tp_anom']
 
 mean1 = np.mean(anom1)
@@ -73,21 +77,27 @@ plt.xlabel('dryer  ←  Precipitation anomaly (s.d.)  →  wetter')
 # plt.axvspan(+0.0, +4.0, color='green', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
 # plt.axvspan(+0.0, -4.0, color='brown', alpha=0.10, edgecolor='none', linewidth=0.0, zorder=0)
 plt.ylabel('Density')
-plt.title('NINO3 induced WETTING')
+plt.title('DMI induced DRYING')
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/NINO3_wetting.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/DMI_drying.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
-# conflict_dat = dat[dat['conflict_count']==1]
-# print(conflict_dat)
+conflict_dat = dat[dat['conflict_count']>=1]
+# conflict_dat = conflict_dat[conflict_dat['psi_tp_directional'] < +0.0]
+print(conflict_dat)
 
-# plt.figure()
-# plt.hist(conflict_dat['anom_tp'], bins='scott', alpha=0.5, color='darkorange', density=False)
-# plt.legend()
-# plt.xlabel('anom_tp')
-# plt.show()
+conflict_teleconnected = conflict_dat[conflict_dat['psi']>+0.5]
 
+plt.figure()
+plt.hist(conflict_dat['tp_anom'], bins='scott', alpha=0.5, color='darkorange', density=False)
+plt.hist(conflict_teleconnected['tp_anom'], bins='scott', alpha=0.5, color='purple', edgecolor='black', density=False)
+plt.legend()
+plt.xlabel('anom_tp')
+plt.show()
+
+print(np.mean(conflict_dat['tp_anom']))
+print(np.mean(conflict_teleconnected['tp_anom']))
 
 sys.exit()
 
