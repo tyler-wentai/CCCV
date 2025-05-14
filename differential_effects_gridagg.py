@@ -122,7 +122,7 @@ dat_pos = dat.loc[mask_pos]
 agg_pos = dat_pos.groupby('loc_id').agg({
     'psi': 'first',
     'psi_tp_directional': 'first',
-    'tp_anom':'mean',
+    'tp_anom':'median',
 }).reset_index()
 agg_pos.rename(columns={'tp_anom': 'tp_anom_pos'}, inplace=True)
 
@@ -131,7 +131,7 @@ dat_neg = dat.loc[mask_neg]
 agg_neg = dat_neg.groupby('loc_id').agg({
     'psi': 'first',
     'psi_tp_directional': 'first',
-    'tp_anom':'mean',
+    'tp_anom':'median',
 }).reset_index()
 agg_neg.rename(columns={'tp_anom': 'tp_anom_neg'}, inplace=True)
 
@@ -141,6 +141,7 @@ dat_posneg.drop(columns=['psi_y','psi_tp_directional_y'], inplace=True)
 dat_posneg.rename(columns={'psi_x': 'psi', 'psi_tp_directional_x':'psi_tp_directional'}, inplace=True)
 
 corr = np.corrcoef(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
+print(corr)
 
 plt.scatter(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
 plt.show()
