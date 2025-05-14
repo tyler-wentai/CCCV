@@ -32,46 +32,87 @@ print('\n\nSTART ---------------------\n')
 
 # sys.exit()
 
-dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
-print(dat)
+# dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
+# print(dat)
 
-dat = dat[dat['psi'] > 0.4]
+# dat = dat[dat['psi'] > 0.4]
 
-stddev = np.std(dat['cindex_lag0y'])
-print(stddev)
+# stddev = np.std(dat['cindex_lag0y'])
+# print(stddev)
 
-#1
-mask1 = dat['psi_tp_directional'] < +0.0
-anom1 = dat.loc[mask1]
-mask1 = (
-    (anom1['cindex_lag0y'] > +1.0 * stddev)
-)
-anom1 = anom1.loc[mask1]
+# #1
+# mask1 = dat['psi_tp_directional'] > +0.0
+# anom1 = dat.loc[mask1]
+# mask1 = (
+#     (anom1['cindex_lag0y'] > +1.0 * stddev)
+# )
+# anom1 = anom1.loc[mask1]
 
-anom1_agg = anom1.groupby('loc_id').agg({
-    'psi': 'first',
-    'psi_tp_directional': 'first',
-    'tp_anom':'mean',
-}).reset_index()
+# anom1_agg = anom1.groupby('loc_id').agg({
+#     'psi': 'first',
+#     'psi_tp_directional': 'first',
+#     'tp_anom':'mean',
+# }).reset_index()
 
-#2
-mask2 = dat['psi_tp_directional'] < +0.0
-anom2 = dat.loc[mask2]
-mask2 = (
-    (anom2['cindex_lag0y'] < -1.0 * stddev)
-)
-anom2 = anom2.loc[mask2]
+# #2
+# mask2 = dat['psi_tp_directional'] < -0.0
+# anom2 = dat.loc[mask2]
+# mask2 = (
+#     (anom2['cindex_lag0y'] < -1.0 * stddev)
+# )
+# anom2 = anom2.loc[mask2]
 
-anom2_agg = anom2.groupby('loc_id').agg({
-    'psi': 'first',
-    'psi_tp_directional': 'first',
-    'tp_anom':'mean',
-}).reset_index()
+# anom2_agg = anom2.groupby('loc_id').agg({
+#     'psi': 'first',
+#     'psi_tp_directional': 'first',
+#     'tp_anom':'mean',
+# }).reset_index()
 
-mean1 = np.mean(anom1_agg['tp_anom'])
-mean2 = np.mean(anom2_agg['tp_anom'])
+# mean1 = np.mean(anom1_agg['tp_anom'])
+# mean2 = np.mean(anom2_agg['tp_anom'])
 
-### --- PLOT 1
+# print(anom1_agg.shape[0])
+# print(anom2_agg.shape[0])
+# rr = anom2_agg.shape[0]/anom1_agg.shape[0]
+
+
+# x1 = anom1_agg["tp_anom"]
+# x2 = anom2_agg["tp_anom"]
+
+# # 1) compute a shared bins array using Scott’s rule on the combined data
+# combined = np.concatenate([x1, x2])
+# bin_edges = np.histogram_bin_edges(combined, bins="scott")
+
+# # 2) plot both with the same bin_edges
+# plt.figure(figsize=(5,4))
+# plt.hist(x1,
+#          bins=bin_edges,
+#          alpha=0.4,
+#          label="Pos. corr. w/ NINO3",
+#          color="darkorange",
+#          density=True,
+#          edgecolor="darkorange")
+# plt.hist(x2,
+#          bins=bin_edges,
+#          alpha=0.4,
+#          label="Neg. corr. w/ NINO3",
+#          color="blue",
+#          density=True,
+#          edgecolor="blue")
+# plt.axvline(mean1, color='darkorange', linestyle='--', linewidth=1.5, label=f'{mean1:.2f}')
+# plt.axvline(mean2, color='blue', linestyle=':', linewidth=1.5, label=f'{mean2:.2f}')
+# plt.legend(title='Teleconnected regions whose\nprecipitation anomalies are:')
+# plt.xlabel('Precipitation anomaly in s.d.')
+# plt.ylabel('Density')
+# plt.title('DMI induced DRYING')
+# plt.xlim(-1.75, +1.75)
+
+# plt.tight_layout()
+# plt.show()
+# sys.exit()
+
+
+# ### --- PLOT 1
 # plt.figure()
 # plt.hist(anom1_agg['tp_anom'], bins='scott', alpha=0.4, label='Pos. corr. w/ NINO3', color='darkorange', density=True, edgecolor='darkorange')
 # plt.hist(anom2_agg['tp_anom'], bins='scott', alpha=0.4, label='Neg. corr. w/ NINO3', color='blue', density=True, edgecolor='blue')
@@ -109,13 +150,21 @@ mean2 = np.mean(anom2_agg['tp_anom'])
 # sys.exit()
 
 
+
+#####################
+#####################
+
+
+from scipy.stats import linregress
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
 dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
-print(dat)
+# print(dat)
 
 stddev = np.std(dat['cindex_lag0y'])
-print(stddev)
+# print(stddev)
 
-# dat = dat[dat['psi'] > 0.4]
+dat = dat[dat['psi'] > 0.4]
 
 mask_pos = dat['cindex_lag0y'] > +1.0 * stddev
 dat_pos = dat.loc[mask_pos]
@@ -140,27 +189,140 @@ dat_posneg['tp_anom_diff'] = np.abs(dat_posneg['tp_anom_pos'] - dat_posneg['tp_a
 dat_posneg.drop(columns=['psi_y','psi_tp_directional_y'], inplace=True)
 dat_posneg.rename(columns={'psi_x': 'psi', 'psi_tp_directional_x':'psi_tp_directional'}, inplace=True)
 
-corr = np.corrcoef(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
+
+x = dat_posneg['psi']
+y = dat_posneg['tp_anom_diff']
+
+corr = np.corrcoef(x, y)[0, 1]
 print(corr)
 
-plt.scatter(dat_posneg['psi'], dat_posneg['tp_anom_diff'])
+res = linregress(x, y)
+x_line = np.array([x.min(), x.max()])
+y_line = res.slope * x_line + res.intercept
+
+plt.figure(figsize=(4, 3.5))  
+
+plt.scatter(x, y, color='snow', alpha=0.5, edgecolor='k', s=20)
+plt.plot(x_line, y_line, color='blue', linestyle='-', linewidth=1.5)
+
+loess_smoothed = lowess(endog=y, exog=x, frac=0.3, return_sorted=True)
+x_loess, y_loess = loess_smoothed[:, 0], loess_smoothed[:, 1]
+plt.plot(x_loess, y_loess, color="r", lw=2, linestyle='--')
+
+plt.text(
+    0.05, 0.95,                     # x, y in axes fraction coords
+    f"corr. = {corr:.2f}",             # the text
+    transform=plt.gca().transAxes, # use axes coords
+    verticalalignment="top"        # so text starts at y=0.95 and goes down
+)
+
+plt.xlabel(r"Teleconnection strength ($\Psi$)")
+plt.ylabel(r"| Median($P_{anom}^{+IOD}$) - Median($P_{anom}^{-IOD}$) | (s.d.)")
+plt.title("IOD, Global grid cells")
+plt.tight_layout()
 plt.show()
 
-# print(dat_posneg)
+
+######
+
+pos = dat_posneg.loc[dat_posneg["psi_tp_directional"] >= 0, "tp_anom_diff"]
+neg = dat_posneg.loc[dat_posneg["psi_tp_directional"] <  0, "tp_anom_diff"]
+
+# compute shared bin edges using Scott’s rule on the combined data
+combined = np.concatenate([pos, neg])
+bin_edges = np.histogram_bin_edges(combined, bins="scott")
+
+# plot
+plt.figure(figsize=(6,5))
+plt.hist(
+    pos,
+    bins=bin_edges,
+    color="red",
+    alpha=0.5,
+    label="ψ ≥ 0",
+    density=True,
+    edgecolor="k"
+)
+plt.hist(
+    neg,
+    bins=bin_edges,
+    color="blue",
+    alpha=0.5,
+    label="ψ < 0",
+    density=True,
+    edgecolor="k"
+)
+
+plt.xlabel("tp_anom_diff")
+plt.ylabel("Density")
+plt.title("tp_anom_diff Distribution by ψ sign")
+plt.legend(title="psi_tp_directional")
+plt.tight_layout()
+plt.show()
 
 
 
+#####################
+#####################
+
+# from statsmodels.nonparametric.smoothers_lowess import lowess
+
+# cmap = plt.get_cmap('PuOr')
+# num_colors = 9
+# levels = np.linspace(0, 1, num_colors)
+# colors = [cmap(level) for level in levels]
+
+# dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
+# print(dat)
+
+# dat = dat[dat['psi'] > 0.4]
+
+# stddev = np.std(dat['cindex_lag0y'])
+# print(stddev)
+
+# df = dat.copy()
+
+# # make masks
+# mask_pos = df["psi_tp_directional"] >= 0
+# mask_neg = df["psi_tp_directional"] <  0
+
+# x_pos = df.loc[mask_pos, "cindex_lag0y"]
+# y_pos = df.loc[mask_pos, "tp_anom"]
+
+# x_neg = df.loc[mask_neg, "cindex_lag0y"]
+# y_neg = df.loc[mask_neg, "tp_anom"]
+
+# plt.figure(figsize=(4,3.5))
+
+# # scatter
+# plt.scatter(x_pos, y_pos, color=colors[2],  alpha=0.15, s=10, label="ψ ≥ 0")
+# plt.scatter(x_neg, y_neg, color=colors[6],  alpha=0.15, s=10, label="ψ <  0")
 
 
+# # LOWESS for ψ ≥ 0
+# lo_pos = lowess(endog=y_pos, exog=x_pos, frac=0.5, return_sorted=True)
+# plt.plot(lo_pos[:,0], lo_pos[:,1], color=colors[1],   lw=2, label="LOESS ψ ≥ 0")
+
+# # LOWESS for ψ < 0
+# lo_neg = lowess(endog=y_neg, exog=x_neg, frac=0.5, return_sorted=True)
+# plt.plot(lo_neg[:,0], lo_neg[:,1], color=colors[7],  lw=2, label="LOESS ψ <  0")
+
+# plt.axhline(0, color='gray', linestyle='--', linewidth=1.5, zorder=0)
+
+# plt.ylim(-4.0, +6.0)
+
+# # annotate & finish
+
+# plt.xlabel("cindex_lag0y")
+# plt.ylabel("tp_anom")
+# # plt.title("tp_anom vs cindex_lag0y with LOESS by ψ sign")
+# plt.legend()
+# plt.tight_layout()
+# plt.show()
 
 
 
 sys.exit()
-
-
-
-
-
 
 ############ ------- ############
 ############ COMPUTE ############
