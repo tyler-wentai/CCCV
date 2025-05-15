@@ -157,14 +157,20 @@ print('\n\nSTART ---------------------\n')
 
 from scipy.stats import linregress
 from statsmodels.nonparametric.smoothers_lowess import lowess
+from matplotlib.lines import Line2D
 
-dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_DMItype2_Global_square4_19502023.csv')
+cmap = plt.get_cmap('PuOr')
+num_colors = 9
+levels = np.linspace(0, 1, num_colors)
+colors = [cmap(level) for level in levels]
+
+dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyAnom_tp_NINO3type2_Global_square4_19502023.csv')
 # print(dat)
 
 stddev = np.std(dat['cindex_lag0y'])
 # print(stddev)
 
-dat = dat[dat['psi'] > 0.4]
+# dat = dat[dat['psi'] > 0.5]
 
 mask_pos = dat['cindex_lag0y'] > +1.0 * stddev
 dat_pos = dat.loc[mask_pos]
@@ -192,36 +198,87 @@ dat_posneg.rename(columns={'psi_x': 'psi', 'psi_tp_directional_x':'psi_tp_direct
 
 x = dat_posneg['psi']
 y = dat_posneg['tp_anom_diff']
+print(colors[1])
+print(colors[6])
+c = [
+    colors[6] if x > 0 else colors[2]
+    for x in dat_posneg['psi_tp_directional']
+]
+# print(c)
+# sys.exit()
+
+xpos = dat_posneg[dat_posneg['psi_tp_directional'] > 0]['psi']
+ypos = dat_posneg[dat_posneg['psi_tp_directional'] > 0]['tp_anom_diff']
+xneg = dat_posneg[dat_posneg['psi_tp_directional'] < 0]['psi']
+yneg = dat_posneg[dat_posneg['psi_tp_directional'] < 0]['tp_anom_diff']
 
 corr = np.corrcoef(x, y)[0, 1]
 print(corr)
+
 
 res = linregress(x, y)
 x_line = np.array([x.min(), x.max()])
 y_line = res.slope * x_line + res.intercept
 
-plt.figure(figsize=(4, 3.5))  
+x_line = np.array([x.min(), x.max()])
+res_pos = linregress(xpos, ypos)
+res_neg = linregress(xneg, yneg)
+y_line_pos = res_pos.slope * x_line + res_pos.intercept
+y_line_neg = res_neg.slope * x_line + res_neg.intercept
 
-plt.scatter(x, y, color='snow', alpha=0.5, edgecolor='k', s=20)
-plt.plot(x_line, y_line, color='blue', linestyle='-', linewidth=1.5)
+ 
+fig, ax = plt.subplots(figsize=(4, 3.5))
 
-loess_smoothed = lowess(endog=y, exog=x, frac=0.3, return_sorted=True)
-x_loess, y_loess = loess_smoothed[:, 0], loess_smoothed[:, 1]
-plt.plot(x_loess, y_loess, color="r", lw=2, linestyle='--')
+ax.scatter(x, y, color=c, alpha=0.5, edgecolor='k', s=20)
+ax.plot(x_line, y_line_pos, color='darkorchid', linestyle='-', linewidth=1.5)
+ax.plot(x_line, y_line_neg, color='darkorange', linestyle='-', linewidth=1.5)
 
-plt.text(
-    0.05, 0.95,                     # x, y in axes fraction coords
-    f"corr. = {corr:.2f}",             # the text
-    transform=plt.gca().transAxes, # use axes coords
-    verticalalignment="top"        # so text starts at y=0.95 and goes down
+pos_handle = Line2D(
+    [0], [0],
+    marker='o',
+    color='darkorchid',
+    markerfacecolor=colors[6],
+    markeredgecolor='gray',
+    linestyle='-',
+    linewidth=1.5,
+    markersize=6,
+    label='Grid cell corr(NINO3, Precip. Anom.) > 0'
+)
+neg_handle = Line2D(
+    [0], [0],
+    marker='o',
+    color='darkorange',            # line color
+    markerfacecolor=colors[2],  # fill color of marker
+    markeredgecolor='gray',
+    linestyle='-',
+    linewidth=1.5,
+    markersize=6,
+    label='Grid cell corr(NINO3, Precip. Anom.) < 0'
 )
 
+# draw the legend with those two handles
+leg1 = ax.legend(handles=[neg_handle, pos_handle], fontsize=8)
+
+slope_handle_pos = Line2D([0], [0], color='darkorchid', linestyle='-', label=f"{res_pos.slope:.2f}")
+slope_handle_neg = Line2D([0], [0], color='darkorange', linestyle='-', label=f"{res_neg.slope:.2f}")
+leg2 = ax.legend(
+    handles=[slope_handle_neg, slope_handle_pos],
+    loc='lower right',
+    frameon=True,
+    title="Slope",
+    fontsize=8
+)
+ax.add_artist(leg1)
+
 plt.xlabel(r"Teleconnection strength ($\Psi$)")
-plt.ylabel(r"| Median($P_{anom}^{+IOD}$) - Median($P_{anom}^{-IOD}$) | (s.d.)")
-plt.title("IOD, Global grid cells")
+plt.ylabel(r"| Median($P_{anom}^{Nino}$) - Median($P_{anom}^{Nina}$) | (s.d.)")
+plt.title("ENSO, Global grid cells")
 plt.tight_layout()
+
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/NINO3_diffmediananom_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
+sys.exit()
 
 ######
 
@@ -252,6 +309,9 @@ plt.hist(
     density=True,
     edgecolor="k"
 )
+val1 = np.median(pos); val2 = np.median(neg)
+plt.axvline(val1, color='red', linestyle='--', linewidth=1.5, label=f'{val1:.2f}')
+plt.axvline(val2, color='blue', linestyle=':', linewidth=1.5, label=f'{val2:.2f}')
 
 plt.xlabel("tp_anom_diff")
 plt.ylabel("Density")
@@ -259,7 +319,6 @@ plt.title("tp_anom_diff Distribution by ψ sign")
 plt.legend(title="psi_tp_directional")
 plt.tight_layout()
 plt.show()
-
 
 
 #####################
