@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 print('\n\nSTART ---------------------\n')
 # COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
 
-clim_index = 'ECI'
+clim_index = 'EEI'
 
 start_year  = 1950
 end_year    = 2023
@@ -85,12 +85,12 @@ ds2 = ds2.assign_coords(
 # clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
