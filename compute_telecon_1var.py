@@ -16,26 +16,24 @@ import xarray as xr
 clim_index = 'DMI'
 
 start_year  = 1950
-end_year    = 2010 #note that spi only included observations up to 2022
+end_year    = 2023 #note that spi only included observations up to 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/BerkeleyEarth_Complete_TAVG_LatLong1.nc' 
-var1str = 'p' 
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' 
+var1str = 't2m' 
 
 
 
 ds1 = xr.open_dataset(file_path_VAR1)
 
-print(ds1)
-sys.exit()
 
 
 
-# ds1 = ds1.rename({'valid_time': 'time'})
+ds1 = ds1.rename({'valid_time': 'time'})
 ds1 = ds1.assign_coords(time=ds1.time.dt.floor('D'))
 
 # change dates to time format:
-ds1 = ds1.rename({'lat': 'latitude'})
-ds1 = ds1.rename({'lon': 'longitude'})
+# ds1 = ds1.rename({'lat': 'latitude'})
+# ds1 = ds1.rename({'lon': 'longitude'})
 
 
 # Access longitude and latitude coordinates
@@ -45,9 +43,9 @@ lat1 = ds1['latitude']
 
 resolution = 0.50
 
-# lat_int_mask = (lat1 % resolution == 0)
-# lon_int_mask = (lon1 % resolution == 0)
-# ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
+lat_int_mask = (lat1 % resolution == 0)
+lon_int_mask = (lon1 % resolution == 0)
+ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 
 
 # nskip = 20
@@ -155,7 +153,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_GPCC_0d50_19502010.npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -179,7 +177,7 @@ else:
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/precip_anom_GPCC_0d50_' + str(start_year) + str(end_year) + '.npy', var1_std)
+    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '.npy', var1_std)
 
 
 # Compute the annualized index value:
@@ -336,14 +334,14 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using GPCC p.",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 t2m.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
                             resolution = resolution)
                         )
 
-pathA_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_GPCC' + var1str + clim_index +'.nc'
+pathA_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + var1str + clim_index +'.nc'
 psi_array.to_netcdf(pathA_str)
 
 psiMonthly_array = xr.DataArray(data = monthly_psi,
@@ -354,14 +352,14 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using GPCC p.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 t2m.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
                             resolution = resolution)
                         )
 
-pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_GPCC' + var1str + clim_index +'.nc'
+pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_' + var1str + clim_index +'.nc'
 psiMonthly_array.to_netcdf(pathB_str)
 
 sys.exit()

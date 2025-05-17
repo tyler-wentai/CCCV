@@ -111,12 +111,12 @@ print('\n\nSTART ---------------------\n')
 
 
 ### --- 1: This var1_yr is dervied from compute_yr_anom.py
-path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumMayDec_0d50_19502023.nc'
+path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlySumMayDec_0d50_19502023.nc'
 var1_yr = xr.open_dataset(path_var1_yr)
 
 
 ###
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
 df = pd.read_csv(path)
 df['geometry'] = df['geometry'].apply(wkt.loads)
 
@@ -128,7 +128,7 @@ gdf = gdf[cols]
 gdf = gdf.reset_index()
 
 ### compute spatially averaged differential teleconnection strength
-path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpNINO3.nc'
+path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpDMI.nc'
 
 psi = xr.open_dataarray(path_psi)
 df_psi = psi.to_dataframe(name='psi').reset_index()
@@ -228,4 +228,4 @@ merged = gdf.merge(
 )
 
 merged = merged.drop(columns="geometry")
-merged.to_csv("/Users/tylerbagwell/Desktop/YearlyTP_NINO3type2_Global_square4_19502023.csv", index=False)
+merged.to_csv("/Users/tylerbagwell/Desktop/YearlyT2M_DMItype2_Global_square4_19502023.csv", index=False)
