@@ -19,7 +19,7 @@ print('\n\nSTART ---------------------\n')
 
 psi_threshold = 0.4
 
-dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyMean_tp_DMItype2_Global_square4_19502023.csv')
+dat = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyT2M_DMItype2_Global_square4_19502023.csv')
 stddev = np.std(dat['cindex_lag0y'])
 print("... cindex std: ", np.round(stddev,3))
 
@@ -32,13 +32,6 @@ df['tp_diff_std'] = (
 )
 df = df.dropna(subset=['tp_diff'])
 
-
-dat_anom = pd.read_csv('/Users/tylerbagwell/Desktop/YearlyANOM_tp_DMItype2_Global_square4_19502023.csv')
-dat_anom = dat_anom[['loc_id','year','tp_anom']]
-
-df = df.merge(dat_anom, on=['loc_id','year'])
-
-
 # subset to only onset-years
 mask = df['conflict_count'] > 0.0
 df = df.loc[mask]
@@ -48,15 +41,15 @@ df = df.loc[replicated_idx].reset_index(drop=True)
 print(df.shape)
 
 #### --- A. WEAKLY AFFECTED ALL
-# mask0 = (df['psi'] < psi_threshold) & (np.abs(df['cindex_lag0y']) < +1.0 * stddev)
-# group0 = df.loc[mask0]
-# n0 = np.sum(group0['conflict_count'])
-# mask1 = (df['psi'] < psi_threshold) & (df['cindex_lag0y'] > +1.0 * stddev)
-# group1 = df.loc[mask1]
-# n1 = np.sum(group1['conflict_count'])
-# mask2 = (df['psi'] < psi_threshold) & (df['cindex_lag0y'] < -1.0 * stddev)
-# group2 = df.loc[mask2]
-# n2 = np.sum(group2['conflict_count'])
+mask0 = (df['psi'] < psi_threshold) & (np.abs(df['cindex_lag0y']) < +1.0 * stddev)
+group0 = df.loc[mask0]
+n0 = np.sum(group0['conflict_count'])
+mask1 = (df['psi'] < psi_threshold) & (df['cindex_lag0y'] > +1.0 * stddev)
+group1 = df.loc[mask1]
+n1 = np.sum(group1['conflict_count'])
+mask2 = (df['psi'] < psi_threshold) & (df['cindex_lag0y'] < -1.0 * stddev)
+group2 = df.loc[mask2]
+n2 = np.sum(group2['conflict_count'])
 
 #### --- B. TELECONNECTED & CORR>0
 # mask0 = (df['psi_tp_directional'] > 0.0) & (df['psi'] > psi_threshold) & (np.abs(df['cindex_lag0y']) < +1.0 * stddev)
@@ -70,15 +63,15 @@ print(df.shape)
 # n2 = np.sum(group2['conflict_count'])
 
 #### --- B. TELECONNECTED & CORR<0
-mask0 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (np.abs(df['cindex_lag0y']) < +1.0 * stddev)
-group0 = df.loc[mask0]
-n0 = np.sum(group0['conflict_count'])
-mask1 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (df['cindex_lag0y'] > +1.0 * stddev)
-group1 = df.loc[mask1]
-n1 = np.sum(group1['conflict_count'])
-mask2 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (df['cindex_lag0y'] < -1.0 * stddev)
-group2 = df.loc[mask2]
-n2 = np.sum(group2['conflict_count'])
+# mask0 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (np.abs(df['cindex_lag0y']) < +1.0 * stddev)
+# group0 = df.loc[mask0]
+# n0 = np.sum(group0['conflict_count'])
+# mask1 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (df['cindex_lag0y'] > +1.0 * stddev)
+# group1 = df.loc[mask1]
+# n1 = np.sum(group1['conflict_count'])
+# mask2 = (df['psi_tp_directional'] < 0.0) & (df['psi'] > psi_threshold) & (df['cindex_lag0y'] < -1.0 * stddev)
+# group2 = df.loc[mask2]
+# n2 = np.sum(group2['conflict_count'])
 
 #### PLOTTING
 cmap = plt.get_cmap('PuOr_r')
@@ -115,7 +108,7 @@ plt.title('Onset-years in teleconnected and corr<0\nglobal grid cells')
 
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/IOD_teleconnectedcorrneg_prec_vs_diff_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/ENSO_teleconnectedcorrneg_prec_vs_diff_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
