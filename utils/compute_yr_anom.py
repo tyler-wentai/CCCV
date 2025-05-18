@@ -11,8 +11,8 @@ print('\n\nSTART ---------------------\n')
 start_date  = '1950-01-01'
 end_date    = '2023-12-31'
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc' 
-var1str = 'tp' 
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' 
+var1str = 't2m' 
 
 ds1 = xr.open_dataset(file_path_VAR1)
 ds1 = ds1.assign_coords(valid_time=ds1.valid_time.dt.floor('D'))
@@ -53,7 +53,13 @@ ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(1,13))) # keep
 lon1 = ds_sliced['longitude']
 lat1 = ds_sliced['latitude']
 
-annual_sum = ds_sliced.groupby("time.year").sum(dim="time")
-print(annual_sum)
 
-annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumJanDec_0d50_19502023.nc")
+## -- tp -- ##
+# annual_sum = ds_sliced.groupby("time.year").sum(dim="time") # tp
+# annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumJanDec_0d50_19502023.nc")
+# print(annual_sum)
+
+## -- t2m -- ##
+annual_sum = ds_sliced.groupby("time.year").mean(dim="time") # tp
+annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlyMeanJanDec_0d50_19502023.nc")
+print(annual_sum)
