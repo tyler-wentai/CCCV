@@ -19,6 +19,7 @@ print('\n\nSTART ---------------------\n')
 path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumMayDec_0d50_19502023.nc'
 path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
 path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpDMI.nc'
+varname = 'tp'
 
 
 ### --- 1: This var1_yr is dervied from compute_yr_anom.py
@@ -58,11 +59,8 @@ grouped = joined_gdf.groupby('loc_id')
 mean_psi = grouped['psi_left'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
 gdf = gdf.merge(mean_psi, on='loc_id', how='left')
-gdf.rename(columns={'psi_left': 'psi_tp_directional'}, inplace=True)
+gdf.rename(columns={'psi_left': str('psi_'+varname+'_directional')}, inplace=True)
 
-# df = gdf.drop(columns="geometry")
-# df.to_csv("/Users/tylerbagwell/Desktop/Psi_tp_directional_Onset_Count_Global_DMItype2_square4_wGeometry.csv", index=False)
-# print(gdf)
 
 gdf_agg = gdf.groupby('loc_id', as_index=False).first()
 gdf_agg = gdf_agg[['loc_id', 'geometry']]
@@ -116,10 +114,10 @@ for i in gdf_agg.index:
     yy_std = (yy_dt - mu) / sigma
 
     df_anom = pd.DataFrame({
-    'tp':  yy,
-    'tp_anom':   yy_std,
-    'year':     years,
-    'loc_id':   gdf_agg.iloc[i]['loc_id']      # this string is broadcast to every row
+    str(varname):           yy,
+    str(varname+'_anom'):   yy_std,
+    'year':                 years,
+    'loc_id':               gdf_agg.iloc[i]['loc_id']      # this string is broadcast to every row
     })
 
     all_dfs.append(df_anom)
@@ -137,11 +135,12 @@ merged = gdf.merge(
 merged = merged.drop(columns="geometry")
 
 df = merged.sort_values(['loc_id', 'year'])
-df['dtp'] = df.groupby('loc_id')['tp'].diff()
-df['dtp_anom'] = (
+df[str('d'+varname)] = df.groupby('loc_id')[varname].diff()
+df[str('d'+varname+'_anom')] = (
     df
-    .groupby('loc_id')['dtp']
+    .groupby('loc_id')[str('d'+varname)]
     .transform(lambda x: (x - x.mean()) / x.std())
 )
 
-df.to_csv("/Users/tylerbagwell/Desktop/YearlyTP_MayDec_DMItype2_Global_square4_19502023.csv", index=False)
+path_str = "/Users/tylerbagwell/Desktop/SpatialAgg_MayDecAnnual_" + varname +"_DMItype2_Global_square4_19502023.csv"
+df.to_csv(path_str, index=False)
