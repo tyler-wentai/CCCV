@@ -11,15 +11,12 @@ from scipy.signal import detrend
 
 print('\n\nSTART ---------------------\n')
 
-
-############ ------- ############
 ############ COMPUTE ############
-############ ------- ############
 
-path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumMayDec_0d50_19502023.nc'
+path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlyMeanMayDec_0d50_19502023.nc'
 path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
-path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpDMI.nc'
-varname = 'tp'
+path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_t2mDMI.nc'
+varname = 't2m'
 
 
 ### --- 1: This var1_yr is dervied from compute_yr_anom.py
@@ -56,7 +53,7 @@ cleaned_gdf = cleaned_gdf.reset_index(drop=True)
 
 
 grouped = joined_gdf.groupby('loc_id')
-mean_psi = grouped['psi_left'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
+mean_psi = grouped['psi_left'].mean().reset_index() # Computing aggregated psi using the MEAN of all psis in polygon
 
 gdf = gdf.merge(mean_psi, on='loc_id', how='left')
 gdf.rename(columns={'psi_left': str('psi_'+varname+'_directional')}, inplace=True)

@@ -47,8 +47,8 @@ ds1 = ds1.assign_coords(
 )
 
 ds_sliced = ds1.sel(time=slice(start_date, end_date))
-ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(1,13))) # keep months jan-dec
-# ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(5,13))) # keep months may-dec
+# ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(1,13))) # keep months jan-dec
+ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(5,13))) # keep months may-dec
 
 lon1 = ds_sliced['longitude']
 lat1 = ds_sliced['latitude']
@@ -61,5 +61,5 @@ lat1 = ds_sliced['latitude']
 
 ## -- t2m -- ##
 annual_sum = ds_sliced.groupby("time.year").mean(dim="time") # tp
-annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlyMeanJanDec_0d50_19502023.nc")
+annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlyMeanMayDec_0d50_19502023.nc")
 print(annual_sum)
