@@ -13,10 +13,10 @@ print('\n\nSTART ---------------------\n')
 
 ############ COMPUTE ############
 
-path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_t2m_YearlyMeanMayDec_0d50_19502023.nc'
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
-path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_t2mDMI.nc'
-varname = 't2m'
+path_var1_yr = '/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumMayDec_0d50_19502023.nc'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+path_psi = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_tpNINO3.nc'
+varname = 'tp'
 
 
 ### --- 1: This var1_yr is dervied from compute_yr_anom.py
@@ -139,5 +139,5 @@ df[str('d'+varname+'_anom')] = (
     .transform(lambda x: (x - x.mean()) / x.std())
 )
 
-path_str = "/Users/tylerbagwell/Desktop/SpatialAgg_MayDecAnnual_" + varname +"_DMItype2_Global_square4_19502023.csv"
+path_str = "/Users/tylerbagwell/Desktop/SpatialAgg_MayDecAnnual_" + varname +"_NINO3type2_Global_square4_19502023.csv"
 df.to_csv(path_str, index=False)
