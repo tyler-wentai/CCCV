@@ -98,17 +98,17 @@ plt.tight_layout()
 plt.show()
 
 
-z0 = group0[varname].reset_index(drop=True)
-z1 = group1[varname].reset_index(drop=True)
-z2 = group2[varname].reset_index(drop=True)
+# z0 = group0[varname].reset_index(drop=True)
+# z1 = group1[varname].reset_index(drop=True)
+# z2 = group2[varname].reset_index(drop=True)
 
-df = pd.DataFrame({
-    'group0': z0,
-    'group1': z1,
-    'group2': z2
-})
-print(df.head())
-df.to_csv("/Users/tylerbagwell/Desktop/groups.txt", sep="\t", index=False, header=True)
+# df = pd.DataFrame({
+#     'group0': z0,
+#     'group1': z1,
+#     'group2': z2
+# })
+# print(df.head())
+# df.to_csv("/Users/tylerbagwell/Desktop/groups.txt", sep="\t", index=False, header=True)
 
 
 

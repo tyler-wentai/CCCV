@@ -208,7 +208,7 @@ else:
             if (has_nan==False):
                 var2_std[:, i, j] = detrend_then_standardize_monthly(var2_common[:, i, j], israin=True)
             else: 
-                var2_std[:, i, j] = var2_common[:, i, j]
+                var2_std[:, i, j] = var2_common.values[:, i, j]
 
     np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_wGPCC.npy', var1_std)
     np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/GPCC_full_data_v6_precip_0d5_' + str(start_year) + str(end_year) + '_wGPCC.npy', var2_std)
@@ -357,6 +357,7 @@ for i in range(n_lat):
             var_ts = pd.merge(var_ts, index_AVG, how='inner', on='year')
 
             has_nan = var_ts[[var1str, var2str, 'avg_ANOM']].isna().any().any()
+
             if not has_nan:
                 corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)
                 corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)
@@ -365,17 +366,18 @@ for i in range(n_lat):
                 corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]
                 pvals_array_1[int(k-1),i,j] = corr_1['p-val'].values[0]
                 pvals_array_2[int(k-1),i,j] = corr_2['p-val'].values[0]
+                # save monthly psi values
+                var1_psi = abs(corr_1['r'].iloc[0]) if corr_1['p-val'].iloc[0] < 0.05 else 0
+                var2_psi = abs(corr_2['r'].iloc[0]) if corr_2['p-val'].iloc[0] < 0.05 else 0
+                monthly_psi[int(k-1),i,j] = var1_psi + var2_psi
 
             else:
                 corrs_array_1[int(k-1),i,j] = np.nan
                 corrs_array_2[int(k-1),i,j] = np.nan
                 pvals_array_1[int(k-1),i,j] = 1.
                 pvals_array_2[int(k-1),i,j] = 1.
-
-            # save monthly psi values
-            var1_psi = abs(corr_1['r'].iloc[0]) if corr_1['p-val'].iloc[0] < 0.05 else 0
-            var2_psi = abs(corr_2['r'].iloc[0]) if corr_2['p-val'].iloc[0] < 0.05 else 0
-            monthly_psi[int(k-1),i,j] = var1_psi + var2_psi
+                # save monthly psi values
+                monthly_psi[int(k-1),i,j] = np.nan
 
         corrs1 = pd.Series(corrs_array_1[:,i,j])
         corrs2 = pd.Series(corrs_array_2[:,i,j])

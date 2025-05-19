@@ -17,7 +17,7 @@ print('\n\nSTART ---------------------\n')
 ### OUTPUT: SCATTER PLOT
 ###############
 
-psi_threshold = 0.5
+psi_threshold = 0.4
 
 dat = pd.read_csv('/Users/tylerbagwell/Desktop/SpatialAgg_JanDecAnnual_t2m_NINO3type2_Global_square4_19502023.csv')
 stddev = np.std(dat['cindex_lag0y'])
@@ -84,7 +84,7 @@ plt.title('Global conflict\nYoY change in temp. vs. Annual temp. anomaly', fonts
 
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/Globalconflict_temp_vs_diff_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/Globalconflict_temp_vs_diff_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

@@ -86,7 +86,7 @@ plt.title('Annual temp. anomaly vs. Annual precip. anomaly', fontsize=11)
 
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/Globalconflict_temp_vs_precip_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/Globalconflict_temp_vs_precip_scatter.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
