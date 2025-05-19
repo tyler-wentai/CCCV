@@ -42,11 +42,11 @@ from matplotlib.legend_handler import HandlerTuple
 
 
 path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMI_square4_95ci_strong_poisson.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMI_square4_95ci_strong_poisson.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMItype2_square4_GPCC_strong_ci90_poisson.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMItype2_square4_GPCC_strong_ci90_poisson.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMI_square4_95ci_weak_poisson.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMI_square4_95ci_weak_poisson.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMItype2_square4_GPCC_weak_ci90_poisson.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results/CE_cindex_lag0y_Onset_Count_Global_DMItype2_square4_GPCC_weak_ci90_poisson.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -238,16 +238,16 @@ fig = plt.figure(figsize=(4.5, 3.5))
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
-ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n(Weakly teleconnected)', fontsize=10, color='black')
+ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n(Teleconnected, GPCC)', fontsize=10, color='black')
 
 # 
 sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
 # ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
 # ax1.axvline(0, color='gray', linestyle='--', linewidth=1)
-sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
-ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
-# sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='red', ax=ax2)
-# ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='red', alpha=0.25, edgecolor=None)
+# sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l, color='dimgray', ax=ax2)
+# ax2.fill_between(df2_l['cindex_lag0y'], df2_l['lower__'], df2_l['upper__'], color='dimgray', alpha=0.35, edgecolor=None)
+sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h, color='red', ax=ax2)
+ax2.fill_between(df2_h['cindex_lag0y'], df2_h['lower__'], df2_h['upper__'], color='red', alpha=0.25, edgecolor=None)
 
 # ax2.axvline(0, color='black', linestyle='--', linewidth=1)
 
@@ -298,5 +298,5 @@ ax2.set_xlim(-1.00, 1.00)
 # ax2.set_ylim(0, 3)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Count_Global_DMI_square4_95ci_poisson_weak.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/cindex_margeffect_Onset_Count_Global_DMI_square4_90ci_poisson_strong_GPCC.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()

@@ -249,7 +249,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
     clim_ind['year'] = clim_ind.index.year
     clim_ind['month'] = clim_ind.index.month
 
-    if (climate_index == 'nino3' or climate_index == 'nino34' or climate_index == 'eei'): ### NINO3 or NINO3.4
+    if (climate_index == 'nino3' or climate_index == 'nino34' or climate_index == 'eei' or climate_index == 'eci'): ### NINO3 or NINO3.4
         # 1) Add a 'NDJ_year' column that treats December as belonging to the *next* year
         clim_ind['NDJ_year'] = clim_ind.index.year
         clim_ind.loc[clim_ind.index.month == 1, 'NDJ_year'] -= 1

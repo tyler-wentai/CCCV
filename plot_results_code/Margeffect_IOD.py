@@ -42,11 +42,11 @@ from matplotlib.legend_handler import HandlerTuple
 
 
 path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
-path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_high1d35_ci90_linear.csv'
-path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_high1d35_ci90_linear.csv'
+path1_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/Onset_Binary_GlobalState_DMItype2_strong_ci90_linear.csv'
+path2_h = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/Onset_Binary_GlobalState_DMItype2_strong_ci90_linear.csv'
 
-path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_low1d35_ci90_linear.csv'
-path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/CE_cindex_lag0y_Onset_Binary_GlobalState_DMI_low1d35_ci90_linear.csv'
+path1_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/Onset_Binary_GlobalState_DMItype2_weak_ci90_linear.csv'
+path2_l = '/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/Onset_Binary_GlobalState_DMItype2_weak_ci90_linear.csv'
 
 df_ci = pd.read_csv(path_ci)
 
@@ -238,7 +238,7 @@ fig = plt.figure(figsize=(4.5, 3.5))
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
-ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\n', fontsize=10, color='black')
+ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\nCallahan&Mankin Tele.Calc.', fontsize=10, color='black')
 
 # 
 sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
@@ -291,14 +291,14 @@ handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
 labels = ['Strong', 'Weak']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
-ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.6], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+# ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.6], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
 
 ax1.set_ylim(0, 2.5)
 ax2.set_xlim(-1.00, 1.00)
 # ax2.set_ylim(0.1, 3.85)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_95ci_linearACR.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/cindex_margeffect_Onset_Binary_Global_DMI_state_90ci_linearACR_TYPE2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 

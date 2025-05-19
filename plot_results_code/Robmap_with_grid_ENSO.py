@@ -91,7 +91,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_mrsosNINO3_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -136,11 +136,11 @@ gl.yformatter = LATITUDE_FORMATTER
 
 # create a custom colormap
 # bounds = [0, 1.4415020, np.max(gdf_agg['psi'])]
-bounds = [np.min(gdf_agg['psi']), 0, np.max(gdf_agg['psi'])] #psi_quants
+bounds = [np.min(gdf_agg['psi']), np.max(gdf_agg['psi'])] #psi_quants
 # cmap = mcolors.ListedColormap(["gainsboro", "red"])
 # norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-cmap = 'PRGn' #'gist_heat_r'
+cmap = 'gist_heat_r'#'PRGn' 
 
 index_box = mpatches.Rectangle((-150, -5), 60, 10, 
                         fill=True, facecolor='gray', edgecolor=None, linewidth=1.5, alpha=0.30,
@@ -151,7 +151,7 @@ ax.set_global()
 gdf_plot = gdf_agg.plot(
     column='psi',    
     cmap=cmap, #'tab20c_r',
-    norm=TwoSlopeNorm(vmin=bounds[0], vcenter=bounds[1], vmax=bounds[2]) ,
+    # norm=TwoSlopeNorm(vmin=bounds[0], vmax=bounds[1]) ,
     legend=True,                   
     legend_kwds={
         'orientation': "vertical", 
@@ -170,7 +170,7 @@ x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
 ax.scatter(x, y, color='blue', s=1.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
 plt.title('ENSO (mrsos+NINO3) Teleconnection', fontsize=10)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_mrsosNINO3_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3type2_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
