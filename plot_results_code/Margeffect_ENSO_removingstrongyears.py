@@ -16,6 +16,7 @@ import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerTuple
 
+print('\n\nSTART ---------------------\n')
 
 path_ci = "/Users/tylerbagwell/Desktop/panel_datasets/results_for_onsets/cindex_lag0y_Onset_Binary_Global_DMI_square4.csv"
 

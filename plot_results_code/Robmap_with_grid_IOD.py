@@ -210,7 +210,7 @@ cbar = gdf_plot.get_figure().axes[-1]
 cbar.set_title("Teleconnection\nstrength", fontsize=9)
 plt.title('Indian Ocean Dipole (DMI) Teleconnection Strength', fontsize=10)
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/RobMAP_DMI_psi_raw_type2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/justin_slidedeck/2/RobMAP_DMI_psi_raw_type2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
