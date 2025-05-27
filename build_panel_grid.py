@@ -560,6 +560,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # mean_psi_help = mean_psi_help.merge(std_psi, on='loc_id', how='left')
         # mean_psi_help['cv_psi'] = mean_psi_help['std_psi'] / mean_psi_help['mean_psi']
         # mean_psi_help.to_csv('/Users/tylerbagwell/Desktop/cccv_data/supplementary_data/PsiCV_Onset_Count_Global_DMItype2_square4.csv', index=False)
+        # sys.exit()
 
 
         # for randomizing psi:
