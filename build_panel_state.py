@@ -183,6 +183,15 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     panel_gdf = panel_gdf.merge(combined_df, on='fid', how='left')
     panel_gdf = panel_gdf.drop(['pop_weighted_psi'], axis=1)
 
+    # compute the coefficient of Variation (CV) for psi
+    # std_psi = grouped['psi'].std().reset_index()
+    # avg_psi_help = avg_psi.copy()
+    # avg_psi_help.rename(columns={'psi': 'mean_psi'}, inplace=True)
+    # std_psi.rename(columns={'psi': 'std_psi'}, inplace=True)
+    # avg_psi_help = avg_psi_help.merge(std_psi, on='fid', how='left')
+    # avg_psi_help['cv_psi'] = avg_psi_help['std_psi'] / avg_psi_help['mean_psi']
+    # avg_psi_help.to_csv('/Users/tylerbagwell/Desktop/cccv_data/supplementary_data/PsiCV_Onset_Binary_GlobalState_NINO3type2.csv', index=False)
+
     # find where psi is null for a unique fid (these will be states that are too small, think island states) and compute the mean psi value for that fid
     all_null = panel_gdf.groupby('fid')['psi'].apply(lambda x: x.isna().all())
     fid_all_null = all_null[all_null].index.tolist()
@@ -294,10 +303,10 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_type2.nc',
+                                    telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_type2.nc',
                                     pop_path = '/Users/tylerbagwell/Desktop/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='dmi',
+                                    clim_index='nino3',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2.csv', index=False)
 print(panel)

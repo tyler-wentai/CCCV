@@ -552,6 +552,16 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         grouped = joined_gdf.groupby('loc_id')
         mean_psi = grouped['psi'].mean().reset_index() # Computing aggregated psi using the MAX of all psis in polygon
 
+        # compute the coefficient of Variation (CV) for psi
+        # std_psi = grouped['psi'].std().reset_index()
+        # mean_psi_help = mean_psi.copy()
+        # mean_psi_help.rename(columns={'psi': 'mean_psi'}, inplace=True)
+        # std_psi.rename(columns={'psi': 'std_psi'}, inplace=True)
+        # mean_psi_help = mean_psi_help.merge(std_psi, on='loc_id', how='left')
+        # mean_psi_help['cv_psi'] = mean_psi_help['std_psi'] / mean_psi_help['mean_psi']
+        # mean_psi_help.to_csv('/Users/tylerbagwell/Desktop/cccv_data/supplementary_data/PsiCV_Onset_Count_Global_DMItype2_square4.csv', index=False)
+
+
         # for randomizing psi:
         # mean_psi['psi'] = np.random.permutation(mean_psi['psi']) # MAKE SURE TO COMMENT OUT!!!!!
 
@@ -719,8 +729,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    cols = [col for col in final_gdf.columns if col != 'geometry']
-    final_gdf = final_gdf[cols]
+    # cols = [col for col in final_gdf.columns if col != 'geometry']
+    # final_gdf = final_gdf[cols]
 
     return final_gdf
 
@@ -730,10 +740,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'dmi',
-                                        response_var='binary',
+                                        response_var='count',
                                         telecon_path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_type2.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv', index=False)
 
 
