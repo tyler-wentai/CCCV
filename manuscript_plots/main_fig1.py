@@ -168,7 +168,7 @@ gdf_onset = gpd.GeoDataFrame(
 
 
 
-def draw_map(ax, label):
+def draw_map(ax, label, cindex):
 
     gl = ax.gridlines(
     crs=ccrs.PlateCarree(),
@@ -223,10 +223,36 @@ def draw_map(ax, label):
     ax.coastlines()
 
     #
-    index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                            fill=True, facecolor='gray', edgecolor='k', linewidth=1.5, alpha=0.30,
-                            transform=ccrs.PlateCarree())
-    ax.add_patch(index_box)
+    if cindex == 'NINO3':
+        index_box = mpatches.Rectangle((-150, -5), 60, 10, 
+                                fill=True, facecolor='cornflowerblue', edgecolor='k', linewidth=1.5, alpha=0.30,
+                                transform=ccrs.PlateCarree())
+        ax.add_patch(index_box)
+    elif cindex == 'DMI':
+        index_box1 = mpatches.Rectangle(
+            (50, -10),  # lower-left corner (longitude, latitude)
+            20,         # width: 70E - 50E
+            20,         # height: 10N - (-10S)
+            fill=True,
+            facecolor='cornflowerblue', edgecolor='cornflowerblue', 
+            linewidth=1.5,
+            alpha=0.30,
+            transform=ccrs.PlateCarree()
+        )
+        index_box2 = mpatches.Rectangle(
+            (90, -10),  # lower-left corner (longitude, latitude)
+            20,         # width: 110E - 90E
+            10,         # height: 0 - (-10S)
+            fill=True,
+            facecolor='cornflowerblue', edgecolor='cornflowerblue', 
+            linewidth=1.5,
+            alpha=0.30,
+            transform=ccrs.PlateCarree()
+        )
+        ax.add_patch(index_box1)
+        ax.add_patch(index_box2)
+    else:
+        raise ValueError("Invalid cindex value. Expected 'NINO3' or 'DMI'.")
 
     #
     x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
@@ -276,7 +302,8 @@ def draw_map(ax, label):
             linewidth=1                # edge line width
         ))
 
-    ax.set_title('NINO3 Grid Cell Teleconnection Strength', fontsize=12)
+    title_str = str(cindex) + ' Grid Cell Teleconnection Strength'
+    ax.set_title(title_str, fontsize=12)
 
 
 ##
@@ -289,8 +316,8 @@ fig.subplots_adjust(hspace=-0.5)
 axes = axes.flatten()
 
 # Draw each panel with labels A–D
-for ax, lab in zip(axes, ['A','B','C','D']):
-    draw_map(ax, lab)
+for ax, lab, cindex in zip(axes, ['A','B','C','D'], ['NINO3', 'DMI', 'NINO3', 'DMI']):
+    draw_map(ax, lab, cindex)
 
 plt.tight_layout()
 plt.show()
