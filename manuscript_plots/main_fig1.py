@@ -15,30 +15,7 @@ import matplotlib.patches as mpatches
 
 print('\n\nSTART ---------------------\n')
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
-df = pd.read_csv(path)
-
-df['geometry'] = df['geometry'].apply(wkt.loads)
-
-# Create a GeoDataFrame, specifying the geometry column
-gdf = gpd.GeoDataFrame(df, geometry='geometry')
-
-# Optionally, set the coordinate reference system (CRS) if known, for example WGS84
-gdf.set_crs(epsg=4326, inplace=True)
-
-
-gdf_agg =gdf.groupby('loc_id').agg({
-    'geometry': 'first',
-    'psi': 'first',
-    'conflict_count':'sum',
-}).reset_index()
-
-# Convert the aggregated DataFrame back into a GeoDataFrame and set the active geometry column
-gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
-
-# Optionally, set the CRS using the CRS from the original GeoDataFrame
-gdf_agg.set_crs(gdf.crs, inplace=True)
-
+# onsets
 onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
 df_onset = pd.read_csv(onset_path)    
 gdf_onset = gpd.GeoDataFrame(
@@ -46,6 +23,71 @@ gdf_onset = gpd.GeoDataFrame(
     geometry=gpd.points_from_xy(df_onset.onset_lon, df_onset.onset_lat),
     crs="EPSG:4326"
 )
+
+# teleA
+pathA = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
+dfA = pd.read_csv(pathA)
+dfA['geometry'] = dfA['geometry'].apply(wkt.loads)
+gdfA = gpd.GeoDataFrame(dfA, geometry='geometry')
+gdfA.set_crs(epsg=4326, inplace=True)
+
+gdf_aggA = gdfA.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_binary':'sum',
+}).reset_index()
+
+gdf_aggA = gpd.GeoDataFrame(gdf_aggA, geometry='geometry')
+gdf_aggA.set_crs(gdfA.crs, inplace=True)
+
+# teleB
+pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_wGeometry.csv'
+dfB = pd.read_csv(pathB)
+dfB['geometry'] = dfB['geometry'].apply(wkt.loads)
+gdfB = gpd.GeoDataFrame(dfB, geometry='geometry')
+gdfB.set_crs(epsg=4326, inplace=True)
+
+gdf_aggB = gdfB.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_binary':'sum',
+}).reset_index()
+
+gdf_aggB = gpd.GeoDataFrame(gdf_aggB, geometry='geometry')
+gdf_aggB.set_crs(gdfB.crs, inplace=True)
+
+# teleC
+pathC = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+dfC = pd.read_csv(pathC)
+dfC['geometry'] = dfC['geometry'].apply(wkt.loads)
+gdfC = gpd.GeoDataFrame(dfC, geometry='geometry')
+gdfC.set_crs(epsg=4326, inplace=True)
+
+gdf_aggC = gdfC.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_count':'sum',
+}).reset_index()
+
+gdf_aggC = gpd.GeoDataFrame(gdf_aggC, geometry='geometry')
+gdf_aggC.set_crs(gdfC.crs, inplace=True)
+
+# teleD
+pathD = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
+dfD = pd.read_csv(pathD)
+dfD['geometry'] = dfD['geometry'].apply(wkt.loads)
+gdfD = gpd.GeoDataFrame(dfD, geometry='geometry')
+gdfD.set_crs(epsg=4326, inplace=True)
+
+gdf_aggD = gdfD.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_count':'sum',
+}).reset_index()
+
+gdf_aggD = gpd.GeoDataFrame(gdf_aggD, geometry='geometry')
+gdf_aggD.set_crs(gdfD.crs, inplace=True)
+
 
 
 # Define a polygon with lat/lon coordinates
@@ -168,7 +210,7 @@ gdf_onset = gpd.GeoDataFrame(
 
 
 
-def draw_map(ax, label, cindex):
+def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
 
     gl = ax.gridlines(
     crs=ccrs.PlateCarree(),
@@ -189,10 +231,10 @@ def draw_map(ax, label, cindex):
     gl.right_labels = False
 
     # colormap
-    bounds = [np.min(gdf_agg['psi']), np.max(gdf_agg['psi'])] #psi_quants
-    cmap =  'RdGy_r' #'gist_heat_r'#'PRGn' 
+    # bounds = [np.min(tele_gdf['psi']), np.max(tele_gdf['psi'])] #psi_quants
+    # cmap =  'Reds' #'gist_heat_r'#'PRGn' 
 
-    psi = gdf_agg['psi'].values
+    psi = tele_gdf['psi'].values
     vmin, vmax = psi.min(), psi.max()
     vcenter    = np.median(psi)  # median value for the colormap center
 
@@ -203,10 +245,10 @@ def draw_map(ax, label, cindex):
     norm = TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
 
     ax.set_global()
-    gdf_plot = gdf_agg.plot(
+    gdf_plot = tele_gdf.plot(
         column='psi',    
         cmap=cmap,
-        norm=norm,
+        # norm=norm,
         legend=True,                   
         legend_kwds={
             "pad": 0.07,
@@ -219,13 +261,13 @@ def draw_map(ax, label, cindex):
         ax=ax,
         transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
     )
-    ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
+    ax.add_geometries(tele_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
     ax.coastlines()
 
     #
     if cindex == 'NINO3':
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                                fill=True, facecolor='cornflowerblue', edgecolor='k', linewidth=1.5, alpha=0.30,
+                                fill=True, facecolor='cornflowerblue', edgecolor='cornflowerblue', linewidth=1.5, alpha=0.30,
                                 transform=ccrs.PlateCarree())
         ax.add_patch(index_box)
     elif cindex == 'DMI':
@@ -264,7 +306,7 @@ def draw_map(ax, label, cindex):
     cbar_ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
     cbar_ax.tick_params(labelsize=9)
 
-    data = gdf_agg['psi'].values
+    data = tele_gdf['psi'].values
     vmin, vmax = cbar_ax.get_ybound()
     bins = np.linspace(vmin, vmax, 15)
     hist, edges = np.histogram(data, bins=bins)
@@ -302,22 +344,28 @@ def draw_map(ax, label, cindex):
             linewidth=1                # edge line width
         ))
 
-    title_str = str(cindex) + ' Grid Cell Teleconnection Strength'
+    title_str = str(spatial_agg_type) + ' ' + str(cindex) + ' ' +  'Teleconnection'
     ax.set_title(title_str, fontsize=12)
 
 
 ##
 fig, axes = plt.subplots(
     2, 2,
-    figsize=(16, 10),
+    figsize=(14, 8.5),
     subplot_kw={'projection': ccrs.Robinson()}
 )
 fig.subplots_adjust(hspace=-0.5)
 axes = axes.flatten()
 
 # Draw each panel with labels A–D
-for ax, lab, cindex in zip(axes, ['A','B','C','D'], ['NINO3', 'DMI', 'NINO3', 'DMI']):
-    draw_map(ax, lab, cindex)
+for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap in zip(axes, 
+                                     ['A','B','C','D'], 
+                                     ['NINO3', 'DMI', 'NINO3', 'DMI'],
+                                     [gdf_aggA, gdf_aggB, gdf_aggC, gdf_aggD],
+                                     ['State-level', 'State-level', 'Grid Cell-level', 'Grid Cell-level'],
+                                     ['PuBu', 'PuRd', 'PuBu', 'PuRd']):
+    draw_map(ax, lab, cindex, tele_gdf, spatial_agg_type, cmap)
 
 plt.tight_layout()
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
