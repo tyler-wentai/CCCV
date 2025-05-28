@@ -367,5 +367,5 @@ for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap in zip(axes,
     draw_map(ax, lab, cindex, tele_gdf, spatial_agg_type, cmap)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, pad_inches=0.1)
 plt.show()
