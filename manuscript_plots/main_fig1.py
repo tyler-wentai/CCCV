@@ -256,7 +256,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
             'ticks':      labelled_ticks,
             'orientation': "vertical", 
             'spacing':    'uniform',        # <— key bit
-            'shrink': 0.40
+            'shrink': 0.55
         },
         ax=ax,
         transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
@@ -267,7 +267,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
     #
     if cindex == 'NINO3':
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                                fill=True, facecolor='cornflowerblue', edgecolor='cornflowerblue', linewidth=1.5, alpha=0.30,
+                                fill=True, facecolor='peru', edgecolor='peru', linewidth=1.5, alpha=0.30,
                                 transform=ccrs.PlateCarree())
         ax.add_patch(index_box)
     elif cindex == 'DMI':
@@ -276,7 +276,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
             20,         # width: 70E - 50E
             20,         # height: 10N - (-10S)
             fill=True,
-            facecolor='cornflowerblue', edgecolor='cornflowerblue', 
+            facecolor='peru', edgecolor='peru', 
             linewidth=1.5,
             alpha=0.30,
             transform=ccrs.PlateCarree()
@@ -286,7 +286,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
             20,         # width: 110E - 90E
             10,         # height: 0 - (-10S)
             fill=True,
-            facecolor='cornflowerblue', edgecolor='cornflowerblue', 
+            facecolor='peru', edgecolor='peru', 
             linewidth=1.5,
             alpha=0.30,
             transform=ccrs.PlateCarree()
@@ -314,7 +314,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
 
     hist_ax = cbar_ax.twiny()
 
-    pad = hist.max() * 0.125
+    pad = hist.max() * 0.1
     hist_ax.set_xlim(-pad, hist.max())
 
     hist_ax.barh(centers, hist,
@@ -351,10 +351,10 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
 ##
 fig, axes = plt.subplots(
     2, 2,
-    figsize=(14, 8.5),
+    figsize=(14, 6.5),
     subplot_kw={'projection': ccrs.Robinson()}
 )
-fig.subplots_adjust(hspace=-0.5)
+# fig.subplots_adjust(hspace=-0.5)
 axes = axes.flatten()
 
 # Draw each panel with labels A–D
@@ -367,5 +367,5 @@ for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap in zip(axes,
     draw_map(ax, lab, cindex, tele_gdf, spatial_agg_type, cmap)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, pad_inches=0.01)
 plt.show()
