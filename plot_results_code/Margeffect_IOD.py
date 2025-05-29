@@ -238,7 +238,7 @@ fig = plt.figure(figsize=(4.5, 3.5))
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
-ax1.set_title('Marginal Effect of the Indian Ocean Dipole (N=73)\nCallahan&Mankin Tele.Calc.', fontsize=10, color='black')
+ax1.set_title('Marginal Effect of the IOD on Conflict (N=73)', fontsize=10, color='black')
 
 # 
 sns.histplot(x=df_ci['cindex_lag0y'], color='gainsboro', ax=ax1, stat='proportion', bins=12, alpha=1.0, zorder=3)
@@ -257,7 +257,7 @@ ax1.yaxis.set_label_position("right") # Move histogram label to the right
 ax1.set_yticks([0, 0.15, 0.30])
 ax1.set_yticklabels([0, 0.15, 0.30], fontsize=8)
 ax1.set_ylabel("Obs. proportion               ", ha='right', fontsize=8, color='black')
-ax1.set_xlabel(r"Annualized DMI ($^{\degree}C$)", fontsize=10, color='black')
+ax1.set_xlabel(r"SON Averaged DMI ($^{\degree}C$)", fontsize=10, color='black')
 ax1.tick_params(axis='y', direction='in')
 
 ax2.yaxis.tick_left()                 # Move line plot ticks to the left
@@ -288,10 +288,19 @@ patch_strong = mpatches.Patch(color='red', alpha=0.25)
 
 # Combine each line and its fill into a tuple
 handles = [(line_strong, patch_strong),(line_weak, patch_weak)]
-labels = ['Strong', 'Weak']
+labels = ['Teleconnected', 'Weakly-affected']
 
 # Create a combined legend using HandlerTuple to combine the tuple handles
-# ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.6], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+ax2.legend(handles=handles, labels=labels, handler_map={tuple: HandlerTuple(ndivide=1)}, loc=[0.05,0.6], fontsize=9, frameon=False, title=r'Teleconnection strength, $\Psi$', title_fontsize=8)
+
+
+ax1.text(0.90, 0.85, 'B', transform=ax1.transAxes, fontsize=18, bbox=dict(
+            boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
+            facecolor='white',         # box fill color
+            edgecolor='black',         # box edge color
+            linewidth=1                # edge line width
+        ))
+
 
 ax1.set_ylim(0, 2.5)
 ax2.set_xlim(-1.00, 1.00)
