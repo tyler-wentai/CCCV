@@ -255,7 +255,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
             'boundaries': boundaries,
             'ticks':      labelled_ticks,
             'orientation': "vertical", 
-            'spacing':    'uniform',        # <— key bit
+            'spacing':    'uniform', 
             'shrink': 0.55
         },
         ax=ax,
