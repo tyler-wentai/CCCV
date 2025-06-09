@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 print('\n\nSTART ---------------------\n')
 # COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
 
-clim_index = 'EEI'
+clim_index = 'NINO34'
 
 start_year  = 1950
 end_year    = 2023
@@ -82,12 +82,12 @@ ds2 = ds2.assign_coords(
 # clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -229,7 +229,7 @@ clim_ind_common = clim_ind_common.copy()
 clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
-## --- NINO3
+## --- NINO3, NINO34
 jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
 jan_df['year'] = jan_df['year'] - 1  # Shift back a year
 jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
@@ -250,7 +250,7 @@ print(index_AVG)
 # index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 # index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 
-## --- NINO34
+## --- NINO34 OLD!!!
 # dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
 # dec_df['year'] = dec_df['year'] + 1  # Shift to next year
 # dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
@@ -347,8 +347,10 @@ for i in range(n_lat):
 
             has_nan = var_ts[[var1str, var2str, 'avg_ANOM']].isna().any().any()
             if not has_nan:
-                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)
-                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)
+                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)    # partial corr
+                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)    # partial corr
+                # corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, y_covar=var2str)    # semi-partial corr
+                # corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, y_covar=var1str)    # semi-partial corr
 
                 corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
                 corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]
@@ -362,8 +364,8 @@ for i in range(n_lat):
                 pvals_array_2[int(k-1),i,j] = 1.
 
             # save monthly psi values
-            var1_psi = abs(corr_1['r'].iloc[0]) if corr_1['p-val'].iloc[0] < 0.05 else 0
-            var2_psi = abs(corr_2['r'].iloc[0]) if corr_2['p-val'].iloc[0] < 0.05 else 0
+            var1_psi = corr_1['r'].iloc[0] if corr_1['p-val'].iloc[0] < 0.05 else 0     # not absolute values
+            var2_psi = corr_2['r'].iloc[0] if corr_2['p-val'].iloc[0] < 0.05 else 0     # not absolute values
             monthly_psi[int(k-1),i,j] = var1_psi + var2_psi
 
         corrs1 = pd.Series(corrs_array_1[:,i,j])
@@ -398,7 +400,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Callahan and Mankin 2023 method using ERA5 t2m and tp.",
+                            description="Teleconnection strength (Psi) using partial correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and tp.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -416,7 +418,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Callahan and Mankin 2023 method using ERA5 t2m and tp.",
+                            description="Monthly raw teleconnection strength (Psi_m) using partial correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and tp.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
