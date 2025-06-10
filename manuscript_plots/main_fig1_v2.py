@@ -308,7 +308,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshol
     #
     if cindex == 'NINO3':
         index_box = mpatches.Rectangle((-150, -5), 60, 10, 
-                                fill=True, facecolor='purple', edgecolor='purple', linewidth=1.5, alpha=0.25,
+                                fill=True, facecolor='purple', edgecolor='purple', linewidth=1.5, alpha=0.20,
                                 transform=ccrs.PlateCarree())
         ax.add_patch(index_box)
     elif cindex == 'DMI':
@@ -319,7 +319,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshol
             fill=True,
             facecolor='purple', edgecolor='purple', 
             linewidth=1.5,
-            alpha=0.25,
+            alpha=0.20,
             transform=ccrs.PlateCarree()
         )
         index_box2 = mpatches.Rectangle(
@@ -329,7 +329,7 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshol
             fill=True,
             facecolor='purple', edgecolor='purple', 
             linewidth=1.5,
-            alpha=0.25,
+            alpha=0.20,
             transform=ccrs.PlateCarree()
         )
         ax.add_patch(index_box1)
@@ -365,6 +365,12 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshol
                 edgecolor='white',
                 linewidth=1.0,
                 alpha=1)
+    hist_ax.text(0.20, 0.15, 'weakly-\naffected', fontsize=8, 
+                 bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.15),
+                 transform=hist_ax.transAxes, rotation=0)
+    hist_ax.text(0.20, 0.65, 'teleconnected', fontsize=8,
+                 bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.15),
+                 transform=hist_ax.transAxes, rotation=0)
 
     hist_ax.xaxis.set_ticks_position('bottom')
     hist_ax.xaxis.set_label_position('bottom')
@@ -378,11 +384,11 @@ def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshol
     cbar_ax.yaxis.set_label_position('left')
     cbar_ax.set_title("Teleconnection\nstrength", fontsize=9, pad=10)
 
-    ax.text(0.05, 0.98, label, transform=ax.transAxes, fontsize=18, bbox=dict(
-            boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
+    ax.text(0.05, 0.98, label, transform=ax.transAxes, fontsize=14, bbox=dict(
+            boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',         # box fill color
             edgecolor='black',         # box edge color
-            linewidth=1                # edge line width
+            linewidth=0.5                # edge line width
         ))
 
     title_str = str(spatial_agg_type) + ' ' + str(cindex) + ' ' +  'Teleconnection'
@@ -406,7 +412,7 @@ for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in zip(ax
                                      ['State-level', 'State-level', 'Grid Cell-level', 'Grid Cell-level'],
                                      ['Blues_Reds', 'Blues_Reds', 'Blues_Reds', 'Blues_Reds'],
                                      [12,12,20,20],
-                                     [0.6, 0.45, 0.60, 0.45]):
+                                     [0.5, 0.45, 0.60, 0.45]):
     draw_map(ax, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
