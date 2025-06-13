@@ -19,7 +19,7 @@ print('\n\nSTART ---------------------\n')
 land_regs   = regionmask.defined_regions.natural_earth_v5_0_0.land_110
 
 #### --- NINO3
-ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_NINO3_type2.nc')
+ds1 = xr.open_dataset('/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosNINO3.nc')
 var1_name = list(ds1.data_vars)[0]
 da1 = ds1[var1_name]
 
@@ -28,7 +28,7 @@ da1_land     = da1.where(mask1>=0)      # keep only land
 
 vals1 = da1_land.values.ravel()
 vals1 = vals1[~np.isnan(vals1)]
-vals1 = np.abs(vals1)
+# vals1 = np.abs(vals1)
 
 mask1   = (~np.isnan(vals1)) & (vals1 != 0)
 clean1  = vals1[mask1]
