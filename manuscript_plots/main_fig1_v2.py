@@ -406,7 +406,7 @@ axes = axes.flatten()
 
 # Draw each panel with labels A–D
 for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in zip(axes, 
-                                     ['A','B','C','D'], 
+                                     ['a','b','c','d'], 
                                      ['NINO3', 'DMI', 'NINO3', 'DMI'],
                                      [gdf_aggA, gdf_aggB, gdf_aggC, gdf_aggD],
                                      ['State-level', 'State-level', 'Grid Cell-level', 'Grid Cell-level'],
