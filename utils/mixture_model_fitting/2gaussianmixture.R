@@ -27,38 +27,34 @@ fit_mix <- brm(
   data   = unique_psi,
   prior  = c(
     prior(dirichlet(1, 1),       class = "theta"),
-    prior(normal(0, 0.1), Intercept, dpar = mu1),
-    prior(normal(1, 0.1), Intercept, dpar = mu2)
+    prior(normal(0, 0.20), Intercept, dpar = mu1),
+    prior(normal(1, 0.20), Intercept, dpar = mu2)
   ),
-  chains = 2, cores = 2, iter = 4000,
+  chains = 2, cores = 2, iter = 5000,
   control = list(adapt_delta = 0.95)
 )
 plot(fit_mix)
 print(fit_mix, digits = 3)
 
-post <- posterior_samples(fit_mix, 
-                          pars = c("theta1", "b_mu1_Intercept", "b_mu2_Intercept",
-                                   "b_sigma1_Intercept", "b_sigma2_Intercept"))
-
-# rename for clarity
-colnames(post) <- c("w1", "mu1", "mu2", "sd1", "sd2")
-post$w2 <- 1 - post$w1
+post <- as_draws_df(fit_mix, variable=c('Intercept_mu1', 'Intercept_mu2',
+                                        'sigma1', 'sigma2',
+                                        'theta1', 'theta2'))
 
 find_threshold <- function(w1, mu1, sd1, w2, mu2, sd2) {
   f <- function(x) w1*dnorm(x, mu1, sd1) - w2*dnorm(x, mu2, sd2)
-  lower <- min(mu1, mu2) - 3*max(sd1, sd2)
-  upper <- max(mu1, mu2) + 3*max(sd1, sd2)
-  uniroot(f, lower, upper)$root
+  uniroot(f, lower=0.0, upper=2.0)$root
 }
 
 thresholds <- mapply(find_threshold,
-                     post$w1, post$mu1, post$sd1,
-                     post$w2, post$mu2, post$sd2)
+                     post$theta1, post$Intercept_mu1, post$sigma1,
+                     post$theta2, post$Intercept_mu2, post$sigma2)
 
 mean_thr <- mean(thresholds)
 ci_thr   <- quantile(thresholds, c(0.025, 0.975))
 cat("50/50 crossover at ψ ≈", round(mean_thr, 3),
     " (95% CI:", round(ci_thr[1],3), "-", round(ci_thr[2],3), ")\n")
+
+hist(thresholds, breaks='scott', xlim=c(min(unique_psi$psi),max(unique_psi$psi)))
 
 
 # -- 2. EM 2-NORMAL MIXTURE MODEL FITTING FOR TELECONNECTION STRENGTH -------- #
