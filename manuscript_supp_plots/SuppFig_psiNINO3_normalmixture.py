@@ -43,6 +43,7 @@ pdfA1 = thetaA1 * norm.pdf(psiA_xx, loc=muA1, scale=sigmaA1)
 pdfA2 = thetaA2 * norm.pdf(psiA_xx, loc=muA2, scale=sigmaA2)
 
 kdeA = gaussian_kde(gdf_aggA['psi'])
+nA = gdf_aggA.shape[0]
 
 # B
 pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
@@ -67,6 +68,7 @@ pdfB1 = thetaA1 * norm.pdf(psiB_xx, loc=muB1, scale=sigmaB1)
 pdfB2 = thetaA2 * norm.pdf(psiB_xx, loc=muB2, scale=sigmaB2)
 
 kdeB = gaussian_kde(gdf_aggB['psi'])
+nB = gdf_aggB.shape[0]
 
 
 # plotting
@@ -84,7 +86,7 @@ ax1.hist(x='psi',
          alpha=1)
 
 ax1.plot(psiA_xx, pdfA1, color='dimgrey', linewidth=2.0,
-         label='weakly-affected component')
+         label='weakly affected component')
 ax1.plot(psiA_xx, pdfA2, color='r', linewidth=2.0,
          label='teleconnected component')
 ax1.plot(psiA_xx, kdeA(psiA_xx), color='k', linestyle='--', linewidth=2.0,
@@ -94,9 +96,9 @@ ax1.axvline(0.414, color='purple', linewidth=2.0)
 ax1.axvspan(0.387, 0.442, color='purple', alpha=0.25, edgecolor='none', linewidth=0)
 
 ax1.set_xlim(0, np.max(gdf_aggA['psi']))
-ax1.set_xlabel(r'$\Psi_{NINO3}$')
-ax1.set_ylabel('Density')
-ax1.set_title('Grid cell-level NINO3 teleconnection strengths')
+ax1.set_xlabel(r'$\Psi_{NINO3}$', fontsize=11)
+ax1.set_ylabel('Density', fontsize=11)
+ax1.set_title(f'Grid cell-level NINO3 teleconnection strengths, N={nA}', fontsize=11)
 
 
 # === second plot on ax2 (exact same drawing) ===
@@ -117,8 +119,8 @@ ax2.axvline(0.49, color='purple', linewidth=2.0)
 ax2.axvspan(0.407, 0.564, color='purple', alpha=0.25, edgecolor='none', linewidth=0)
 
 ax2.set_xlim(0, np.max(gdf_aggB['psi']))
-ax2.set_xlabel(r'$\Psi_{NINO3}$')
-ax2.set_title('State-level NINO3 teleconnection strengths')
+ax2.set_xlabel(r'$\Psi_{NINO3}$', fontsize=11)
+ax2.set_title(f'State-level NINO3 teleconnection strengths, N={nB}', fontsize=11)
 
 
 # === build combined legend on ax1 only ===
@@ -134,8 +136,8 @@ labels = ['Estimate of 50/50 crossover (with 95% CI)',
           'Estimate of weakly-affected component',
           'Estimate of teleconnected component',
           'KDE of raw data']
-ax1.legend(handles=handles, labels=labels, fontsize=9, frameon=False)
-# ax2.legend(handles=handles, labels=labels, fontsize=9, frameon=False)
+ax1.legend(handles=handles, labels=labels, fontsize=8, frameon=False)
+# ax2.legend(handles=handles, labels=labels, fontsize=8, frameon=False)
 
 ax1.text(+0.03, 0.92, 'a', transform=ax1.transAxes, fontsize=14, bbox=dict(
         boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
@@ -150,7 +152,7 @@ ax2.text(+0.03, 0.92, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
         linewidth=0.5                # edge line width
     ))
 
-plt.tight_layout()
+plt.tight_layout(w_pad=3.0)
 plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/SuppFig_psiNINO3_normalmixture.png', dpi=300, pad_inches=0.01)
 plt.show()
 
