@@ -1,5 +1,5 @@
 ################################################################################
-# GRID CELL TELECONNECTION STRENGTH PARTITIONING ----------------------------- #
+# STATE-LEVEL TELECONNECTION STRENGTH PARTITIONING --------------------------- #
 # -- 1. BRMS 2-NORMAL MIXTURE MODEL FITTING FOR TELECONNECTION STRENGTH ------ #
 # -- 2. EM 2-NORMAL MIXTURE MODEL FITTING FOR TELECONNECTION STRENGTH -------- #
 ################################################################################
@@ -9,28 +9,28 @@
 library(brms)
 library(dplyr)
 
-path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
 dat <- read.csv(path)
 #View(dat)
 
 unique_psi <- dat %>%
   group_by(loc_id) %>%
   summarise(
-    psi = first(psi))
-hist(unique_psi$psi, breaks='scott')
+    pop_avg_psi = first(pop_avg_psi))
+hist(unique_psi$pop_avg_psi, breaks='scott')
 
 mix_family <- mixture(gaussian(), gaussian())
 
 fit_mix <- brm(
-  bf(psi ~ 1),  # extra formula: mu2; mu1 is taken from psi ~ 1
+  bf(pop_avg_psi ~ 1),
   family = mix_family,
   data   = unique_psi,
   prior  = c(
     prior(dirichlet(1, 1),       class = "theta"),
-    prior(normal(0, 0.20), Intercept, dpar = mu1),
-    prior(normal(1, 0.20), Intercept, dpar = mu2)
+    prior(normal(0.0, 0.06), Intercept, dpar = mu1),
+    prior(normal(1.0, 0.06), Intercept, dpar = mu2)
   ),
-  chains = 2, cores = 2, iter = 5000,
+  chains = 4, cores = 2, iter = 10000,
   control = list(adapt_delta = 0.95)
 )
 plot(fit_mix)
@@ -54,47 +54,47 @@ ci_thr   <- quantile(thresholds, c(0.025, 0.975))
 cat("50/50 crossover at ψ ≈", round(mean_thr, 3),
     " (95% CI:", round(ci_thr[1],3), "-", round(ci_thr[2],3), ")\n")
 
-hist(thresholds, breaks='scott', xlim=c(min(unique_psi$psi),max(unique_psi$psi)))
+hist(thresholds, breaks='scott')
 
 
 # -- 2. EM 2-NORMAL MIXTURE MODEL FITTING FOR TELECONNECTION STRENGTH -------- #
 library(dplyr)
 library(mixtools)
 
-path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
 dat <- read.csv(path)
 
-View(dat)
+#View(dat)
 
 unique_psi <- dat %>%
   group_by(loc_id) %>%
   summarise(
-    psi = first(psi))
-hist(unique_psi$psi, breaks='scott')
+    pop_avg_psi = first(pop_avg_psi))
+hist(unique_psi$pop_avg_psi, breaks='scott')
 
-quantile(unique_psi$psi, 0.66)
+quantile(unique_psi$pop_avg_psi, 0.66)
 
 
-dens <- density(unique_psi$psi, kernel="gaussian")
+dens <- density(unique_psi$pop_avg_psi, kernel="gaussian")
 plot(dens,
      main   = "Kernel Density Estimate of ψ",
-     xlab   = expression(psi),
+     xlab   = expression(pop_avg_psi),
      ylab   = "Density",
      lwd    = 2)
 polygon(dens, col = "lightblue", border = "blue", density = 20)
 
 
-mix_fit <- normalmixEM(unique_psi$psi, k = 2, maxit = 1000, epsilon = 1e-8)
+mix_fit <- normalmixEM(unique_psi$pop_avg_psi, k = 2, maxit = 1000, epsilon = 1e-8)
 mix_fit$lambda    # mixing proportions (weights)
 mix_fit$mu        # component means
 mix_fit$sigma     # component standard deviations
 
 # 3. Plot the fitted densities on top of your histogram
-hist(unique_psi$psi, breaks = "FD", prob = TRUE,
+hist(unique_psi$pop_avg_psi, breaks = "FD", prob = TRUE,
      main = "2-Component Gaussian Mixture",
-     xlab = expression(psi))
+     xlab = expression(pop_avg_psi))
 # overall fitted density
-lines(density(unique_psi$psi), lwd = 2, col = "gray50", lty = 2)
+lines(density(unique_psi$pop_avg_psi), lwd = 2, col = "gray50", lty = 2)
 # component densities
 curve(mix_fit$lambda[1] * dnorm(x, mix_fit$mu[1], mix_fit$sigma[1]),
       add = TRUE, col = "blue", lwd = 2)
@@ -110,7 +110,7 @@ legend("topright", legend = c("Comp.1","Comp.2","Mix"),
 
 
 # suppose you've already done
-mix_fit <- normalmixEM(unique_psi$psi, k = 2, maxit = 1000, epsilon = 1e-8)
+mix_fit <- normalmixEM(unique_psi$pop_avg_psi, k = 2, maxit = 1000, epsilon = 1e-8)
 
 # extract parameters
 λ1 <- mix_fit$lambda[1];   λ2 <- mix_fit$lambda[2]

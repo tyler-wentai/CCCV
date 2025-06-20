@@ -27,10 +27,10 @@ fit_mix <- brm(
   data   = unique_psi,
   prior  = c(
     prior(dirichlet(1, 1),       class = "theta"),
-    prior(normal(0, 0.20), Intercept, dpar = mu1),
-    prior(normal(1, 0.20), Intercept, dpar = mu2)
+    prior(normal(0, 0.10), Intercept, dpar = mu1),
+    prior(normal(1, 0.10), Intercept, dpar = mu2)
   ),
-  chains = 2, cores = 2, iter = 5000,
+  chains = 4, cores = 2, iter = 10000,
   control = list(adapt_delta = 0.95)
 )
 plot(fit_mix)
@@ -54,6 +54,7 @@ ci_thr   <- quantile(thresholds, c(0.025, 0.975))
 cat("50/50 crossover at ψ ≈", round(mean_thr, 3),
     " (95% CI:", round(ci_thr[1],3), "-", round(ci_thr[2],3), ")\n")
 
+hist(thresholds, breaks='scott')
 hist(thresholds, breaks='scott', xlim=c(min(unique_psi$psi),max(unique_psi$psi)))
 
 
@@ -90,7 +91,7 @@ mix_fit$mu        # component means
 mix_fit$sigma     # component standard deviations
 
 # 3. Plot the fitted densities on top of your histogram
-hist(unique_psi$psi, breaks = "FD", prob = TRUE,
+hist(unique_psi$psi, breaks = "scott", prob = TRUE,
      main = "2-Component Gaussian Mixture",
      xlab = expression(psi))
 # overall fitted density

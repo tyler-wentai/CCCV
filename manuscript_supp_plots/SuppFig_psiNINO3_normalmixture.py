@@ -133,7 +133,7 @@ line_proxy3 = mlines.Line2D([], [], color='k', linewidth=2.0, linestyle='--')
 
 handles = [(line_proxy, patch_proxy), (line_proxy1), (line_proxy2), (line_proxy3)]
 labels = ['Estimate of 50/50 crossover (with 95% CI)', 
-          'Estimate of weakly-affected component',
+          'Estimate of weakly affected component',
           'Estimate of teleconnected component',
           'KDE of raw data']
 ax1.legend(handles=handles, labels=labels, fontsize=8, frameon=False)
