@@ -469,5 +469,5 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v3.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2_v3.png', dpi=300, pad_inches=0.01)
 plt.show()

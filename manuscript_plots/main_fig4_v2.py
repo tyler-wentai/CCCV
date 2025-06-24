@@ -427,7 +427,7 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
                                      ['a','b'], 
                                      ['DMI', 'DMI'],
                                      [gdf_aggA, gdf_aggB],
-                                     ['State-level', 'State-level'],
+                                     ['State-level', 'Grid cell-level'],
                                      ['Blues_Reds', 'Blues_Reds'], #PuOr
                                      [8,20],
                                      [0.45, 0.45]):

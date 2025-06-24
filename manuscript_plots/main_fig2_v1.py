@@ -3,10 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import pandas as pd
-from matplotlib.patches import Patch
+import cartopy.crs as ccrs
+from shapely.geometry import Polygon
+from shapely import wkt
+from matplotlib.colors import TwoSlopeNorm
+from matplotlib.gridspec import GridSpec
 import matplotlib.ticker as mticker
-from calc_annual_index import *
-
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 
 print('\n\nSTART ---------------------\n')
 
@@ -19,189 +24,348 @@ gdf_onset = gpd.GeoDataFrame(
     crs="EPSG:4326"
 )
 
-gdf_onset['year'] = pd.to_datetime(gdf_onset['year'], format='%Y')
-yearly_counts = (
-    gdf_onset
-      .groupby(gdf_onset['year'].dt.year)
-      .size()
-      .reset_index(name='n_events')
-)
-print(yearly_counts['n_events'].sum(), 'total conflict onsets')
+# teleA
+pathA = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
+dfA = pd.read_csv(pathA)
+dfA['geometry'] = dfA['geometry'].apply(wkt.loads)
+gdfA = gpd.GeoDataFrame(dfA, geometry='geometry')
+gdfA.set_crs(epsg=4326, inplace=True)
+
+gdf_aggA = gdfA.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_binary':'sum',
+}).reset_index()
+
+gdf_aggA = gpd.GeoDataFrame(gdf_aggA, geometry='geometry')
+gdf_aggA.set_crs(gdfA.crs, inplace=True)
+
+# teleB
+pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_wGeometry.csv'
+dfB = pd.read_csv(pathB)
+dfB['geometry'] = dfB['geometry'].apply(wkt.loads)
+gdfB = gpd.GeoDataFrame(dfB, geometry='geometry')
+gdfB.set_crs(epsg=4326, inplace=True)
+
+gdf_aggB = gdfB.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_binary':'sum',
+}).reset_index()
+
+gdf_aggB = gpd.GeoDataFrame(gdf_aggB, geometry='geometry')
+gdf_aggB.set_crs(gdfB.crs, inplace=True)
+
+# teleC
+pathC = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+dfC = pd.read_csv(pathC)
+dfC['geometry'] = dfC['geometry'].apply(wkt.loads)
+gdfC = gpd.GeoDataFrame(dfC, geometry='geometry')
+gdfC.set_crs(epsg=4326, inplace=True)
+
+gdf_aggC = gdfC.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_count':'sum',
+}).reset_index()
+
+gdf_aggC = gpd.GeoDataFrame(gdf_aggC, geometry='geometry')
+gdf_aggC.set_crs(gdfC.crs, inplace=True)
+
+# teleD
+pathD = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
+dfD = pd.read_csv(pathD)
+dfD['geometry'] = dfD['geometry'].apply(wkt.loads)
+gdfD = gpd.GeoDataFrame(dfD, geometry='geometry')
+gdfD.set_crs(epsg=4326, inplace=True)
+
+gdf_aggD = gdfD.groupby('loc_id').agg({
+    'geometry': 'first',
+    'psi': 'first',
+    'conflict_count':'sum',
+}).reset_index()
+
+gdf_aggD = gpd.GeoDataFrame(gdf_aggD, geometry='geometry')
+gdf_aggD.set_crs(gdfD.crs, inplace=True)
 
 
-start_year, end_year = 1950, 2023
 
-nino3_monthly = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                                start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                                end_date=datetime(end_year, 12, 1, 0, 0, 0))
-dmi_monthly = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-                                start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                                end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# Define a polygon with lat/lon coordinates
+# fig, ax = plt.subplots(figsize=(8, 4), subplot_kw={'projection': ccrs.Robinson()})
+# gl = ax.gridlines(
+#     crs=ccrs.PlateCarree(),
+#     draw_labels={
+#         'bottom': True,
+#         'left':   True,
+#         'top':    False,
+#         'right':  False
+#     },
+#     linewidth=0.4
+# )
+# gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+# gl.ylocator = mticker.FixedLocator(range(-60, 61, 30))    # parallels every 30°
+# gl.xlabel_style = {'size': 10}
+# gl.ylabel_style = {'size': 10}
+# gl.xformatter = LONGITUDE_FORMATTER
+# gl.yformatter = LATITUDE_FORMATTER
+# gl.top_labels   = False 
+# gl.right_labels = False
 
-nino3_yearly    = compute_annualized_index('nino3', start_year, end_year+1)
-dmi_yearly      = compute_annualized_index('dmi', start_year, end_year)
 
-nino3_std   = nino3_yearly['cindex'].std()
-dmi_std     = dmi_yearly['cindex'].std()
 
-sigma_nino3 = nino3_monthly['ANOM'].std()
-sigma_dmi = dmi_monthly['ANOM'].std()
+# # colormap
+# bounds = [np.min(gdf_agg['psi']), np.max(gdf_agg['psi'])] #psi_quants
+# cmap =  'RdGy_r' #'gist_heat_r'#'PRGn' 
 
-yearly_counts['year'] = pd.to_datetime(yearly_counts['year'].astype(str), format='%Y')
-nino3_yearly['year'] = pd.to_datetime(nino3_yearly['year'].astype(str), format='%Y')
-dmi_yearly['year'] = pd.to_datetime(dmi_yearly['year'].astype(str), format='%Y')
+# psi = gdf_agg['psi'].values
+# vmin, vmax = psi.min(), psi.max()
+# vcenter    = np.median(psi)  # median value for the colormap center
 
-import seaborn as sns
-cmap = sns.diverging_palette(220, 20, as_cmap=True)
-num_colors = 3
-levels = np.linspace(0, 1, num_colors)
-colors = [cmap(level) for level in levels]
+# n_ticks = 15
+# boundaries = np.linspace(vmin, vmax, n_ticks)
+# labelled_ticks = boundaries[::2]
 
-# assign colors
-def pick_color_nino3(x):
-    if x < -sigma_nino3:
-        return 'blue'
-    elif x > sigma_nino3:
-        return 'red'
+# norm = TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
+
+# ax.set_global()
+# gdf_plot = gdf_agg.plot(
+#     column='psi',    
+#     cmap=cmap,
+#     norm=norm,
+#     legend=True,                   
+#     legend_kwds={
+#         "pad": 0.07,
+#         'boundaries': boundaries,
+#         'ticks':      labelled_ticks,
+#         'orientation': "vertical", 
+#         'spacing':    'uniform',        # <— key bit
+#         'shrink': 0.65
+#     },
+#     ax=ax,
+#     transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
+# )
+# ax.add_geometries(gdf_agg['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
+# ax.coastlines()
+
+# #
+# index_box = mpatches.Rectangle((-150, -5), 60, 10, 
+#                         fill=True, facecolor='gray', edgecolor='k', linewidth=1.5, alpha=0.30,
+#                         transform=ccrs.PlateCarree())
+# ax.add_patch(index_box)
+
+# #
+# x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
+# ax.scatter(x, y, color='springgreen', edgecolor='black', linewidth=0.75, s=5.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
+
+
+# # HISTORGRAM ON COLORBAR
+# cbar_ax = gdf_plot.get_figure().axes[-1]
+# cbar_ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
+# cbar_ax.tick_params(labelsize=9)
+
+# data = gdf_agg['psi'].values
+# vmin, vmax = cbar_ax.get_ybound()
+# bins = np.linspace(vmin, vmax, 15)
+# hist, edges = np.histogram(data, bins=bins)
+# centers = 0.5 * (edges[:-1] + edges[1:])
+
+# hist_ax = cbar_ax.twiny()
+
+# pad = hist.max() * 0.125
+# hist_ax.set_xlim(-pad, hist.max())
+
+# hist_ax.barh(centers, hist,
+#              height=(edges[1] - edges[0]),
+#              align='center',
+#              color='plum',
+#              edgecolor='white',
+#              linewidth=1.0,
+#              alpha=1)
+
+# hist_ax.xaxis.set_ticks_position('bottom')
+# hist_ax.xaxis.set_label_position('bottom')
+# hist_ax.tick_params(axis='x', labelsize=9)
+# hist_ax.set_xlabel('Count', fontsize=9)
+# hist_ax.spines['top'].set_visible(False)
+# hist_ax.spines['right'].set_visible(False)
+# hist_ax.spines['left'].set_visible(False)
+
+# cbar_ax.yaxis.set_ticks_position('left')
+# cbar_ax.yaxis.set_label_position('left')
+# cbar_ax.set_title("Teleconnection\nstrength", fontsize=9, pad=10)
+
+# ax.text(0.05, 0.98, 'A', transform=ax.transAxes, fontsize=18, bbox=dict(
+#         boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
+#         facecolor='white',         # box fill color
+#         edgecolor='black',         # box edge color
+#         linewidth=1                # edge line width
+#     ))
+
+# ax.set_title('NINO3 Grid Cell Teleconnection Strength', fontsize=12)
+# plt.tight_layout()
+# # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_NINO3type2_psi_raw.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
+
+
+
+
+
+def draw_map(ax, label, cindex, tele_gdf, spatial_agg_type, cmap):
+
+    gl = ax.gridlines(
+    crs=ccrs.PlateCarree(),
+    draw_labels={
+        'bottom': True,
+        'left':   True,
+        'top':    False,
+        'right':  False
+    },
+    linewidth=0.4)
+    gl.xlocator = mticker.FixedLocator(range(-180, 181, 60))  # meridians every 60°
+    gl.ylocator = mticker.FixedLocator(range(-60, 61, 30))    # parallels every 30°
+    gl.xlabel_style = {'size': 10}
+    gl.ylabel_style = {'size': 10}
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
+    gl.top_labels   = False 
+    gl.right_labels = False
+
+    # colormap
+    # bounds = [np.min(tele_gdf['psi']), np.max(tele_gdf['psi'])] #psi_quants
+    # cmap =  'Reds' #'gist_heat_r'#'PRGn' 
+
+    psi = tele_gdf['psi'].values
+    vmin, vmax = psi.min(), psi.max()
+    vcenter    = np.median(psi)  # median value for the colormap center
+
+    n_ticks = 15
+    boundaries = np.linspace(vmin, vmax, n_ticks)
+    labelled_ticks = boundaries[::2]
+
+    norm = TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
+
+    ax.set_global()
+    gdf_plot = tele_gdf.plot(
+        column='psi',    
+        cmap=cmap,
+        # norm=norm,
+        legend=True,                   
+        legend_kwds={
+            "pad": 0.07,
+            'boundaries': boundaries,
+            'ticks':      labelled_ticks,
+            'orientation': "vertical", 
+            'spacing':    'uniform', 
+            'shrink': 0.55
+        },
+        ax=ax,
+        transform=ccrs.PlateCarree()  # This tells Cartopy that the data is in lat-lon coordinates
+    )
+    ax.add_geometries(tele_gdf['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
+    ax.coastlines()
+
+    #
+    if cindex == 'NINO3':
+        index_box = mpatches.Rectangle((-150, -5), 60, 10, 
+                                fill=True, facecolor='peru', edgecolor='peru', linewidth=1.5, alpha=0.30,
+                                transform=ccrs.PlateCarree())
+        ax.add_patch(index_box)
+    elif cindex == 'DMI':
+        index_box1 = mpatches.Rectangle(
+            (50, -10),  # lower-left corner (longitude, latitude)
+            20,         # width: 70E - 50E
+            20,         # height: 10N - (-10S)
+            fill=True,
+            facecolor='peru', edgecolor='peru', 
+            linewidth=1.5,
+            alpha=0.30,
+            transform=ccrs.PlateCarree()
+        )
+        index_box2 = mpatches.Rectangle(
+            (90, -10),  # lower-left corner (longitude, latitude)
+            20,         # width: 110E - 90E
+            10,         # height: 0 - (-10S)
+            fill=True,
+            facecolor='peru', edgecolor='peru', 
+            linewidth=1.5,
+            alpha=0.30,
+            transform=ccrs.PlateCarree()
+        )
+        ax.add_patch(index_box1)
+        ax.add_patch(index_box2)
     else:
-        return 'gray'
-def pick_color_dmi(x):
-    if x < -sigma_dmi:
-        return colors[0]
-    elif x > sigma_dmi:
-        return colors[2]
-    else:
-        return 'gray'
-colors_nino3 = nino3_yearly['cindex'].map(pick_color_nino3)
-colors_dmi = dmi_yearly['cindex'].map(pick_color_dmi)
+        raise ValueError("Invalid cindex value. Expected 'NINO3' or 'DMI'.")
+
+    #
+    x, y = gdf_onset['onset_lon'].values, gdf_onset['onset_lat'].values
+    ax.scatter(x, y, color='springgreen', edgecolor='black', linewidth=0.75, s=5.0, marker='o', transform=ccrs.PlateCarree(), zorder=5)
 
 
-# build legend patches
-legend_patches_nino3 = [
-    Patch(color='red',   alpha=0.6, label='El Niño'),
-    Patch(color='gray',  alpha=0.6, label='Neutral'),
-    Patch(color='blue',  alpha=0.6, label='La Niña'),
-]
-legend_patches_dmi = [
-    Patch(color=colors[2],   alpha=0.6, label='+IOD'),
-    Patch(color='gray',  alpha=0.6, label='Neutral'),
-    Patch(color=colors[0],  alpha=0.6, label='-IOD'),
-]
+    # HISTORGRAM ON COLORBAR
+    cbar_ax = gdf_plot.get_figure().axes[-1]
+    cbar_ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
+    cbar_ax.tick_params(labelsize=9)
 
-# create two stacked subplots, sharing the x-axis
-fig, (ax1, ax2, ax3) = plt.subplots(
-    nrows=3, ncols=1,
-    figsize=(7.0, 7.5),
-    sharex=False
-)
-fig.subplots_adjust(hspace=0.4)
+    data = tele_gdf['psi'].values
+    vmin, vmax = cbar_ax.get_ybound()
+    bins = np.linspace(vmin, vmax, 15)
+    hist, edges = np.histogram(data, bins=bins)
+    centers = 0.5 * (edges[:-1] + edges[1:])
 
-# — Panel A —
-ax1.bar(
-    yearly_counts['year'],
-    yearly_counts['n_events'],
-    width=300,
-    alpha=0.7,
-    color='green',
-    zorder=0
-)
-ax1.axhline(0, color='black', linewidth=1.0, linestyle='-')
-ax1.set_ylabel('No. of conflict onsets')
-ax1.set_title('State-based Armed Conflict Onsets (1950-2023), N=555')
-ax1.grid(True, linestyle='--', alpha=0.5)
-ax1.text(
-    0.95, 0.1, 'A',
-    transform=ax1.transAxes,
-    fontsize=18,
-    bbox=dict(
-        boxstyle='square,pad=0.3',
-        facecolor='white',
-        edgecolor='black',
-        linewidth=1
-    )
-)
+    hist_ax = cbar_ax.twiny()
 
-# — Panel B —
-ax2.plot(
-    nino3_yearly['year'],
-    nino3_yearly['cindex'],
-    color='black',
-    linewidth=1.5,
-    zorder=1
-)
-ax2.bar(
-    nino3_yearly['year'],
-    nino3_yearly['cindex'],
-    width=300,
-    alpha=0.7,
-    color=colors_nino3,
-    zorder=0
-)
-ax2.axhline(0, color='black', linewidth=1.0, linestyle='-')
-ax2.set_ylabel('NDJ Averaged NINO3 (°C)')
-ax2.set_title('Annualized Index for The El-Nino Southern Oscillation')
-ax2.grid(True, linestyle='--', alpha=0.5)
-ax2.text(
-    0.95, 0.1, 'B',
-    transform=ax2.transAxes,
-    fontsize=18,
-    bbox=dict(
-        boxstyle='square,pad=0.3',
-        facecolor='white',
-        edgecolor='black',
-        linewidth=1
-    )
-)
-ax2.legend(
-    handles=legend_patches_nino3,
-    loc='upper left',
-    frameon=True,
-    fontsize=9
-)
-ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
+    pad = hist.max() * 0.1
+    hist_ax.set_xlim(-pad, hist.max())
 
-# — Panel C —
-ax3.plot(
-    dmi_yearly['year'],
-    dmi_yearly['cindex'],
-    color='black',
-    linewidth=1.5,
-    zorder=1
-)
-ax3.bar(
-    dmi_yearly['year'],
-    dmi_yearly['cindex'],
-    width=300,
-    alpha=0.7,
-    color=colors_dmi,
-    zorder=0
-)
-ax3.axhline(0, color='black', linewidth=1.0, linestyle='-')
-ax3.set_ylabel('SON Averaged DMI (°C)')
-ax3.set_title('Annualized Index for The Indian Ocean Dipole')
-ax3.grid(True, linestyle='--', alpha=0.5)
-ax3.text(
-    0.95, 0.1, 'C',
-    transform=ax3.transAxes,
-    fontsize=18,
-    bbox=dict(
-        boxstyle='square,pad=0.3',
-        facecolor='white',
-        edgecolor='black',
-        linewidth=1
-    )
-)
-ax3.set_xlabel('Year')
-ax3.legend(
-    handles=legend_patches_dmi,
-    loc='upper left',
-    frameon=True,
-    fontsize=9
-)
-ax3.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
+    hist_ax.barh(centers, hist,
+                height=(edges[1] - edges[0]),
+                align='center',
+                color='silver',
+                edgecolor='white',
+                linewidth=1.0,
+                alpha=1)
+
+    hist_ax.xaxis.set_ticks_position('bottom')
+    hist_ax.xaxis.set_label_position('bottom')
+    hist_ax.tick_params(axis='x', labelsize=9)
+    hist_ax.set_xlabel('Count', fontsize=9)
+    hist_ax.spines['top'].set_visible(False)
+    hist_ax.spines['right'].set_visible(False)
+    hist_ax.spines['left'].set_visible(False)
+
+    cbar_ax.yaxis.set_ticks_position('left')
+    cbar_ax.yaxis.set_label_position('left')
+    cbar_ax.set_title("Teleconnection\nstrength", fontsize=9, pad=10)
+
+    ax.text(0.05, 0.98, label, transform=ax.transAxes, fontsize=18, bbox=dict(
+            boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
+            facecolor='white',         # box fill color
+            edgecolor='black',         # box edge color
+            linewidth=1                # edge line width
+        ))
+
+    title_str = str(spatial_agg_type) + ' ' + str(cindex) + ' ' +  'Teleconnection'
+    ax.set_title(title_str, fontsize=12)
 
 
+##
+fig, axes = plt.subplots(
+    2, 2,
+    figsize=(14, 6.5),
+    subplot_kw={'projection': ccrs.Robinson()}
+)
+# fig.subplots_adjust(hspace=-0.5)
+axes = axes.flatten()
+
+# Draw each panel with labels A–D
+for ax, lab, cindex, tele_gdf, spatial_agg_type, cmap in zip(axes, 
+                                     ['A','B','C','D'], 
+                                     ['NINO3', 'DMI', 'NINO3', 'DMI'],
+                                     [gdf_aggA, gdf_aggB, gdf_aggC, gdf_aggD],
+                                     ['State-level', 'State-level', 'Grid Cell-level', 'Grid Cell-level'],
+                                     ['PuBu', 'PuRd', 'PuBu', 'PuRd']):
+    draw_map(ax, lab, cindex, tele_gdf, spatial_agg_type, cmap)
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1.png', dpi=300, pad_inches=0.01)
 plt.show()
