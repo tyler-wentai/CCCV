@@ -10,6 +10,7 @@ import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerTuple
+import cmocean
 
 print('\n\nSTART ---------------------\n')
 
@@ -144,10 +145,11 @@ ax1.axvspan(-1.0, +1.0, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax1.axvspan(-2.05, -1.0, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
 # annotations
-ax1.text(+1.05, 0.955, 'A', transform=ax1.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',
-                                facecolor='white',
-                                edgecolor='black'))
+ax1.text(+1.05, 0.955, 'a', transform=ax1.transAxes, ha="center", va="center",
+         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+            facecolor='white',          # box fill color
+            edgecolor='black',          # box edge color
+            linewidth=0.5))             # edge line width
 
 plt.text(0.0, 6.8, 'Neutral',    fontsize=9, ha='center')
 plt.text(1.1, 6.8, 'El Niño',       fontsize=9, ha='left')
@@ -188,10 +190,10 @@ sns.histplot(x=df_c2['cindex_lag0y'], color='gainsboro',
              stat='proportion', bins=12, alpha=1.0, zorder=3,
              ax=ax3)
 sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_l,
-             color='purple', ax=ax4)
+             color='peru', ax=ax4)
 ax4.fill_between(df2_l['cindex_lag0y'],
                  df2_l['lower__'], df2_l['upper__'],
-                 color='purple',
+                 color='peru',
                  alpha=0.45, edgecolor=None)
 sns.lineplot(x='cindex_lag0y', y='estimate__', data=df2_h,
              color='green', ax=ax4)
@@ -222,10 +224,11 @@ ax3.axvspan(-1.0, +1.0, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax3.axvspan(-2.05, -1.0, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
 # annotations
-ax3.text(+1.05, 0.955, 'B', transform=ax3.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',
-                                facecolor='white',
-                                edgecolor='black'))
+ax3.text(+1.05, 0.955, 'b', transform=ax3.transAxes, ha="center", va="center",
+         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+            facecolor='white',          # box fill color
+            edgecolor='black',          # box edge color
+            linewidth=0.5))             # edge line width
 
 plt.text(0.0, 7.2, 'Neutral',    fontsize=9, ha='center')
 plt.text(1.1, 7.2, 'El Niño',       fontsize=9, ha='left')
@@ -234,8 +237,8 @@ plt.text(-1.1,7.2, 'La Niña',       fontsize=9, ha='right')
 # legend
 line_w = mlines.Line2D([], [], color='green')
 patch_w = mpatches.Patch(alpha=0.35, color='green')
-line_s = mlines.Line2D([], [], color='purple')
-patch_s = mpatches.Patch(alpha=0.25, color='purple')
+line_s = mlines.Line2D([], [], color='peru')
+patch_s = mpatches.Patch(alpha=0.25, color='peru')
 handles = [(line_s, patch_s), (line_w, patch_w)]
 labels  = ['Dryer in El Niño', 'Wetter in El Niño']
 ax4.legend(handles=handles, labels=labels,
@@ -296,10 +299,11 @@ ax5.axvspan(+0.4, +2.5, color=colors[4], linewidth=0, alpha=0.20, zorder=0)
 ax5.axvspan(-0.4, +0.4, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax5.axvspan(-2.5, -0.4, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
-ax5.text(+1.05, 0.955, 'C', transform=ax5.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',
-                                facecolor='white',
-                                edgecolor='black'))
+ax5.text(+1.05, 0.955, 'c', transform=ax5.transAxes, ha="center", va="center",
+         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+            facecolor='white',          # box fill color
+            edgecolor='black',          # box edge color
+            linewidth=0.5))             # edge line width
 
 line_w = mlines.Line2D([], [], color='dimgray')
 patch_w = mpatches.Patch(alpha=0.35, color='dimgray')

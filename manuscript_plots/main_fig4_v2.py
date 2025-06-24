@@ -26,7 +26,7 @@ gdf_onset = gpd.GeoDataFrame(
 )
 
 # teleA
-pathA = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
+pathA = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_wGeometry.csv'
 dfA = pd.read_csv(pathA)
 dfA['geometry'] = dfA['geometry'].apply(wkt.loads)
 gdfA = gpd.GeoDataFrame(dfA, geometry='geometry')
@@ -47,7 +47,7 @@ gdf_aggA = gpd.GeoDataFrame(gdf_aggA, geometry='geometry')
 gdf_aggA.set_crs(gdfA.crs, inplace=True)
 
 # teleB
-pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_square4_wGeometry.csv'
 dfB = pd.read_csv(pathB)
 dfB['geometry'] = dfB['geometry'].apply(wkt.loads)
 gdfB = gpd.GeoDataFrame(dfB, geometry='geometry')
@@ -60,41 +60,6 @@ gdf_aggB = gdfB.groupby('loc_id').agg({
 
 gdf_aggB = gpd.GeoDataFrame(gdf_aggB, geometry='geometry')
 gdf_aggB.set_crs(gdfB.crs, inplace=True)
-
-# teleC
-pathC = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv'
-dfC = pd.read_csv(pathC)
-dfC['geometry'] = dfC['geometry'].apply(wkt.loads)
-gdfC = gpd.GeoDataFrame(dfC, geometry='geometry')
-gdfC.set_crs(epsg=4326, inplace=True)
-
-gdfC_2023 = gdfC[gdfC['year'] == 2023]
-gdf_aggC = (
-    gdfC_2023
-    .groupby('loc_id')
-    .agg({
-        'geometry': 'first',
-        'psi':      'first',
-    })
-    .reset_index()
-)
-gdf_aggC = gpd.GeoDataFrame(gdf_aggC, geometry='geometry')
-gdf_aggC.set_crs(gdfC.crs, inplace=True)
-
-# teleD
-pathD = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_mrsosNINO3_square4_wGeometry.csv'
-dfD = pd.read_csv(pathD)
-dfD['geometry'] = dfD['geometry'].apply(wkt.loads)
-gdfD = gpd.GeoDataFrame(dfD, geometry='geometry')
-gdfD.set_crs(epsg=4326, inplace=True)
-
-gdf_aggD = gdfD.groupby('loc_id').agg({
-    'geometry': 'first',
-    'psi': 'first',
-}).reset_index()
-
-gdf_aggD = gpd.GeoDataFrame(gdf_aggD, geometry='geometry')
-gdf_aggD.set_crs(gdfD.crs, inplace=True)
 
 
 
@@ -399,8 +364,8 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                 linewidth=1.0,
                 alpha=1)
     if var=='teleconnection':
-        if   label=='a': yloc1, yloc2 = 0.27, 0.50
-        elif label=='b': yloc1, yloc2 = 0.11, 0.35
+        if   label=='a': yloc1, yloc2 = 0.45, 0.70
+        elif label=='b': yloc1, yloc2 = 0.30, 0.55
         hist_ax.text(0.55, yloc1, 'Weakly\naffected\n↓', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
@@ -441,16 +406,16 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
         ))
 
     if var=='teleconnection':
-        title_str = 'NINO3 Teleconnection, ' + spatial_agg_type
+        title_str = 'DMI Teleconnection, ' + spatial_agg_type
     else:
-        title_str = 'Soil Moisture and NINO3, ' + spatial_agg_type
+        title_str = 'Soil Moisture and DMI, ' + spatial_agg_type
     ax.set_title(title_str, fontsize=12)
 
 
 ##
 fig, axes = plt.subplots(
-    2, 2,
-    figsize=(14, 6.5),
+    1, 2,
+    figsize=(14, 3.5),
     subplot_kw={'projection': ccrs.Robinson()}
 )
 # fig.subplots_adjust(hspace=-0.5)
@@ -458,16 +423,16 @@ axes = axes.flatten()
 
 # Draw each panel with labels A–D
 for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in zip(axes,
-                                     ['teleconnection','teleconnection','mrsos','mrsos'], 
-                                     ['a','b','c','d'], 
-                                     ['NINO3', 'NINO3', 'NINO3', 'NINO3'],
-                                     [gdf_aggA, gdf_aggB, gdf_aggC, gdf_aggD],
-                                     ['State-level', 'Grid Cell-level', 'State-level', 'Grid Cell-level'],
-                                     ['Blues_Reds', 'Blues_Reds', 'cmo.curl_r', 'cmo.curl_r'], #PuOr
-                                     [8,20,8,20],
-                                     [0.49, 0.41, 0.49, 0.41]):
+                                     ['teleconnection','teleconnection'], 
+                                     ['a','b'], 
+                                     ['DMI', 'DMI'],
+                                     [gdf_aggA, gdf_aggB],
+                                     ['State-level', 'State-level'],
+                                     ['Blues_Reds', 'Blues_Reds'], #PuOr
+                                     [8,20],
+                                     [0.45, 0.45]):
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v3.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig4_v2.png', dpi=300, pad_inches=0.01)
 plt.show()
