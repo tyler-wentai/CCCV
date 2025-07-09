@@ -13,13 +13,13 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'DMI'
+clim_index = 'NINO34'
 
 start_year  = 1950
 end_year    = 2023 #note that spi only included observations up to 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' 
-var1str = 't2m' 
+file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/mrsos_ERA5_mon_194001-202212.nc' 
+var1str = 'mrsos' 
 
 
 
@@ -28,12 +28,12 @@ ds1 = xr.open_dataset(file_path_VAR1)
 
 
 
-ds1 = ds1.rename({'valid_time': 'time'})
+# ds1 = ds1.rename({'valid_time': 'time'})
 ds1 = ds1.assign_coords(time=ds1.time.dt.floor('D'))
 
 # change dates to time format:
-# ds1 = ds1.rename({'lat': 'latitude'})
-# ds1 = ds1.rename({'lon': 'longitude'})
+ds1 = ds1.rename({'lat': 'latitude'})
+ds1 = ds1.rename({'lon': 'longitude'})
 
 
 # Access longitude and latitude coordinates
@@ -76,18 +76,18 @@ ds1 = ds1.assign_coords(
 # clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -153,7 +153,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_19502023_FINAL.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -177,7 +177,7 @@ else:
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '.npy', var1_std)
+    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
 
 
 # Compute the annualized index value:
@@ -186,20 +186,20 @@ clim_ind_common = clim_ind_common.copy()
 clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
-## --- NINO3
-# jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
-# jan_df['year'] = jan_df['year'] - 1  # Shift back a year
-# jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+## --- NINO3 or NINO34
+jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
+jan_df['year'] = jan_df['year'] - 1  # Shift back a year
+jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
 
-# nov_dec_df = clim_ind_common[clim_ind_common['month'].isin([11, 12])].copy() # prepare November and December data for current year
-# nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
-# dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+nov_dec_df = clim_ind_common[clim_ind_common['month'].isin([11, 12])].copy() # prepare November and December data for current year
+nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
 
-# yearly = pd.merge(jan_df, nov, on='year', how='inner') # merge November_t, January_t+1 data
-# yearly = pd.merge(yearly, dec, on='year', how='inner') # merge November_t, December_t, January_t+1 data
+yearly = pd.merge(jan_df, nov, on='year', how='inner') # merge November_t, January_t+1 data
+yearly = pd.merge(yearly, dec, on='year', how='inner') # merge November_t, December_t, January_t+1 data
 
-# yearly['avg_ANOM'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+yearly['avg_ANOM'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
+index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 # print(index_AVG)
 
@@ -207,34 +207,20 @@ clim_ind_common['month'] = clim_ind_common.index.month
 # index_AVG = may_to_dec_df.groupby('year')['ANOM'].mean().reset_index() # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 # index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 
-## --- NINO34
-# dec_df = clim_ind_common[clim_ind_common['month'] == 12].copy() # prepare December data from previous year
-# dec_df['year'] = dec_df['year'] + 1  # Shift to next year
-# dec_df = dec_df[['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
-
-# jan_feb_df = clim_ind_common[clim_ind_common['month'].isin([1, 2])].copy() # prepare January and February data for current year
-# jan     = jan_feb_df[jan_feb_df['month'] == 1][['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
-# feb     = jan_feb_df[jan_feb_df['month'] == 2][['year', 'ANOM']].rename(columns={'ANOM': 'FEB_ANOM'})
-
-# yearly = pd.merge(dec_df, jan, on='year', how='inner') # merge December, January, and February data
-# yearly = pd.merge(yearly, feb, on='year', how='inner') # merge December, January, and February data
-
-# yearly['avg_ANOM'] = yearly[['DEC_ANOM', 'JAN_ANOM', 'FEB_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- DMI
-sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
 
-yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
 
-yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
-print(index_AVG)
+# print(index_AVG)
 
 ## --- ANI
 # jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August (JJA) data for current year
@@ -251,8 +237,8 @@ print(index_AVG)
 # print(index_AVG)
 
 ####
-# n_months = 12 # NINO3
-n_months = 8 # DMI
+n_months = 12 # NINO3
+# n_months = 8 # DMI
 # n_months = 8 # ANI 
 
 corrs_array_1   = np.empty((n_months,n_lat,n_long))
@@ -278,18 +264,18 @@ for i in range(n_lat):
 
         # iterate through the months
         ### NINO3 / NINO34
-        # for k in range(1,int(n_months+1),1):
-        #     # may-dec of year t
-        #     if (k<=8):
-        #         var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
-        #     else:
-        #         var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
-        #         var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
-
-        ### DMI
         for k in range(1,int(n_months+1),1):
             # may-dec of year t
-            var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+            if (k<=8):
+                var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+            else:
+                var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
+                var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
+
+        ### DMI
+        # for k in range(1,int(n_months+1),1):
+        #     # may-dec of year t
+        #     var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
 
         ### ANI
         # for k in range(1,int(n_months+1),1):
@@ -334,7 +320,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 t2m.",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 mrsos.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -352,7 +338,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 t2m.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 mrsos.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
