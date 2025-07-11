@@ -288,7 +288,7 @@ ax2.bar(
 )
 ax2.axhline(0, color='black', linewidth=1.0, linestyle='-')
 ax2.set_ylabel('NDJ-Avg. NINO3 (°C)')
-ax2.set_title('Annualized Index for the El Niño-Southern Oscillation')
+ax2.set_title('Annualized Index for the El Niño-Southern Oscillation (ENSO)')
 ax2.grid(True, linestyle='--', alpha=0.5)
 ax2.text(+0.00, 1.15, 'b', transform=ax2.transAxes, ha="center", va="center",
          fontsize=14, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
@@ -321,7 +321,7 @@ ax3.bar(
 )
 ax3.axhline(0, color='black', linewidth=1.0, linestyle='-')
 ax3.set_ylabel('SON-Avg. DMI (°C)')
-ax3.set_title('Annualized Index for the Indian Ocean Dipole')
+ax3.set_title('Annualized Index for the Indian Ocean Dipole (IOD)')
 ax3.grid(True, linestyle='--', alpha=0.5)
 ax3.text(+0.00, 1.15, 'c', transform=ax3.transAxes, ha="center", va="center",
          fontsize=14, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.

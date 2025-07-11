@@ -462,7 +462,7 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
                                      ['a','b','c','d'], 
                                      ['NINO3', 'NINO3', 'NINO3', 'NINO3'],
                                      [gdf_aggA, gdf_aggB, gdf_aggC, gdf_aggD],
-                                     ['State-level', 'Grid Cell-level', 'State-level', 'Grid Cell-level'],
+                                     ['State', 'Grid Cell', 'State', 'Grid Cell'],
                                      ['Blues_Reds', 'Blues_Reds', 'cmo.curl_r', 'cmo.curl_r'], #PuOr
                                      [8,20,8,20],
                                      [0.49, 0.41, 0.49, 0.41]):

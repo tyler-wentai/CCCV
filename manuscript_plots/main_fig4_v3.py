@@ -401,19 +401,19 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                 linewidth=1.0,
                 alpha=1)
     if var=='teleconnection':
-        if   label=='a': yloc1, yloc2 = 0.27, 0.50
-        elif label=='b': yloc1, yloc2 = 0.11, 0.35
-        hist_ax.text(0.55, yloc1, 'Weakly\naffected\n↓', fontsize=8, ha="center", va="center",
+        if   label=='a': yloc1, yloc2 = 0.35, 0.75
+        elif label=='b': yloc1, yloc2 = 0.40, 0.80
+        hist_ax.text(0.55, yloc1, 'IOD-conflict\nunresponsive\n↓', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
-        hist_ax.text(0.55, yloc2, '↑\nTeleconnected', fontsize=8, ha="center", va="center", color='k',
+        hist_ax.text(0.55, yloc2, '↑\nIOD-conflict\nresponsive', fontsize=8, ha="center", va="center", color='k',
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
     else:
         hist_ax.text(0.55, 0.40, 'Dryer in\n+IOD\n↓', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
-        hist_ax.text(0.55, 0.90, '↑\nWetter in\n+IOD', fontsize=8, ha="center", va="center",
+        hist_ax.text(0.55, 0.85, '↑\nWetter in\n+IOD', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
                     
@@ -467,7 +467,7 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
                                      ['State', 'Grid Cell', 'State', 'Grid Cell'],
                                      ['Blues_Reds', 'Blues_Reds', 'cmo.curl_r', 'cmo.curl_r'], #PuOr
                                      [8,20,8,20],
-                                     [0.49, 0.41, 0.49, 0.41]):
+                                     [0.40, 0.60, 0.40, 0.60]):
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
