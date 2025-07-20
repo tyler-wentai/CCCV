@@ -13,7 +13,7 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'EEI'
+clim_index = 'NINO34'
 
 start_year  = 1950
 end_year    = 2023 #note that spi only included observations up to 2022
@@ -76,12 +76,12 @@ ds1 = ds1.assign_coords(
 # clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))

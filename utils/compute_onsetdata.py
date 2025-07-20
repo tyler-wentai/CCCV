@@ -10,7 +10,7 @@ print('\n\nSTART ---------------------\n')
 # URL: https://ucdp.uu.se/downloads/index.html#armedconflict
 
 
-conflict_data_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioConflict_v24_1.csv'
+conflict_data_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioConflict_v25_1.csv'
 df = pd.read_csv(conflict_data_path)
 
 n_conflicts = df["conflict_id"].nunique()
@@ -56,7 +56,7 @@ for i in range(2, 10):
 df_final["primary_onset"] = np.where((df_final["year_diff"] == -10),1,0)
 
 # 7. SAVE FILE
-df_final.to_csv('/Users/tylerbagwell/Desktop/UcdpPrioRice_GeoArmedConflictOnset_v1.csv', index=False)
+df_final.to_csv('/Users/tylerbagwell/Desktop/UcdpPrioRice_GeoArmedConflictOnset_v2.csv', index=False)
 
 print(df_final)
 
