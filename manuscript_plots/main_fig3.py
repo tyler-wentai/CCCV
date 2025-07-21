@@ -104,7 +104,7 @@ fig, (ax1, ax3, ax5) = plt.subplots(1, 3,
 
 # -- Panel 1 (top) --
 ax2 = ax1.twinx()
-ax1.set_title('ENSO & Conflict', fontsize=10)
+ax1.set_title('ENSO & Conflict, State', fontsize=10)
 
 # hist + lines
 sns.histplot(x=df_c1['cindex_lag0y'], color='gainsboro',
@@ -183,7 +183,7 @@ ax2.grid(
 
 # -- Panel 2 (middle) --
 ax4 = ax3.twinx()
-ax3.set_title('ENSO & Conflict', fontsize=10)
+ax3.set_title('ENSO & Conflict, State', fontsize=10)
 
 # hist + lines
 sns.histplot(x=df_c2['cindex_lag0y'], color='gainsboro',
@@ -262,7 +262,7 @@ ax4.grid(
 
 # -- Panel 3 (bottom) --
 ax6 = ax5.twinx()
-ax5.set_title('IOD & Conflict', fontsize=10)
+ax5.set_title('IOD & Conflict, State', fontsize=10)
 
 sns.histplot(x=df_c3['cindex_lag0y'], color='gainsboro',
              stat='proportion', bins=12, alpha=1.0, zorder=3,
@@ -310,10 +310,10 @@ patch_w = mpatches.Patch(alpha=0.35, color='dimgray')
 line_s = mlines.Line2D([], [], color='red')
 patch_s = mpatches.Patch(alpha=0.25, color='red')
 handles = [(line_s, patch_s), (line_w, patch_w)]
-labels  = ['Teleconnected', 'Weakly affected']
+labels  = ['IOD-conflict responsive', 'IOD-conflict unresponsive']
 ax6.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.05,0.65], fontsize=9,
+           loc=[0.20,0.65], fontsize=9,
            title=r'', frameon=False,
            title_fontsize=9)
 
