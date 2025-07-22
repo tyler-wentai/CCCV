@@ -90,7 +90,7 @@ ax1.add_patch(index_box1)
 ax1.set_title('NINO3 Teleconnection', fontsize=11)
 cax1 = im1.colorbar.ax
 cax1.set_title("Teleconnection\nstrength", fontsize=8)
-ax1.text(0.05, 0.98, 'A', transform=ax1.transAxes, fontsize=14, bbox=dict(
+ax1.text(0.05, 0.98, 'a', transform=ax1.transAxes, fontsize=14, bbox=dict(
             boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',         # box fill color
             edgecolor=None,         # box edge color
@@ -124,7 +124,7 @@ ax2.add_patch(index_box3)
 ax2.set_title('DMI Teleconnection', fontsize=11)
 cax2 = im2.colorbar.ax
 cax2.set_title("Teleconnection\nstrength", fontsize=8)
-ax2.text(0.05, 0.98, 'B', transform=ax2.transAxes, fontsize=14, bbox=dict(
+ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
             boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',         # box fill color
             edgecolor=None,         # box edge color
