@@ -467,7 +467,7 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
                                      ['State', 'Grid Cell', 'State', 'Grid Cell'],
                                      ['Blues_Reds', 'Blues_Reds', 'cmo.curl_r', 'cmo.curl_r'], #PuOr
                                      [8,20,8,20],
-                                     [0.42, 0.60, 0.42, 0.60]):
+                                     [0.42, 0.55, 0.42, 0.55]):
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
