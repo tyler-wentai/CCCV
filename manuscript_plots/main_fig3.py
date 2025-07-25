@@ -104,7 +104,7 @@ fig, (ax1, ax3, ax5) = plt.subplots(1, 3,
 
 # -- Panel 1 (top) --
 ax2 = ax1.twinx()
-ax1.set_title('ENSO & Conflict, State', fontsize=10)
+ax1.set_title('ENSO & Conflict, State', fontsize=12)
 
 # hist + lines
 sns.histplot(x=df_c1['cindex_lag0y'], color='gainsboro',
@@ -128,16 +128,16 @@ ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 ax1.yaxis.tick_right()
 ax1.yaxis.set_label_position("right")
 ax1.set_yticks([0, 0.20, 0.40])
-ax1.set_yticklabels([0, 0.20, 0.40], fontsize=8)
-ax1.set_ylabel("Obs. proportion", ha='right', fontsize=8)
-ax1.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=10)
+ax1.set_yticklabels([0, 0.20, 0.40], fontsize=10)
+ax1.set_ylabel("Obs. proportion", ha='right', fontsize=10)
+ax1.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=12)
 ax1.tick_params(axis='y', direction='in')
 ax1.yaxis.set_label_coords(1.1, 0.30)
 
 ax2.yaxis.tick_left()
 ax2.yaxis.set_label_position("left")
 ax2.tick_params(axis='y', direction='in')
-ax2.set_ylabel('ACR (%)', fontsize=10)
+ax2.set_ylabel('ACR (%)', fontsize=12)
 
 # background spans
 ax1.axvspan(+1.0, +3.25, color=colors[4], linewidth=0, alpha=0.20, zorder=0)
@@ -145,15 +145,15 @@ ax1.axvspan(-1.0, +1.0, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax1.axvspan(-2.05, -1.0, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
 # annotations
-ax1.text(+1.05, 0.955, 'a', transform=ax1.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+ax1.text(-0.04, 1.02, 'a', transform=ax1.transAxes, ha="center", va="center",
+         fontsize=14, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',          # box fill color
             edgecolor='black',          # box edge color
             linewidth=0.5))             # edge line width
 
-plt.text(0.0, 6.8, 'Neutral',    fontsize=9, ha='center')
-plt.text(1.1, 6.8, 'El Niño',       fontsize=9, ha='left')
-plt.text(-1.1,6.8, 'La Niña',       fontsize=9, ha='right')
+plt.text(0.0, 6.8, 'Neutral',    fontsize=10, ha='center')
+plt.text(1.1, 6.8, 'El Niño',       fontsize=10, ha='left')
+plt.text(-1.1,6.8, 'La Niña',       fontsize=10, ha='right')
 
 # legend
 line_w = mlines.Line2D([], [], color='dimgray')
@@ -164,9 +164,9 @@ handles = [(line_s, patch_s), (line_w, patch_w)]
 labels  = ['Teleconnected', 'Weakly affected']
 ax2.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.05,0.65], fontsize=9,
+           loc=[0.05,0.65], fontsize=10,
            title=r'', frameon=False,
-           title_fontsize=9)
+           title_fontsize=10)
 
 ax1.set_ylim(0, 2.5)
 ax1.set_xlim(-2.05, 3.25)
@@ -183,7 +183,7 @@ ax2.grid(
 
 # -- Panel 2 (middle) --
 ax4 = ax3.twinx()
-ax3.set_title('ENSO & Conflict, State', fontsize=10)
+ax3.set_title('ENSO & Conflict, State', fontsize=12)
 
 # hist + lines
 sns.histplot(x=df_c2['cindex_lag0y'], color='gainsboro',
@@ -207,16 +207,16 @@ ax4.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 ax3.yaxis.tick_right()
 ax3.yaxis.set_label_position("right")
 ax3.set_yticks([0, 0.20, 0.40])
-ax3.set_yticklabels([0, 0.20, 0.40], fontsize=8)
-ax3.set_ylabel("Obs. proportion", ha='right', fontsize=8)
-ax3.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=10)
+ax3.set_yticklabels([0, 0.20, 0.40], fontsize=10)
+ax3.set_ylabel("Obs. proportion", ha='right', fontsize=10)
+ax3.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=12)
 ax3.tick_params(axis='y', direction='in')
 ax3.yaxis.set_label_coords(1.1, 0.30)
 
 ax4.yaxis.tick_left()
 ax4.yaxis.set_label_position("left")
 ax4.tick_params(axis='y', direction='in')
-ax4.set_ylabel('ACR (%)', fontsize=10)
+ax4.set_ylabel('ACR (%)', fontsize=12)
 
 # background spans
 ax3.axvspan(+1.0, +3.25, color=colors[4], linewidth=0, alpha=0.20, zorder=0)
@@ -224,15 +224,15 @@ ax3.axvspan(-1.0, +1.0, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax3.axvspan(-2.05, -1.0, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
 # annotations
-ax3.text(+1.05, 0.955, 'b', transform=ax3.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+ax3.text(-0.04, 1.02, 'b', transform=ax3.transAxes, ha="center", va="center",
+         fontsize=14, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',          # box fill color
             edgecolor='black',          # box edge color
             linewidth=0.5))             # edge line width
 
-plt.text(0.0, 7.2, 'Neutral',    fontsize=9, ha='center')
-plt.text(1.1, 7.2, 'El Niño',       fontsize=9, ha='left')
-plt.text(-1.1,7.2, 'La Niña',       fontsize=9, ha='right')
+plt.text(0.0, 7.2, 'Neutral',    fontsize=10, ha='center')
+plt.text(1.1, 7.2, 'El Niño',       fontsize=10, ha='left')
+plt.text(-1.1,7.2, 'La Niña',       fontsize=10, ha='right')
 
 # legend
 line_w = mlines.Line2D([], [], color='green')
@@ -243,9 +243,9 @@ handles = [(line_s, patch_s), (line_w, patch_w)]
 labels  = ['Dryer in El Niño', 'Wetter in El Niño']
 ax4.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.05,0.65], fontsize=9,
+           loc=[0.05,0.65], fontsize=10,
            title=r'', frameon=False,
-           title_fontsize=9)
+           title_fontsize=10)
 
 ax3.set_ylim(0, 2.5)
 ax3.set_xlim(-2.05, 3.25)
@@ -262,7 +262,7 @@ ax4.grid(
 
 # -- Panel 3 (bottom) --
 ax6 = ax5.twinx()
-ax5.set_title('IOD & Conflict, State', fontsize=10)
+ax5.set_title('IOD & Conflict, State', fontsize=12)
 
 sns.histplot(x=df_c3['cindex_lag0y'], color='gainsboro',
              stat='proportion', bins=12, alpha=1.0, zorder=3,
@@ -284,23 +284,25 @@ ax6.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 ax5.yaxis.tick_right()
 ax5.yaxis.set_label_position("right")
 ax5.set_yticks([0, 0.20, 0.40])
-ax5.set_yticklabels([0, 0.20, 0.40], fontsize=8)
-ax5.set_ylabel("Obs. proportion", ha='right', fontsize=8)
-ax5.set_xlabel(r"SON-averaged DMI ($^{\circ}$C)", fontsize=10)
+ax5.set_yticklabels([0, 0.20, 0.40], fontsize=10)
+ax5.set_ylabel("Obs. proportion", ha='right', fontsize=10)
+ax5.set_xlabel(r"SON-averaged DMI ($^{\circ}$C)", fontsize=12)
 ax5.tick_params(axis='y', direction='in')
 ax5.yaxis.set_label_coords(1.1, 0.30)
 
 ax6.yaxis.tick_left()
 ax6.yaxis.set_label_position("left")
 ax6.tick_params(axis='y', direction='in')
-ax6.set_ylabel('ACR (%)', fontsize=10)
+ax6.set_ylabel('ACR (%)', fontsize=12)
+from matplotlib.ticker import MultipleLocator
+ax6.yaxis.set_major_locator(MultipleLocator(4))
 
 ax5.axvspan(+0.4, +2.5, color=colors[4], linewidth=0, alpha=0.20, zorder=0)
 ax5.axvspan(-0.4, +0.4, color=colors[2], linewidth=0, alpha=0.00, zorder=0)
 ax5.axvspan(-2.5, -0.4, color=colors[0], linewidth=0, alpha=0.20, zorder=0)
 
-ax5.text(+1.05, 0.955, 'c', transform=ax5.transAxes, ha="center", va="center",
-         fontsize=12, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
+ax5.text(-0.04, 1.02, 'c', transform=ax5.transAxes, ha="center", va="center",
+         fontsize=14, bbox=dict(boxstyle='square,pad=0.2',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',          # box fill color
             edgecolor='black',          # box edge color
             linewidth=0.5))             # edge line width
@@ -313,13 +315,13 @@ handles = [(line_s, patch_s), (line_w, patch_w)]
 labels  = ['IOD-conflict responsive', 'IOD-conflict unresponsive']
 ax6.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.20,0.65], fontsize=9,
+           loc=[0.20,0.65], fontsize=10,
            title=r'', frameon=False,
-           title_fontsize=9)
+           title_fontsize=10)
 
-plt.text(0.0, 16.0, 'Neutral',    fontsize=9, ha='center')
-plt.text(0.5, 16.0, '+IOD',       fontsize=9, ha='left')
-plt.text(-0.5,16.0, '-IOD',       fontsize=9, ha='right')
+plt.text(0.0, 16.0, 'Neutral',    fontsize=10, ha='center')
+plt.text(0.5, 16.0, '+IOD',       fontsize=10, ha='left')
+plt.text(-0.5,16.0, '-IOD',       fontsize=10, ha='right')
 
 ax5.set_ylim(0, 2.5)
 ax6.set_ylim(0, 18.0)
