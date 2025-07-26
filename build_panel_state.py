@@ -8,6 +8,7 @@ import xarray as xr
 from utils.calc_annual_index import *
 
 print('\n\nSTART ---------------------\n')
+# COMPUTES A STATE-LEVEL PANEL OF CONFLICT ONSET DATA FOR A GIVEN CLIMATE INDEX AND TELECONNECTION STRENGTH FIELD
 
 def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, pop_path, clim_index, response_var, plot_telecon=False):
     """
@@ -81,7 +82,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     ######## D. COMPUTE CONFLICT ONSET COUNT-YEAR
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+    conflictdata_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -240,13 +241,13 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     panel_gdf = panel_gdf.merge(annual_index, on='year', how='left')
 
-    ######## E. POLISH PANEL
+    ######## D. POLISH PANEL
     cols = [col for col in panel_gdf.columns if col != 'geometry'] + ['geometry']
     panel_gdf = panel_gdf[cols]
     panel_gdf = panel_gdf.rename(columns={'cntry_n': 'country', 'fid': 'loc_id'})
 
-    ###### F. TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
-    if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
+    ###### E. TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
+    if (response_var=='binary'):        
         panel_gdf['conflict_count'] = (panel_gdf['conflict_count'] > 0).astype(int)
         # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
         panel_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
@@ -254,7 +255,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     ######## PLOTTING
     if (plot_telecon==True):
 
-        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
         df = pd.read_csv(onset_path)    
         gdf = gpd.GeoDataFrame(
             df, 

@@ -10,6 +10,7 @@ from pathlib import Path
 import warnings
 
 print('\n\nSTART ---------------------\n')
+# COMPUTES CUMULATIVE CORRELATIONS FOR A SINGLE GRIDDED VARIABLE AND A SINGLE CLIMATE INDEX USING THE CAI ET AL. 2024 METHOD
 
 import xarray as xr
 
@@ -117,16 +118,16 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     2. Detrend each calendar-month slice separately
     3. Divide by the post-detrend sigma for that month
     """
-    # --- set‑up -------------------------------------------------------------
+    # set‑up 
     data   = np.asarray(data, dtype=float)
     n      = data.size
     months = np.arange(n) % 12            # 0...11
 
-    # --- 1. climatology 
+    #  1. climatology 
     clim_mean = np.array([data[months == m].mean() for m in range(12)])
     anom      = data - clim_mean[months]  # mean removed
 
-    # --- 2. detrend each calendar month 
+    # 2. detrend each calendar month 
     df = pd.DataFrame({
         "anom" : anom,
         "month": months,
@@ -143,7 +144,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
         df.groupby("month", group_keys=False)
             .apply(_remove_trend, include_groups=False))
 
-    # --- 3. standardize 
+    # 3. standardize 
     sigma = np.array([df.loc[df["month"] == m, "detr"].std(ddof=0) for m in range(12)]) # population sigma
 
     if israin:
@@ -347,5 +348,3 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
 
 pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_' + var1str + clim_index +'.nc'
 psiMonthly_array.to_netcdf(pathB_str)
-
-sys.exit()

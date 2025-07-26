@@ -16,6 +16,7 @@ import cartopy.crs as ccrs
 from shapely.geometry import Polygon
 
 print('\n\nSTART ---------------------\n')
+# COMPUTES A GRID CELL PANEL OF CONFLICT ONSET DATA (BINARY OR COUNT) FOR A GIVEN CLIMATE INDEX AND TELECONNECTION STRENGTH FIELD
 
 #
 def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
@@ -281,143 +282,6 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     return gdf_final
 
 
-# 
-def compute_weather_controls(start_year, end_year, polygons_gdf, annual_index):
-    """
-    Computes the annualized climate-index-signal-removed average temperature and precipitation for 
-    each geometry contained in the polygons_gdf for years start_year to end_year.
-    """
-    print(" Computing weather controls...")
-
-    # Function to convert longitude from 0-360 to -180 to 180
-    def convert_longitude(ds):
-        longitude = ds['longitude']
-        longitude = ((longitude + 180) % 360) - 180
-        ds = ds.assign_coords(longitude=longitude)
-        return ds
-    
-    # Function to perform standardization of variables
-    def standardize_group(x):
-        std = x.std()
-        if std == 0:
-            return x * 0  # Assign zero or any other constant value
-        else:
-            return (x - x.mean()) / std
-        
-    # Function to perform de-trending
-    def detrend_group_t2m(group):
-        X = group['INDEX']
-        y = group['t2m']
-        X = sm.add_constant(X)
-        model = sm.OLS(y, X).fit()
-        group['t2m'] = model.resid
-        return group
-    
-    # Function to perform de-trending
-    def detrend_group_tp(group):
-        X = group['INDEX']
-        y = group['tp']
-        X = sm.add_constant(X)
-        model = sm.OLS(y, X).fit()
-        group['tp'] = model.resid
-        return group
-
-    # LOAD IN ANOMALIZED CLIMATE DATA
-    # t2m: air temperature at 2 m
-    # tp: total precipitation
-    file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_t2m_raw.nc' # t2m
-    file_path_VAR2 = '/Users/tylerbagwell/Desktop/raw_climate_data/ERA5_tp_raw.nc'  # tp
-    ds1 = xr.open_dataset(file_path_VAR1)
-    ds2 = xr.open_dataset(file_path_VAR2)
-
-    # change dates to time format:
-    dates = pd.to_datetime(ds1['date'].astype(str), format='%Y%m%d')
-    ds1 = ds1.assign_coords(date=dates)
-    ds1 = ds1.rename({'date': 'time'})
-    ds1 = ds1.rio.write_crs("EPSG:4326")                    # Ensure the dataset has a CRS
-    ds1 = ds1.sel(time=slice(f"{start_year}-01-01", f"{end_year}-12-31"))   # Select data within the specified year range
-
-    dates = pd.to_datetime(ds2['date'].astype(str), format='%Y%m%d')
-    ds2 = ds2.assign_coords(date=dates)
-    ds2 = ds2.rename({'date': 'time'})
-    ds2 = ds2.rio.write_crs("EPSG:4326")                    # Ensure the dataset has a CRS
-    ds2 = ds2.sel(time=slice(f"{start_year}-01-01", f"{end_year}-12-31"))   # Select data within the specified year range
-
-    lon1 = ds1['longitude']
-    lon2 = ds2['longitude']
-    if lon1.max() > 180:
-        ds1 = convert_longitude(ds1)
-    if lon2.max() > 180:
-        ds2 = convert_longitude(ds2)
-    ds1 = ds1.sortby('longitude')
-    ds2 = ds2.sortby('longitude')
-    ds1 = ds1.assign_coords(
-        longitude=np.round(ds1['longitude'], decimals=2),
-        latitude=np.round(ds1['latitude'], decimals=2)
-        )
-    ds2 = ds2.assign_coords(
-        longitude=np.round(ds2['longitude'], decimals=2),
-        latitude=np.round(ds2['latitude'], decimals=2)
-        )
-
-    polygons_gdf = polygons_gdf.to_crs(ds1.rio.crs)         # Reproject polygons_gdf to match the dataset's CRS
-
-    ds_yearly1 = ds1.groupby('time.year').mean()             # Group data by year and compute annual mean
-    ds_yearly2 = ds2.groupby('time.year').mean()             # Group data by year and compute annual mean
-
-    # Iterate over each polygon and compute the average temperature for each year
-    # t2m
-    results_list1 = []
-    for idx, row in polygons_gdf.iterrows():
-        print(f"t2m: processing polygon {idx+1}/{len(polygons_gdf)}")
-        geometry = [mapping(row['geometry'])]
-
-        ds_clipped = ds_yearly1.rio.clip(geometry, ds1.rio.crs, drop=False)  # Clip the dataset to the polygon
-
-        mean_temp = ds_clipped['t2m'].mean(dim=('latitude', 'longitude'))   # Compute spatial mean over the clipped area
-
-        df = mean_temp.to_dataframe().reset_index() # Convert to DataFrame
-        df['loc_id'] = row['loc_id']  # Use the loc_id from polygons_gdf
-        df = df.rename(columns={'year': 'tropical_year'})
-        results_list1.append(df)
-
-    results1 = pd.concat(results_list1, ignore_index=True)    # Concatenate all results into a single DataFrame
-    results1 = results1.drop(columns=['number', 'spatial_ref'])
-
-    results1 = results1.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    results1 = results1.groupby('loc_id').apply(detrend_group_t2m).reset_index(drop=True)   # remove climate index signal via detrending
-    results1.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
-    results1['t2m'] = results1.groupby('loc_id')['t2m'].transform(standardize_group)        # standardize residuals over all years for each loc_id
-
-    # tp
-    results_list2 = []
-    for idx, row in polygons_gdf.iterrows():
-        print(f"tp: processing polygon {idx+1}/{len(polygons_gdf)}")
-        geometry = [mapping(row['geometry'])]
-
-        ds_clipped = ds_yearly2.rio.clip(geometry, ds2.rio.crs, drop=False)  # Clip the dataset to the polygon
-
-        mean_temp = ds_clipped['tp'].mean(dim=('latitude', 'longitude'))   # Compute spatial mean over the clipped area
-
-        df = mean_temp.to_dataframe().reset_index() # Convert to DataFrame
-        df['loc_id'] = row['loc_id']  # Use the loc_id from polygons_gdf
-        df = df.rename(columns={'year': 'tropical_year'})
-        results_list2.append(df)
-
-    results2 = pd.concat(results_list2, ignore_index=True)  # Concatenate all results into a single DataFrame
-    results2 = results2.drop(columns=['number', 'spatial_ref'])
-
-    results2 = results2.merge(annual_index, on='tropical_year', how='left')                 # merge climate index data
-    results2 = results2.groupby('loc_id').apply(detrend_group_tp).reset_index(drop=True)    # remove climate index signal via detrending
-    results2.drop('INDEX', axis=1, inplace=True)                                            # drop climate index column
-    results2['tp'] = results2.groupby('loc_id')['tp'].transform(standardize_group)          # standardize residuals over all years for each loc_id
-
-    #
-    results = results1.merge(results2, on=['loc_id', 'tropical_year'], how='left')
-    # print(results)
-
-    return results
-
 #
 def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, nlag_conflict, clim_index, response_var='count', telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
     """
@@ -470,25 +334,6 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     # merge conflict counts back to polygons to retain geometry
     final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
     final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
-
-    ###### --- COMPUTE WEATHER (AIR TEMP and PRECIP) CONTROLS
-    if add_weather_controls==True:
-        weather_controls = compute_weather_controls((start_year+1), end_year, polygons_gdf, annual_index)
-
-        for i in range(nlag_cindex+1):
-            lag_string_var1 = 't2m_lag' + str(i) + 'y'
-            weather_controls[lag_string_var1] = weather_controls['t2m'].shift(i)
-        weather_controls['t2m_lagF1y'] = weather_controls['t2m'].shift(-1)
-        weather_controls.drop('t2m', axis=1, inplace=True)
-        for i in range(nlag_cindex+1):
-            lag_string_var2 = 'tp_lag' + str(i) + 'y'
-            weather_controls[lag_string_var2] = weather_controls['tp'].shift(i)
-        weather_controls['tp_lagF1y'] = weather_controls['tp'].shift(-1)
-        weather_controls.drop('tp', axis=1, inplace=True)
-        # print(weather_controls)
-
-        final_gdf = final_gdf.merge(weather_controls, on=['loc_id', 'year'], how='left')
-    # print(final_gdf)
 
     ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
     for i in range(nlag_cindex+1):
@@ -633,7 +478,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         total_aggregate = final_gdf.groupby(['loc_id'])['psi'].mean().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
-        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+        onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
         df = pd.read_csv(onset_path)    
         gdf = gpd.GeoDataFrame(
             df, 
@@ -730,8 +575,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    cols = [col for col in final_gdf.columns if col != 'geometry']
-    final_gdf = final_gdf[cols]
+    cols = [col for col in final_gdf.columns if col != 'geometry'] # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
+    final_gdf = final_gdf[cols]                                    # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
 
     return final_gdf
 
