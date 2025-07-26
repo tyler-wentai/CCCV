@@ -339,4 +339,5 @@ ax3.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 
 plt.tight_layout()
 plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()

@@ -388,8 +388,21 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
 
     hist_ax = cbar_ax.twiny()
 
+    from matplotlib.patches import Rectangle
+    rect = Rectangle(
+    (0.0, 0),        # lower‑left in axes coords
+    1.0, 1.00,          # width=100% of axes, height=100% of axes
+    transform=hist_ax.transAxes,
+    facecolor=(1, 1, 1, 0),      
+    edgecolor=(0, 0, 0, 1),
+    linewidth=1.5, 
+    zorder=5       # underneath your bars
+    )
+    hist_ax.add_patch(rect)
+
     pad = hist.max() * 0.1
-    hist_ax.set_xlim(-pad, hist.max())
+    # hist_ax.set_xlim(-pad, hist.max())
+    hist_ax.set_xlim(0.0, hist.max()+pad)
 
     hist_ax.barh(centers, hist,
                 height=(edges[1] - edges[0]),
@@ -398,6 +411,7 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                 edgecolor='white',
                 linewidth=1.0,
                 alpha=1)
+    hist_ax.axvline(0.0, color='k', linewidth=1.5)
     if var=='teleconnection':
         if   label=='a': yloc1, yloc2 = 0.27, 0.50
         elif label=='b': yloc1, yloc2 = 0.11, 0.35
@@ -408,10 +422,10 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
     else:
-        hist_ax.text(0.55, 0.40, 'Dryer in\nEl Niño\n↓', fontsize=8, ha="center", va="center",
+        hist_ax.text(0.55, 0.42, 'Dryer in\nEl Niño\n↓', fontsize=8, ha="center", va="center", color='white',
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
-        hist_ax.text(0.55, 0.90, '↑\nWetter in\nEl Niño', fontsize=8, ha="center", va="center",
+        hist_ax.text(0.55, 0.85, '↑\nWetter in\nEl Niño', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
                     
@@ -470,4 +484,5 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
 
 plt.tight_layout()
 plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2_v3.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2_v3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()

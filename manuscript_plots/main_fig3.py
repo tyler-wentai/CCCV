@@ -337,5 +337,6 @@ ax6.grid(
 
 plt.tight_layout()
 plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
