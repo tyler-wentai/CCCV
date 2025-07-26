@@ -25,7 +25,7 @@ df = xr.open_dataarray(path)
 # df = df.sum(dim="month") 
 
 
-onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
 df_onset = pd.read_csv(onset_path)    
 gdf_onset = gpd.GeoDataFrame(
     df_onset, 
@@ -75,7 +75,7 @@ cbar = gdf_plot.get_figure().axes[-1]
 cbar.set_title("Teleconnection", fontsize=9)
 
 
-plt.title('NINO3 Semi', fontsize=10)
+plt.title('DMI Semi', fontsize=10)
 plt.tight_layout()
 # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_psi_NINO3_type2_semi.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
 plt.show()
