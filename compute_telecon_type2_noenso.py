@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 print('\n\nSTART ---------------------\n')
 # COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
 
-clim_index = 'DMI'
+clim_index = 'DMI_NOENSO'
 
 start_year  = 1950
 end_year    = 2023
@@ -167,8 +167,8 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
-anom_file2 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file2 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_19502023_FINAL.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -196,8 +196,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
+    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
+    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
 
 
 # var2_monthly_array = xr.DataArray(data = var2_std,
@@ -220,10 +220,10 @@ else:
 
 
 # Compute the annualized index value:
-clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
-clim_ind_common = clim_ind_common.copy()
-clim_ind_common['year'] = clim_ind_common.index.year
-clim_ind_common['month'] = clim_ind_common.index.month
+# clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
+# clim_ind_common = clim_ind_common.copy()
+# clim_ind_common['year'] = clim_ind_common.index.year
+# clim_ind_common['month'] = clim_ind_common.index.month
 
 ## --- NINO3, NINO34
 # jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
@@ -262,18 +262,18 @@ clim_ind_common['month'] = clim_ind_common.index.month
 # index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 ## --- DMI
-sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
 
-yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
 
-yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
-print(index_AVG)
+# print(index_AVG)
 
 ## --- ANI
 # jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August (JJA) data for current year
@@ -288,6 +288,11 @@ print(index_AVG)
 # index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 # print(index_AVG)
+
+## --- DMI_NOENSO
+index_AVG = pd.read_csv("data/dmi_noenso_ann.csv")
+index_AVG.columns = ["year","avg_ANOM"]
+index_AVG = index_AVG[(index_AVG["year"] >= start_year) & (index_AVG["year"] <= end_year)]
 
 ####
 # n_months = 12 # NINO3
@@ -327,7 +332,7 @@ for i in range(n_lat):
         #         var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
         #         var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
 
-        ### DMI
+        ### DMI / DMI_NOENSO
         for k in range(1,int(n_months+1),1):
             # may-dec of year t
             var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
@@ -403,7 +408,7 @@ psi_array = xr.DataArray(data = psi,
                             resolution = resolution)
                         )
 
-pathA_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + clim_index +'_type2.nc'
+pathA_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_' + clim_index +'_type2.nc'
 psi_array.to_netcdf(pathA_str)
 
 psiMonthly_array = xr.DataArray(data = monthly_psi,
@@ -421,7 +426,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                             resolution = resolution)
                         )
 
-pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_' + clim_index +'_type2.nc'
+pathB_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psiMonthly_' + clim_index +'_type2.nc'
 psiMonthly_array.to_netcdf(pathB_str)
 
 
