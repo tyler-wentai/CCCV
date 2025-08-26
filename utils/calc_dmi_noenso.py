@@ -48,11 +48,11 @@ dat_ann = dat_ann.loc[1950:2023]
 
 
 # save
-print(dat_ann["dmi_noenso"])
 std = dat_ann["dmi_noenso"].std()
 dat_ann["dmi_noenso"] = dat_ann["dmi_noenso"] / std
+print(dat_ann["dmi_noenso"])
 print(std)
-dat_ann["dmi_noenso"].to_csv("data/dmi_nonino3_ann.csv", header=True) # SAVE
+# dat_ann["dmi_noenso"].to_csv("data/dmi_nonino3_ann.csv", header=True) # SAVE
 
 
 
