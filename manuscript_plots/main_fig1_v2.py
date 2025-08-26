@@ -24,7 +24,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
 df = pd.read_csv(path)
 
 df['geometry'] = df['geometry'].apply(wkt.loads)
@@ -48,7 +48,7 @@ gdf_agg = gpd.GeoDataFrame(gdf_agg, geometry='geometry')
 # Optionally, set the CRS using the CRS from the original GeoDataFrame
 gdf_agg.set_crs(gdf.crs, inplace=True)
 
-onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+onset_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
 df_onset = pd.read_csv(onset_path)    
 gdf_onset = gpd.GeoDataFrame(
     df_onset, 
@@ -338,6 +338,6 @@ ax3.legend(
 ax3.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
