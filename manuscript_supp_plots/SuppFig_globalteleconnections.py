@@ -20,8 +20,8 @@ print('\n\nSTART ---------------------\n')
 ####################################
 
 # Load your two DataArrays
-path1 = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_NINO3_type2.nc'
-path2 = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_type2.nc'
+path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2.nc'
+path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NOENSO_type2.nc'
 ds1 = xr.open_dataarray(path1)
 ds2 = xr.open_dataarray(path2)
 
@@ -132,5 +132,5 @@ ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
         ))
 
 
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/SuppFig_globalteleconnections.png', dpi=300, pad_inches=0.01)
+# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/SuppFig_globalteleconnections.png', dpi=300, pad_inches=0.01)
 plt.show()
