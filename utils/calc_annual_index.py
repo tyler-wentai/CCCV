@@ -197,7 +197,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
         clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
                                 start_date=datetime(start_year, 1, 1, 0, 0, 0),
                                 end_date=datetime(end_year, 12, 1, 0, 0, 0))
-    elif (climate_index == 'dmi'):
+    elif (climate_index == 'dmi') or (climate_index == 'dmi_noenso'): #### NOTE: dmi_noenso being used for placeholder!!!
         clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
                                 start_date=datetime(start_year, 1, 1, 0, 0, 0),
                                 end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -234,8 +234,13 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind[ann_ind['count'] == 3]    # Only keep years with all three months of data
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
+    elif (climate_index == 'dmi_noenso'): ### DMI_NOENSO
+        ann_ind = pd.read_csv("data/dmi_noenso_ann.csv")
+        ann_ind.columns = ["year","ann_ind"]
+        ann_ind = ann_ind[(ann_ind["year"] >= start_year) & (ann_ind["year"] <= end_year)]
     else:
         raise ValueError("Specified 'climate_index' not found...")
+    
     
     ann_ind = ann_ind.rename(columns={'ann_ind': 'cindex'}) # cindex: climate index
     return ann_ind
