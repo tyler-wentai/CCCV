@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 print('\n\nSTART ---------------------\n')
 # COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
 
-clim_index = 'DMI_NOENSO'
+clim_index = 'DMI_NONINO3'
 
 start_year  = 1950
 end_year    = 2023
@@ -290,7 +290,7 @@ else:
 # print(index_AVG)
 
 ## --- DMI_NOENSO
-index_AVG = pd.read_csv("data/dmi_noenso_ann.csv")
+index_AVG = pd.read_csv("data/dmi_nonino3_ann.csv")
 index_AVG.columns = ["year","avg_ANOM"]
 index_AVG = index_AVG[(index_AVG["year"] >= start_year) & (index_AVG["year"] <= end_year)]
 

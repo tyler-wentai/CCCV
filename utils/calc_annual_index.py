@@ -235,7 +235,7 @@ def compute_annualized_index(climate_index, start_year, end_year):
         ann_ind = ann_ind.rename(columns={'mean': 'ann_ind', 'SON_year': 'year'})
         ann_ind = ann_ind.drop(['count'], axis=1)
     elif (climate_index == 'dmi_noenso'): ### DMI_NOENSO
-        ann_ind = pd.read_csv("data/dmi_noenso_ann.csv")
+        ann_ind = pd.read_csv("data/dmi_nonino3_ann.csv")
         ann_ind.columns = ["year","ann_ind"]
         ann_ind = ann_ind[(ann_ind["year"] >= start_year) & (ann_ind["year"] <= end_year)]
     else:
