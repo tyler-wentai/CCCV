@@ -304,7 +304,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NOENSO_type2.nc',
+                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NONINO3_type2.nc',
                                     pop_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='dmi_noenso',
                                     response_var = 'binary',

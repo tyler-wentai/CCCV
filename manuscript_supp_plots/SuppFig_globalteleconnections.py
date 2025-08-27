@@ -21,7 +21,7 @@ print('\n\nSTART ---------------------\n')
 
 # Load your two DataArrays
 path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2.nc'
-path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NOENSO_type2.nc'
+path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NONINO3_type2.nc'
 ds1 = xr.open_dataarray(path1)
 ds2 = xr.open_dataarray(path2)
 
@@ -87,7 +87,7 @@ im1 = ds1.plot(
     cbar_kwargs={'shrink': 0.6, 'pad': 0.02}
 )
 ax1.add_patch(index_box1)
-ax1.set_title('NINO3 Teleconnection', fontsize=11)
+ax1.set_title('DMI Teleconnection', fontsize=11)
 cax1 = im1.colorbar.ax
 cax1.set_title("Teleconnection\nstrength", fontsize=8)
 ax1.text(0.05, 0.98, 'a', transform=ax1.transAxes, fontsize=14, bbox=dict(
@@ -121,7 +121,7 @@ im2 = ds2.plot(
 )
 ax2.add_patch(index_box2)
 ax2.add_patch(index_box3)
-ax2.set_title('DMI Teleconnection', fontsize=11)
+ax2.set_title('EI-DMI Teleconnection', fontsize=11)
 cax2 = im2.colorbar.ax
 cax2.set_title("Teleconnection\nstrength", fontsize=8)
 ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
@@ -132,5 +132,5 @@ ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
         ))
 
 
-# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/SuppFig_globalteleconnections.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_globalteleconnections_DMI_vs_EI-DMI.png', dpi=300, pad_inches=0.01)
 plt.show()

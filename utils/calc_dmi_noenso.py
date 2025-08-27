@@ -44,7 +44,7 @@ dat_ann["dmi_noenso_lag1"] = dat_ann["dmi_noenso"].shift(1)
 dat_ann = dat_ann.loc[1950:2023]
 
 # print(dat_ann)
-# print(np.round(dat_ann.corr(),3))
+print(np.round(dat_ann.corr(),3))
 
 
 # save
@@ -62,13 +62,15 @@ print(std)
 
 #
 plt.figure(figsize=(12, 5))
-plt.plot(dat_ann.index, dat_ann["dmi"], label="dmi", linewidth=2, alpha=0.7, marker="o", markersize=4)
-plt.plot(dat_ann.index, dat_ann["dmi_noenso"], label="dmi_noenso", linewidth=2, alpha=0.7,  marker="o", markersize=4)
-plt.xlabel("Time")
-plt.ylabel("Index value")
+plt.plot(dat_ann.index, dat_ann["nino3"], label="nino3", linewidth=2, alpha=0.7, color='k')
+plt.plot(dat_ann.index, dat_ann["dmi"], label="dmi", linewidth=2, alpha=0.7, color='b')
+plt.axhline(0,linewidth=1.1, color='k')
+plt.xlabel("Year")
+plt.ylabel("Index value (s.d.)")
 plt.legend()
 plt.grid()
 plt.tight_layout()
+# plt.savefig("/Users/tylerbagwell/Desktop/plot_nino3_vs_dmi.png", dpi=300, bbox_inches="tight")
 plt.show()
 
 
