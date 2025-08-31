@@ -318,10 +318,10 @@ ax3.plot(
 ax3.plot(
     dmi_noenso_yearly['year'],
     dmi_noenso_yearly['cindex'],
-    color='purple',
+    color='blueviolet',
     linestyle='--',
     linewidth=1.25,
-    label=r'ENSO-Independent DMI',
+    label=r'ENSO-adjusted DMI',
     zorder=0
 )
 ax3.bar(
@@ -349,6 +349,6 @@ ax3.set_xlabel('Year')
 ax3.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v2.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
-plt.savefig('/Users/tylerbagwell/Desktop/Main_fig1_v2.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig1_v3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Documents/Rice_University/CCCV/PNAS_submission/manuscript_plots/Main_fig1_v3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
