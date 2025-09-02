@@ -21,7 +21,7 @@ print('\n\nSTART ---------------------\n')
 
 # Load your two DataArrays
 path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2.nc'
-path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_GPCC.nc'
+path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_NONINO3_type2.nc'
 ds1 = xr.open_dataarray(path1)
 ds2 = xr.open_dataarray(path2)
 
@@ -44,6 +44,30 @@ index_box2 = mpatches.Rectangle(
 )
 
 index_box3 = mpatches.Rectangle(
+    (90, -10),  # lower-left corner (longitude, latitude)
+    20,         # width: 110E - 90E
+    10,         # height: 0 - (-10S)
+    fill=True,
+    facecolor='white',
+    edgecolor='white',
+    linewidth=1.5,
+    alpha=0.30,
+    transform=ccrs.PlateCarree()
+)
+
+index_box4 = mpatches.Rectangle(
+    (50, -10),  # lower-left corner (longitude, latitude)
+    20,         # width: 70E - 50E
+    20,         # height: 10N - (-10S)
+    fill=True,
+    facecolor='white',
+    edgecolor='white',
+    linewidth=1.5,
+    alpha=0.30,
+    transform=ccrs.PlateCarree()
+)
+
+index_box5 = mpatches.Rectangle(
     (90, -10),  # lower-left corner (longitude, latitude)
     20,         # width: 110E - 90E
     10,         # height: 0 - (-10S)
@@ -86,7 +110,9 @@ im1 = ds1.plot(
     add_colorbar=True,
     cbar_kwargs={'shrink': 0.6, 'pad': 0.02}
 )
-ax1.add_patch(index_box1)
+# ax1.add_patch(index_box1)
+ax1.add_patch(index_box4)
+ax1.add_patch(index_box5)
 ax1.set_title('DMI Teleconnection', fontsize=11)
 cax1 = im1.colorbar.ax
 cax1.set_title("Teleconnection\nstrength", fontsize=8)
@@ -121,7 +147,7 @@ im2 = ds2.plot(
 )
 ax2.add_patch(index_box2)
 ax2.add_patch(index_box3)
-ax2.set_title('EI-DMI Teleconnection', fontsize=11)
+ax2.set_title('EA-DMI Teleconnection', fontsize=11)
 cax2 = im2.colorbar.ax
 cax2.set_title("Teleconnection\nstrength", fontsize=8)
 ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
@@ -132,5 +158,5 @@ ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
         ))
 
 
-# plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_globalteleconnections_DMI_vs_EI-DMI.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_globalteleconnections_DMI_vs_EA-DMI.png', dpi=300, pad_inches=0.01)
 plt.show()
