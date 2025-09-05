@@ -230,7 +230,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     start_year  = int(panel_start_year - 5) # we compute one year previous so we can have a t-1 climate index column w/o loss of an observation
     end_year    = int(panel_end_year)
 
-    if clim_index=='nino3' or clim_index=='nino34' or clim_index=='eei': end_year += 1 # Needed since annualized NINO3/NINO34/EEI in computed with values from t+1 year
+    if clim_index=='nino3' or clim_index=='nino34' or clim_index=='eei' or clim_index=='eci': end_year += 1 # Needed since annualized NINO3/NINO34/EEI in computed with values from t+1 year
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
 
     annual_index['cindex']
