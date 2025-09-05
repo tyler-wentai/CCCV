@@ -50,28 +50,54 @@ print(np.round(dat_ann.corr(),3))
 # save
 std = dat_ann["dmi_noenso"].std()
 dat_ann["dmi_noenso"] = dat_ann["dmi_noenso"] / std
-print(dat_ann["dmi_noenso"])
-print(std)
+# print(dat_ann["dmi_noenso"])
+# print(std)
 # dat_ann["dmi_noenso"].to_csv("data/dmi_nonino3_ann.csv", header=True) # SAVE
 
 
 
 std = dat_ann["dmi"].std()
 dat_ann["dmi"] = dat_ann["dmi"] / std
+
+std = dat_ann["nino3"].std()
+dat_ann["nino3"] = dat_ann["nino3"] / std
 print(std)
 
 #
-plt.figure(figsize=(12, 5))
-plt.plot(dat_ann.index, dat_ann["nino3"], label="nino3", linewidth=2, alpha=0.7, color='k')
-plt.plot(dat_ann.index, dat_ann["dmi"], label="dmi", linewidth=2, alpha=0.7, color='b')
-plt.axhline(0,linewidth=1.1, color='k')
-plt.xlabel("Year")
-plt.ylabel("Index value (s.d.)")
-plt.legend()
-plt.grid()
-plt.tight_layout()
-# plt.savefig("/Users/tylerbagwell/Desktop/plot_nino3_vs_dmi.png", dpi=300, bbox_inches="tight")
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(3, 1, figsize=(10, 9), sharex=True, sharey=True)
+
+# Panel 1
+axes[0].plot(dat_ann.index, dat_ann["nino3"], label="NINO3", linewidth=2.5, alpha=0.7, color='k')
+axes[0].plot(dat_ann.index, dat_ann["dmi"],   label="DMI",   linewidth=2.5, alpha=0.7, color='red')
+axes[0].axhline(0, linewidth=1.1, color='k')
+axes[0].set_ylabel("Climate index (s.d.)")
+axes[0].grid(True)
+axes[0].legend(loc=2)
+
+# Panel 2
+axes[1].plot(dat_ann.index, dat_ann["nino3"],       label="NINO3", linewidth=2.5, alpha=0.7, color='k')
+axes[1].plot(dat_ann.index, dat_ann["dmi_noenso"],  label="EA-DMI",   linewidth=2.5, alpha=0.7, color='blue')
+axes[1].axhline(0, linewidth=1.1, color='k')
+axes[1].set_ylabel("Climate index (s.d.)")
+axes[1].grid(True)
+axes[1].legend()
+
+# Panel 3
+axes[2].plot(dat_ann.index, dat_ann["dmi"],         label="DMI", linewidth=2.5, alpha=0.7, color='red')
+axes[2].plot(dat_ann.index, dat_ann["dmi_noenso"],  label="EA-DMI", linewidth=2.5, alpha=0.7, color='blue')
+axes[2].axhline(0, linewidth=1.1, color='k')
+axes[2].set_ylabel("Climate index (s.d.)")
+axes[2].set_xlabel("Year")
+axes[2].grid(True)
+axes[2].legend()
+
+plt.tight_layout(h_pad=3)
+plt.savefig("/Users/tylerbagwell/Desktop/SuppFig_allclimateindices.png", dpi=300, bbox_inches="tight")
 plt.show()
+
+
 
 
 # x = dat_ann["nino3"]
