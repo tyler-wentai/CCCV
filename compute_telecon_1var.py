@@ -14,12 +14,12 @@ print('\n\nSTART ---------------------\n')
 
 import xarray as xr
 
-clim_index = 'NINO34'
+clim_index = 'ECI'
 
 start_year  = 1950
 end_year    = 2023 #note that spi only included observations up to 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Desktop/raw_climate_data/mrsos_ERA5_mon_194001-202212.nc' 
+file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/mrsos_ERA5_mon_194001-202212.nc' 
 var1str = 'mrsos' 
 
 
@@ -77,15 +77,15 @@ ds1 = ds1.assign_coords(
 # clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
-                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -154,7 +154,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_19502023_FINAL.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -178,7 +178,7 @@ else:
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
+    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
 
 
 # Compute the annualized index value:
@@ -328,7 +328,7 @@ psi_array = xr.DataArray(data = psi,
                             resolution = resolution)
                         )
 
-pathA_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_' + var1str + clim_index +'.nc'
+pathA_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_' + var1str + clim_index +'.nc'
 psi_array.to_netcdf(pathA_str)
 
 psiMonthly_array = xr.DataArray(data = monthly_psi,
@@ -346,5 +346,5 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                             resolution = resolution)
                         )
 
-pathB_str = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psiMonthly_' + var1str + clim_index +'.nc'
+pathB_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psiMonthly_' + var1str + clim_index +'.nc'
 psiMonthly_array.to_netcdf(pathB_str)
