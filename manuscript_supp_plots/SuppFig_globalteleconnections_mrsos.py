@@ -20,8 +20,8 @@ print('\n\nSTART ---------------------\n')
 ####################################
 
 # Load your two DataArrays
-path1 = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosNINO3.nc'
-path2 = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_mrsosDMI.nc'
+path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_mrsosEEI.nc'
+path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_mrsosECI.nc'
 ds1 = xr.open_dataarray(path1)
 ds2 = xr.open_dataarray(path2)
 

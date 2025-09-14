@@ -17,18 +17,12 @@ import xarray as xr
 clim_index = 'NINO3'
 
 start_year  = 1950
-end_year    = 2023 #note that spi only included observations up to 2022
+end_year    = 2005 #note that spi only included observations up to 2022
 
-file_path_VAR1 = '/Users/tylerbagwell/Downloads/pdsisc.monthly.maps.1850-2018.fawc-1.r2.5x2.5.ipe-2.nc' 
-var1str = 'mrsos' 
+file_path_VAR1 = '/Users/tylerbagwell/Downloads/pdsi.mon.mean.nc' 
+var1str = 'pdsi' 
 
-
-
-ds1 = xr.open_dataset(file_path_VAR1, decode_times=False)
-
-
-print(ds1['time'])
-sys.exit()
+ds1 = xr.open_dataset(file_path_VAR1)
 
 
 # ds1 = ds1.rename({'valid_time': 'time'})
@@ -44,16 +38,15 @@ lon1 = ds1['longitude']
 lat1 = ds1['latitude']
 
 
-resolution = 0.50
+resolution = 2.50
 
-lat_int_mask = (lat1 % resolution == 0)
-lon_int_mask = (lon1 % resolution == 0)
-ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
+# lat_int_mask = (lat1 % resolution == 0)
+# lon_int_mask = (lon1 % resolution == 0)
+# ds1 = ds1.sel(latitude=lat1[lat_int_mask], longitude=lon1[lon_int_mask])
 
 
 # nskip = 20
 # ds1 = ds1.isel(latitude=slice(0, None, int(nskip)), longitude=slice(0, None, int(nskip)))
-
 
 
 # Function to convert longitude from 0-360 to -180 to 180
@@ -76,18 +69,18 @@ ds1 = ds1.assign_coords(
 
 
 # load index data
-# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_Eindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
-                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -109,6 +102,8 @@ print("var1_common shape:", var1_common.shape)
 print("clim_ind shape:   ", clim_ind_common.shape)
 
 n_time, n_lat, n_long = var1_common.shape
+
+
 
 # Verify that coordinates are identical
 assert np.array_equal(var1_common['time'], clim_ind_common.index)
@@ -156,7 +151,7 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/pdsi_anom_DAI_2d5_19502005_FINAL.npy')
 
 if anom_file1.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -180,7 +175,7 @@ else:
             else: 
                 var1_std[:, i, j] = var1_std[:, i, j]
 
-    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/mrsos_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
+    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/pdsi_anom_DAI_2d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
 
 
 # Compute the annualized index value:
@@ -296,13 +291,13 @@ for i in range(n_lat):
                 corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
                 pvals_array_1[int(k-1),i,j] = corr_1['p-val'].values[0]
 
+                # save monthly psi values
+                var1_psi = corr_1['r'].iloc[0] if corr_1['p-val'].iloc[0] < 0.05 else 0
+                monthly_psi[int(k-1),i,j] = var1_psi
+
             else:
                 corrs_array_1[int(k-1),i,j] = np.nan
                 pvals_array_1[int(k-1),i,j] = 1.
-
-            # save monthly psi values
-            var1_psi = corr_1['r'].iloc[0] if corr_1['p-val'].iloc[0] < 0.05 else 0
-            monthly_psi[int(k-1),i,j] = var1_psi
 
         corrs1 = pd.Series(corrs_array_1[:,i,j])
         pvals1 = pd.Series(pvals_array_1[:,i,j])
@@ -323,7 +318,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 mrsos.",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using Dai pdsi.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -341,7 +336,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 mrsos.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using Dai pdsi.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
