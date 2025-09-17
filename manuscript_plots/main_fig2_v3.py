@@ -17,7 +17,7 @@ import cmocean
 print('\n\nSTART ---------------------\n')
 
 # onsets
-onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/UcdpPrioRice_GeoArmedConflictOnset_v1_CLEANED.csv'
+onset_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/PNAS_submission/open_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
 df_onset = pd.read_csv(onset_path)    
 gdf_onset = gpd.GeoDataFrame(
     df_onset, 
@@ -26,7 +26,7 @@ gdf_onset = gpd.GeoDataFrame(
 )
 
 # teleA
-pathA = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
+pathA = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
 dfA = pd.read_csv(pathA)
 dfA['geometry'] = dfA['geometry'].apply(wkt.loads)
 gdfA = gpd.GeoDataFrame(dfA, geometry='geometry')
@@ -47,7 +47,7 @@ gdf_aggA = gpd.GeoDataFrame(gdf_aggA, geometry='geometry')
 gdf_aggA.set_crs(gdfA.crs, inplace=True)
 
 # teleB
-pathB = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
+pathB = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_square4_wGeometry.csv'
 dfB = pd.read_csv(pathB)
 dfB['geometry'] = dfB['geometry'].apply(wkt.loads)
 gdfB = gpd.GeoDataFrame(dfB, geometry='geometry')
@@ -62,7 +62,7 @@ gdf_aggB = gpd.GeoDataFrame(gdf_aggB, geometry='geometry')
 gdf_aggB.set_crs(gdfB.crs, inplace=True)
 
 # teleC
-pathC = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv'
+pathC = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv'
 dfC = pd.read_csv(pathC)
 dfC['geometry'] = dfC['geometry'].apply(wkt.loads)
 gdfC = gpd.GeoDataFrame(dfC, geometry='geometry')
@@ -82,7 +82,7 @@ gdf_aggC = gpd.GeoDataFrame(gdf_aggC, geometry='geometry')
 gdf_aggC.set_crs(gdfC.crs, inplace=True)
 
 # teleD
-pathD = '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_grid/Onset_Binary_Global_mrsosNINO3_square4_wGeometry.csv'
+pathD = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_mrsosNINO3_square4_wGeometry.csv'
 dfD = pd.read_csv(pathD)
 dfD['geometry'] = dfD['geometry'].apply(wkt.loads)
 gdfD = gpd.GeoDataFrame(dfD, geometry='geometry')
@@ -441,10 +441,10 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
     cbar_ax.yaxis.set_ticks_position('left')
     cbar_ax.yaxis.set_label_position('left')
     if var=='teleconnection':
-        cbar_ax.set_title("Teleconnection\nstrength", fontsize=9, pad=10)
+        cbar_ax.set_title("Teleconnection\n"r"strength, $\Psi$", fontsize=9, pad=10)
         hist_ax.axhline(threshold, linewidth=1.0, color='k', linestyle='--')
     else:
-        cbar_ax.set_title("Cumulative\ncorrelation", fontsize=9, pad=10)
+        cbar_ax.set_title("Signed\nteleconnection\n"r"strength, $\Phi$", fontsize=9, pad=10)
         hist_ax.axhline(0, linewidth=1.0, color='k', linestyle='--')
 
     ax.text(0.05, 0.98, label, transform=ax.transAxes, fontsize=14, bbox=dict(
@@ -483,6 +483,6 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2_v3.png', dpi=300, pad_inches=0.01)
-plt.savefig('/Users/tylerbagwell/Desktop/manuscript_plots/Main_fig2_v3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/Main_fig2_v3.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/Main_fig2_v3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
