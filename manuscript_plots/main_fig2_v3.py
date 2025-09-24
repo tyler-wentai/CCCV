@@ -422,7 +422,7 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
     else:
-        hist_ax.text(0.55, 0.42, 'Dryer in\nEl Niño\n↓', fontsize=8, ha="center", va="center", color='white',
+        hist_ax.text(0.55, 0.42, 'Drier in\nEl Niño\n↓', fontsize=8, ha="center", va="center", color='white',
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
         hist_ax.text(0.55, 0.85, '↑\nWetter in\nEl Niño', fontsize=8, ha="center", va="center",
