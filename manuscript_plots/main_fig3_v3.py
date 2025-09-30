@@ -13,42 +13,6 @@ from matplotlib.legend_handler import HandlerTuple
 import cmocean
 from matplotlib.gridspec import GridSpec
 
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-
-fig = plt.figure(figsize=(11, 8), constrained_layout=False)
-
-# 4x4 outer grid
-outer = GridSpec(nrows=4, ncols=4, figure=fig, wspace=0.6, hspace=0.6)
-
-# Group 1: rows 0–1, cols 0–1
-g1 = outer[0:2, 0:2].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
-ax1  = fig.add_subplot(g1[:, 0])   # spans 2 rows, 1 col
-ax2  = fig.add_subplot(g1[0, 1])   # top-right
-ax3  = fig.add_subplot(g1[1, 1])   # bottom-right
-
-# Group 2: rows 0–1, cols 2–3
-g2 = outer[0:2, 2:4].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
-ax4  = fig.add_subplot(g2[:, 0])
-ax5  = fig.add_subplot(g2[0, 1])
-ax6  = fig.add_subplot(g2[1, 1])
-
-# Group 3: rows 2–3, cols 0–1
-g3 = outer[2:4, 0:2].subgridspec(nrows=2, ncols=2)
-ax7  = fig.add_subplot(g3[:,:])
-
-# Group 4: rows 2–3, cols 2–3
-g4 = outer[2:4, 2:4].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
-ax8 = fig.add_subplot(g4[:, 0])
-ax9 = fig.add_subplot(g4[0, 1])
-ax10 = fig.add_subplot(g4[1, 1])
-
-# fig.tight_layout()  # optional if you prefer tight spacing
-plt.show()
-
-
-sys.exit()
-
 
 
 
@@ -146,59 +110,39 @@ levels = np.linspace(0, 1, num_colors)
 colors = [cmap(level) for level in levels]
 
 
+#######################
+#######################
+
+fig = plt.figure(figsize=(11, 8), constrained_layout=False)
+gap = -0.05
+outer = GridSpec(nrows=5, ncols=4, figure=fig, wspace=0.6, height_ratios=[1, 1, gap, 1, 1],hspace=0.6)
+
+# Group 1: rows 0–1, cols 0–1
+g1 = outer[0:2, 0:2].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
+ax1  = fig.add_subplot(g1[:, 0])   # spans 2 rows, 1 col
+ax2  = fig.add_subplot(g1[0, 1])   # top-right
+axnoA  = fig.add_subplot(g1[1, 1])   # bottom-right
+
+# Group 2: rows 0–1, cols 2–3
+g2 = outer[0:2, 2:4].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
+ax3  = fig.add_subplot(g2[:, 0])
+ax4  = fig.add_subplot(g2[0, 1])
+axnoB  = fig.add_subplot(g2[1, 1])
+
+# Group 3: rows 2–3, cols 0–1
+g3 = outer[3:5, 0:2].subgridspec(nrows=2, ncols=2)
+ax5  = fig.add_subplot(g3[:,:])
+
+# Group 4: rows 2–3, cols 2–3
+g4 = outer[3:5, 2:4].subgridspec(nrows=2, ncols=2, width_ratios=[7, 1], height_ratios=[0.66, 0.33])
+ax6 = fig.add_subplot(g4[:, 0])
+ax7 = fig.add_subplot(g4[0, 1])
+axnoC = fig.add_subplot(g4[1, 1])
 
 
-
-
-fig = plt.figure(figsize=(11.0, 8.0), constrained_layout=True)
-
-
-# Parent: 2 rows
-# gs = GridSpec(nrows=2, ncols=1, figure=fig)
-
-# # --- Row 1: add a spacer between col 2 and 3 ---
-# gap_top = 0.2  # increase/decrease to taste
-# gs_top = gs[0].subgridspec(
-#     nrows=1, ncols=5, width_ratios=[7, 1, gap_top, 7, 1]
-# )
-# ax1 = fig.add_subplot(gs_top[0, 0])
-# ax2 = fig.add_subplot(gs_top[0, 1])
-# # gs_top[0, 2] is the spacer; no axis created there
-# ax3 = fig.add_subplot(gs_top[0, 3])
-# ax4 = fig.add_subplot(gs_top[0, 4])
-
-# # --- Row 2: add a spacer between col 1 and 2 ---
-# gap_bottom = 0.35
-# gs_bottom = gs[1].subgridspec(
-#     nrows=1, ncols=4, width_ratios=[8.5, gap_bottom, 7, 1]
-# )
-# ax5 = fig.add_subplot(gs_bottom[0, 0])
-# # gs_bottom[0, 1] is the spacer; no axis created there
-# ax6 = fig.add_subplot(gs_bottom[0, 2])
-# ax7 = fig.add_subplot(gs_bottom[0, 3])
-
-gs = GridSpec(nrows=4, ncols=1, figure=fig)
-
-# --- Row 1: add a spacer between col 2 and 3 ---
-gap_top = 0.2  # increase/decrease to taste
-gs_top = gs[0:1].subgridspec(
-    nrows=4, ncols=5, width_ratios=[7, 1, gap_top, 7, 1]
-)
-ax1 = fig.add_subplot(gs_top[0:1, 0])
-ax2 = fig.add_subplot(gs_top[0, 1])
-# gs_top[0, 2] is the spacer; no axis created there
-ax3 = fig.add_subplot(gs_top[0:1, 3])
-ax4 = fig.add_subplot(gs_top[0, 4])
-
-# --- Row 2: add a spacer between col 1 and 2 ---
-gap_bottom = 0.35
-gs_bottom = gs[2:3].subgridspec(
-    nrows=1, ncols=4, width_ratios=[8.5, gap_bottom, 7, 1]
-)
-ax5 = fig.add_subplot(gs_bottom[0:1, 0])
-# gs_bottom[0, 1] is the spacer; no axis created there
-ax6 = fig.add_subplot(gs_bottom[0:1, 2])
-ax7 = fig.add_subplot(gs_bottom[0, 3])
+axnoA.set_visible(False)
+axnoB.set_visible(False)
+axnoC.set_visible(False)
 
 
 # -- Panel 1 (top) --
@@ -255,9 +199,9 @@ ax1.text(-0.04, 1.02, 'a', transform=ax1.transAxes, ha="center", va="center",
             edgecolor='black',          # box edge color
             linewidth=0.5))             # edge line width
 
-plt.text(0.0, 7.2, 'Neutral',    fontsize=10, ha='center')
-plt.text(1.1, 7.2, 'El Niño',       fontsize=10, ha='left')
-plt.text(-1.1,7.2, 'La Niña',       fontsize=10, ha='right')
+plt.text(0.0, 7.2, 'Neutral',    fontsize=9, ha='center')
+plt.text(1.1, 7.2, 'El Niño',       fontsize=9, ha='left')
+plt.text(-1.1,7.2, 'La Niña',       fontsize=9, ha='right')
 
 # legend
 line_w = mlines.Line2D([], [], color='blue', alpha=0.50)
@@ -269,9 +213,9 @@ handles = [(line_w, patch_w)]
 labels  = ['All states']
 ax1h.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.05,0.65], fontsize=10,
+           loc=[0.05,0.65], fontsize=9,
            title=r'', frameon=False,
-           title_fontsize=10)
+           title_fontsize=9)
 
 ax1.set_ylim(0, 2.25)
 ax1.set_xlim(-2.05, 3.25)
@@ -340,9 +284,9 @@ ax3.text(-0.04, 1.02, 'b', transform=ax3.transAxes, ha="center", va="center",
             edgecolor='black',          # box edge color
             linewidth=0.5))             # edge line width
 
-plt.text(0.0, 7.2, 'Neutral',    fontsize=10, ha='center')
-plt.text(1.1, 7.2, 'El Niño',       fontsize=10, ha='left')
-plt.text(-1.1,7.2, 'La Niña',       fontsize=10, ha='right')
+plt.text(0.0, 7.2, 'Neutral',    fontsize=9, ha='center')
+plt.text(1.1, 7.2, 'El Niño',       fontsize=9, ha='left')
+plt.text(-1.1,7.2, 'La Niña',       fontsize=9, ha='right')
 
 # legend
 line_w = mlines.Line2D([], [], color='green')
@@ -353,9 +297,9 @@ handles = [(line_s, patch_s), (line_w, patch_w)]
 labels  = ['Drier in El Niño', 'Wetter in El Niño']
 ax3h.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.05,0.65], fontsize=10,
+           loc=[0.05,0.65], fontsize=9,
            title=r'', frameon=False,
-           title_fontsize=10)
+           title_fontsize=9)
 
 ax3.set_ylim(0, 2.25)
 ax3.set_xlim(-2.05, 3.25)
@@ -435,17 +379,17 @@ ax5.yaxis.tick_right()
 ax5.yaxis.set_label_position("right")
 ax5.set_yticks([0, 25, 50, 75])
 ax5.set_yticklabels([0, 25, 50, 75], fontsize=9)
-ax5.set_ylabel("No. of states", ha='right', fontsize=9)
+ax5.set_ylabel("No. of states", ha='right', rotation=270, fontsize=8)
 ax5.set_xlabel(r"IOD teleconnection strength, $\Psi$", fontsize=11)
 ax5.tick_params(axis='y', direction='in')
-ax5.yaxis.set_label_coords(1.07, 0.25)
+ax5.yaxis.set_label_coords(1.09, -0.04)
 
 ax5h.yaxis.tick_left()
 ax5h.yaxis.set_label_position("left")
 ax5h.set_yticks([0, 0.02, 0.04, 0.06])
 ax5h.set_yticklabels(["0", "+2", "+4", "+6"], fontsize=11)
 ax5h.tick_params(axis='y', direction='in')
-ax5h.set_ylabel(r"Change in onset probability,""\n+IOD - neutral (p.p.)", fontsize=11)
+ax5h.set_ylabel(r"Change in onset probability,""\n+IOD - neutral IOD (p.p.)", fontsize=11)
 
 # annotations
 ax5.text(-0.04, 1.02, 'c', transform=ax5.transAxes, ha="center", va="center",
@@ -489,9 +433,9 @@ secax.xaxis.set_major_locator(FixedLocator(pct_ticks))
 secax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
 secax.set_xlabel(r"Percentile rank of IOD teleconnection strength, $\Psi$", fontsize=11)
 
-ax5h.legend(fontsize=10,
-           title='+IOD strength', frameon=False,
-           title_fontsize=10)
+ax5h.legend(fontsize=9,
+           title='+IOD strength measured by the DMI', frameon=False,
+           title_fontsize=9)
 
 
 ax5h.grid(
@@ -557,16 +501,16 @@ patch_w = mpatches.Patch(alpha=0.35, color='dimgray')
 line_s = mlines.Line2D([], [], color='red')
 patch_s = mpatches.Patch(alpha=0.25, color='red')
 handles = [(line_s, patch_s), (line_w, patch_w)]
-labels  = ['IOD-conflict responsive', 'IOD-conflict unresponsive']
+labels  = ['IOD conflict responsive', 'IOD conflict unresponsive']
 ax6h.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.20,0.65], fontsize=10,
+           loc=[0.20,0.65], fontsize=9,
            title=r'', frameon=False,
-           title_fontsize=10)
+           title_fontsize=9)
 
-plt.text(0.0, 16.0, 'Neutral',    fontsize=10, ha='center')
-plt.text(0.5, 16.0, '+IOD',       fontsize=10, ha='left')
-plt.text(-0.5,16.0, '-IOD',       fontsize=10, ha='right')
+plt.text(0.0, 16.0, 'Neutral',    fontsize=9, ha='center')
+plt.text(0.5, 16.0, '+IOD',       fontsize=9, ha='left')
+plt.text(-0.5,16.0, '-IOD',       fontsize=9, ha='right')
 
 ax6.set_ylim(0, 2.25)
 ax6h.set_ylim(0, 18.0)
@@ -585,7 +529,7 @@ from matplotlib.ticker import FixedLocator, FormatStrFormatter
 #### PLOT AX2
 
 ax2.set_xlim(-1.25, +1.25)
-ax2.set_ylim(-1, +1)
+ax2.set_ylim(-0.5, +1)
 ax2.axhline(0.0, linestyle="-", color="k", linewidth=1.0)
 
 ax2.scatter(0.50, 0.326, color='red', s=13)                                 # Teleconnected, NINO3
@@ -593,29 +537,25 @@ ax2.plot([0.50, 0.50], [-0.159, 0.824], color='red', linewidth=1.00)        # Te
 ax2.scatter(-0.50, 0.349, color='dimgray', s=13)                            # Weakly affected, NINO3
 ax2.plot([0-.50, -0.50], [-0.059, 0.763], color='dimgray', linewidth=1.00)  # Weakly affected, NINO3
 
-# ax2.scatter(0.30, 0.429, color='red', s=13)                                                 # Teleconnected, NINO34
-# ax2.plot([0.30, 0.30], [-0.027, 0.876], color='red', linestyle="--", linewidth=1.00)        # Teleconnected, NINO34
-# ax2.scatter(-0.10, 0.303, color='dimgray', s=13)                                            # Weakly affected, NINO34
-# ax2.plot([-0.10, -0.10], [-0.110, 0.730], color='dimgray', linestyle="--", linewidth=1.00)  # Weakly affected, NINO34
-
-ax2.yaxis.set_major_locator(FixedLocator([-0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]))
+ax2.yaxis.set_major_locator(FixedLocator([-0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]))
 ax2.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
-for s in ["top", "right", "bottom"]:
+for s in ["top", "right"]:
     ax2.spines[s].set_visible(False)
 
 # ax2.set_xlabel(None)
 ax2.set_xticks([-0.5, +0.5])
-ax2.set_xticklabels(["test1", "test2"], rotation=270)
-ax2.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=True)
+ax2.set_xticklabels(["Weakly affected", "Teleconnected"], rotation=270, fontsize=8)
+ax2.tick_params(axis="x", which="both", bottom=True, top=False, labelbottom=True)
+ax2.tick_params(axis="y", labelsize=9, direction='in')
 
-
+ax2.set_title("Marg. effect of ENSO\n"r"(p.p. per $^\circ$C)", fontsize=8)
 
 
 #### PLOT AX4
 
 ax4.set_xlim(-1.25, +1.25)
-ax4.set_ylim(-1, +1)
+ax4.set_ylim(-0.5, +1)
 ax4.axhline(0.0, linestyle="-", color="k", linewidth=1.0)
 
 ax4.scatter(0.50, 0.539, color='peru', s=13)                                                # Drier, NINO3
@@ -628,11 +568,49 @@ ax4.plot([-0.50, -0.50], [-0.293, 0.735], color='green', linewidth=1.00)        
 # ax4.scatter(-0.10, 0.347, color='green', s=13)                                              # Wetter, NINO34
 # ax4.plot([-0.10, -0.10], [-0.170, 0.873], color='green', linestyle="--", linewidth=1.00)    # Wetter, NINO34
 
-ax4.yaxis.set_major_locator(FixedLocator([-0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]))
+ax4.yaxis.set_major_locator(FixedLocator([-0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0]))
 ax4.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
+for s in ["top", "right"]:
+    ax4.spines[s].set_visible(False)
 
-plt.tight_layout(pad=1.0, w_pad=4.0, h_pad=2.5)
+ax4.set_xticks([-0.5, +0.5])
+ax4.set_xticklabels(["Wetter in El Niño", "Drier in El Niño"], rotation=270, fontsize=8)
+ax4.tick_params(axis="x", which="both", bottom=True, top=False, labelbottom=True)
+ax4.tick_params(axis="y", labelsize=9, direction='in')
+
+ax4.set_title("Marg. effect of ENSO\n"r"(p.p. per $^\circ$C)", fontsize=8)
+
+
+
+#### PLOT AX4
+
+ax7.set_xlim(-1.25, +1.25)
+ax7.set_ylim(-1.0, +11)
+ax7.axhline(0.0, linestyle="-", color="k", linewidth=1.0)
+
+ax7.scatter(0.50, 6.15, color='red', s=13)                                 # Teleconnected, NINO3
+ax7.plot([0.50, 0.50], [2.17, 10.2], color='red', linewidth=1.00)        # Teleconnected, NINO3
+ax7.scatter(-0.50, 0.832, color='dimgray', s=13)                            # Weakly affected, NINO3
+ax7.plot([0-.50, -0.50], [-0.425, 2.08], color='dimgray', linewidth=1.00)  # Weakly affected, NINO3
+
+ax7.yaxis.set_major_locator(FixedLocator([-2.0, 0.0, +2.0, +4.0, +6.0, +8.0, +10]))
+ax7.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+
+for s in ["top", "right"]:
+    ax7.spines[s].set_visible(False)
+
+ax7.set_xticks([-0.5, +0.5])
+ax7.set_xticklabels(["IOD conflict unresp.", "IOD conflict resp."], rotation=270, fontsize=8)
+ax7.tick_params(axis="x", which="both", bottom=True, top=False, labelbottom=True)
+ax7.tick_params(axis="y", labelsize=9, direction='in')
+
+ax7.set_title(r"$\Delta$ACR for a 2 s.d. $+$IOD""\nversus neutral IOD (p.p.)", fontsize=8)
+
+
+plt.tight_layout(pad=2.0, w_pad=3.0, h_pad=2.0)
+plt.savefig('/Users/tylerbagwell/Desktop/Main_fig3_v3.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/Main_fig3_v3.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
 
 
