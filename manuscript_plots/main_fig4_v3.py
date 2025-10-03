@@ -415,12 +415,12 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
                 alpha=1)
     hist_ax.axvline(0.0, color='k', linewidth=1.5)
     if var=='teleconnection':
-        if   label=='a': yloc1, yloc2 = 0.35, 0.75
-        elif label=='b': yloc1, yloc2 = 0.40, 0.80
-        hist_ax.text(0.55, yloc1, 'IOD-conflict\nunresponsive\n↓', fontsize=8, ha="center", va="center",
+        if   label=='a': yloc1, yloc2 = 0.39, 0.73
+        elif label=='b': yloc1, yloc2 = 0.38, 0.70
+        hist_ax.text(0.55, yloc1, 'Not strongly\nteleconnected\n↓', fontsize=8, ha="center", va="center",
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
-        hist_ax.text(0.55, yloc2, '↑\nIOD-conflict\nresponsive', fontsize=8, ha="center", va="center", color='k',
+        hist_ax.text(0.55, yloc2, '↑\nStrongly\nteleconnected', fontsize=8, ha="center", va="center", color='white',
                     bbox=dict(boxstyle='square,pad=0.2', linewidth=0, facecolor='gray', alpha=0.0),
                     transform=hist_ax.transAxes, rotation=0)
     else:

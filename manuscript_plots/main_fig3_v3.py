@@ -113,7 +113,7 @@ colors = [cmap(level) for level in levels]
 #######################
 #######################
 
-fig = plt.figure(figsize=(11, 8), constrained_layout=False)
+fig = plt.figure(figsize=(11, 7), constrained_layout=False)
 gap = -0.05
 outer = GridSpec(nrows=5, ncols=4, figure=fig, wspace=0.6, height_ratios=[1, 1, gap, 1, 1],hspace=0.6)
 
@@ -148,7 +148,7 @@ axnoC.set_visible(False)
 # -- Panel 1 (top) --
 
 ax1h = ax1.twinx()
-ax1.set_title('ENSO & Conflict, State', fontsize=12)
+ax1.set_title('ENSO & Conflict, State', fontsize=11)
 
 # hist + lines
 sns.histplot(x=df_c1['cindex_lag0y'], color='gainsboro',
@@ -172,18 +172,18 @@ ax1h.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.0f'))
 ax1.yaxis.tick_right()
 ax1.yaxis.set_label_position("right")
 ax1.set_yticks([0, 0.1, 0.2])
-ax1.set_yticklabels([0, 0.1, 0.2], fontsize=9)
+ax1.set_yticklabels([0, 0.1, 0.2], fontsize=8)
 # ax1.set_ylabel("Observed\nproportion", ha='center', fontsize=9)
 # ax1.yaxis.set_label_coords(1.07, 0.05)
 ax1.set_ylabel("")        # remove the label text
 ax1.yaxis.set_visible(True)
-ax1.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=11)
+ax1.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=10)
 ax1.tick_params(axis='y', direction='in')
 
 ax1h.yaxis.tick_left()
 ax1h.yaxis.set_label_position("left")
 ax1h.tick_params(axis='y', direction='in')
-ax1h.set_ylabel('ACR (p.p.)', fontsize=11)
+ax1h.set_ylabel('ACR (p.p.)', fontsize=10)
 ax1h.set_yticks([2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
 # ax1.set_yticklabels([0, 0.1, 0.2], fontsize=9)
 
@@ -234,7 +234,7 @@ ax1h.grid(
 
 # -- Panel 2 (middle) --
 ax3h = ax3.twinx()
-ax3.set_title('ENSO & Conflict, State', fontsize=12)
+ax3.set_title('ENSO & Conflict, State', fontsize=11)
 
 # hist + lines
 sns.histplot(x=df_c2['cindex_lag0y'], color='gainsboro',
@@ -258,18 +258,18 @@ ax3h.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.0f'))
 ax3.yaxis.tick_right()
 ax3.yaxis.set_label_position("right")
 ax3.set_yticks([0, 0.1, 0.2])
-ax3.set_yticklabels([0, 0.1, 0.2], fontsize=9)
+ax3.set_yticklabels([0, 0.1, 0.2], fontsize=8)
 # ax3.set_ylabel("Observed\nproportion", ha='center', fontsize=9)
 # ax3.yaxis.set_label_coords(1.07, 0.05)
 ax3.set_ylabel("")        # remove the label text
 ax3.yaxis.set_visible(True)
-ax3.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=11)
+ax3.set_xlabel(r"NDJ-averaged NINO3 ($^{\circ}$C)", fontsize=10)
 ax3.tick_params(axis='y', direction='in')
 
 ax3h.yaxis.tick_left()
 ax3h.yaxis.set_label_position("left")
 ax3h.tick_params(axis='y', direction='in')
-ax3h.set_ylabel('ACR (p.p.)', fontsize=11)
+ax3h.set_ylabel('ACR (p.p.)', fontsize=10)
 ax3h.set_yticks([2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
 
 # background spans
@@ -318,7 +318,7 @@ ax3h.grid(
 # -- Panel 3 (bottom-left) --
 
 ax5h = ax5.twinx()
-ax5.set_title('IOD & Conflict, Dose-response, State', fontsize=12)
+ax5.set_title('IOD & Conflict, Dose-response, State', fontsize=11)
 
 # hist + lines
 sns.histplot(x=psi['pop_avg_psi'], color='gainsboro',
@@ -378,9 +378,9 @@ plt.text(0.735, -0.021, "Indonesia", rotation=270, color='dimgrey', fontsize=7)
 ax5.yaxis.tick_right()
 ax5.yaxis.set_label_position("right")
 ax5.set_yticks([0, 25, 50, 75])
-ax5.set_yticklabels([0, 25, 50, 75], fontsize=9)
+ax5.set_yticklabels([0, 25, 50, 75], fontsize=8)
 ax5.set_ylabel("No. of states", ha='right', rotation=270, fontsize=8)
-ax5.set_xlabel(r"IOD teleconnection strength, $\Psi$", fontsize=11)
+ax5.set_xlabel(r"IOD teleconnection strength, $\Psi$", fontsize=10)
 ax5.tick_params(axis='y', direction='in')
 ax5.yaxis.set_label_coords(1.09, -0.04)
 
@@ -389,7 +389,7 @@ ax5h.yaxis.set_label_position("left")
 ax5h.set_yticks([0, 0.02, 0.04, 0.06])
 ax5h.set_yticklabels(["0", "+2", "+4", "+6"], fontsize=11)
 ax5h.tick_params(axis='y', direction='in')
-ax5h.set_ylabel(r"Change in onset probability,""\n+IOD - neutral IOD (p.p.)", fontsize=11)
+ax5h.set_ylabel(r"Change in onset probability,""\n+IOD - neutral IOD (p.p.)", fontsize=10)
 
 # annotations
 ax5.text(-0.04, 1.02, 'c', transform=ax5.transAxes, ha="center", va="center",
@@ -431,10 +431,10 @@ ax5h.xaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
 secax = ax5h.secondary_xaxis(-0.2, functions=(x_to_pct, pct_to_x))
 secax.xaxis.set_major_locator(FixedLocator(pct_ticks))
 secax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
-secax.set_xlabel(r"Percentile rank of IOD teleconnection strength, $\Psi$", fontsize=11)
+secax.set_xlabel(r"Percentile rank of IOD teleconnection strength, $\Psi$", fontsize=10)
 
 ax5h.legend(fontsize=9,
-           title='+IOD strength measured by the DMI', frameon=False,
+           title='+IOD magnitude measured by the DMI', frameon=False,
            title_fontsize=9)
 
 
@@ -449,7 +449,7 @@ ax5h.grid(
 
 # -- Panel 4 (bottom-right) --
 ax6h = ax6.twinx()
-ax6.set_title('IOD & Conflict, State', fontsize=12)
+ax6.set_title('IOD & Conflict, State', fontsize=11)
 
 sns.histplot(x=df_c3['cindex_lag0y'], color='gainsboro',
              stat='proportion', bins=12, alpha=1.0, zorder=3,
@@ -471,18 +471,18 @@ ax6h.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 ax6.yaxis.tick_right()
 ax6.yaxis.set_label_position("right")
 ax6.set_yticks([0, 0.1, 0.2])
-ax6.set_yticklabels([0, 0.1, 0.2], fontsize=9)
+ax6.set_yticklabels([0, 0.1, 0.2], fontsize=8)
 # ax6.set_ylabel("Observed\nproportion", ha='center', fontsize=9)
 # ax6.yaxis.set_label_coords(1.07, 0.05)
 ax6.set_ylabel("")        # remove the label text
 ax6.yaxis.set_visible(True)
-ax6.set_xlabel(r"SON-averaged DMI ($^{\circ}$C)", fontsize=11)
+ax6.set_xlabel(r"SON-averaged DMI ($^{\circ}$C)", fontsize=10)
 ax6.tick_params(axis='y', direction='in')
 
 ax6h.yaxis.tick_left()
 ax6h.yaxis.set_label_position("left")
 ax6h.tick_params(axis='y', direction='in')
-ax6h.set_ylabel('ACR (p.p.)', fontsize=11)
+ax6h.set_ylabel('ACR (p.p.)', fontsize=10)
 from matplotlib.ticker import MultipleLocator
 ax6h.yaxis.set_major_locator(MultipleLocator(4))
 
@@ -501,10 +501,10 @@ patch_w = mpatches.Patch(alpha=0.35, color='dimgray')
 line_s = mlines.Line2D([], [], color='red')
 patch_s = mpatches.Patch(alpha=0.25, color='red')
 handles = [(line_s, patch_s), (line_w, patch_w)]
-labels  = ['IOD conflict responsive', 'IOD conflict unresponsive']
+labels  = ['Strongly IOD teleconn.', 'Not strongly IOD teleconn.']
 ax6h.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
-           loc=[0.20,0.65], fontsize=9,
+           loc=[0.20,0.65], fontsize=8,
            title=r'', frameon=False,
            title_fontsize=9)
 
@@ -549,7 +549,9 @@ ax2.set_xticklabels(["Weakly affected", "Teleconnected"], rotation=270, fontsize
 ax2.tick_params(axis="x", which="both", bottom=True, top=False, labelbottom=True)
 ax2.tick_params(axis="y", labelsize=9, direction='in')
 
-ax2.set_title("Marg. effect of ENSO\n"r"(p.p. per $^\circ$C)", fontsize=8)
+ax2.text(0.95, 0.95, r'$^\dagger$2015 excluded.', transform=ax2.transAxes, ha="center", va="center", fontsize=6.5)
+
+ax2.set_title(r"Marg. effect of ENSO$^\dagger$""\n"r"(p.p. per $^\circ$C)", fontsize=8)
 
 
 #### PLOT AX4
@@ -601,7 +603,7 @@ for s in ["top", "right"]:
     ax7.spines[s].set_visible(False)
 
 ax7.set_xticks([-0.5, +0.5])
-ax7.set_xticklabels(["IOD conflict unresp.", "IOD conflict resp."], rotation=270, fontsize=8)
+ax7.set_xticklabels(["Not strongly IOD teleconn.", "Strongly IOD teleconn."], rotation=270, fontsize=7)
 ax7.tick_params(axis="x", which="both", bottom=True, top=False, labelbottom=True)
 ax7.tick_params(axis="y", labelsize=9, direction='in')
 
