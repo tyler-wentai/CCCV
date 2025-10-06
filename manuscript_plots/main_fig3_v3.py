@@ -31,9 +31,9 @@ path2_l = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_dataset
 path3_l = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/results_for_onsets/Onset_Binary_GlobalState_DMItype2_weak_ci90_linear.csv'
 
 path_psi = "/Users/tylerbagwell/Desktop/DMItype2_state_pop_avg_psi.csv"
-path_psi_eff_pos_weak = "/Users/tylerbagwell/Desktop/margeffect_psi_posiod_0d40.csv"
-path_psi_eff_pos = "/Users/tylerbagwell/Desktop/margeffect_psi_posiod_0d80.csv"
-path_psi_eff_pos_strong = "/Users/tylerbagwell/Desktop/margeffect_psi_posiod_0d97.csv"
+path_psi_eff_pos_weak = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d40.csv"
+path_psi_eff_pos = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d80.csv"
+path_psi_eff_pos_strong = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d97.csv"
 
 path_psi_eff_neg_weak = "/Users/tylerbagwell/Desktop/margeffect_psi_negiod_0d40.csv"
 path_psi_eff_neg_moderate = "/Users/tylerbagwell/Desktop/margeffect_psi_negiod_0d80.csv"
@@ -350,21 +350,21 @@ ax5h.yaxis.set_major_formatter(mtick.FuncFormatter(lambda y, _: f"{y*100:.0f}"))
 ax5h.axhline(0.0, color='k', linestyle="--", zorder=0)
 
 
-ax5h.plot([0.43, 0.43], [-0.0258, 0.0227], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Ethiopia
-ax5h.plot([0.66, 0.66], [-0.0290, 0.0525], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Somalia
-ax5h.plot([0.73, 0.73], [-0.0278, 0.0650], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Indonesia
+ax5h.plot([0.43, 0.43], [-0.0258, 0.0215], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Ethiopia
+ax5h.plot([0.66, 0.66], [-0.0290, 0.0485], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Somalia
+ax5h.plot([0.73, 0.73], [-0.0278, 0.0595], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0230], color='#B91C1C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0528], color='#B91C1C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0652], color='#B91C1C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0215], color='#B91C1C', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0485], color='#B91C1C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0595], color='#B91C1C', s=10, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0142], color='#EA580C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0290], color='#EA580C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0348], color='#EA580C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0135], color='#EA580C', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0268], color='#EA580C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0319], color='#EA580C', s=10, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0035], color='#F59E0B', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0056], color='#F59E0B', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0063], color='#F59E0B', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0032], color='#F59E0B', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0054], color='#F59E0B', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0060], color='#F59E0B', s=10, zorder=2) # Indonesia
 
 plt.text(0.435, -0.020, "Ethiopia", rotation=270, color='dimgrey', fontsize=7)
 plt.text(0.665, -0.020, "Somalia", rotation=270, color='dimgrey', fontsize=7)
