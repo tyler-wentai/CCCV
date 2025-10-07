@@ -354,16 +354,16 @@ ax5h.plot([0.43, 0.43], [-0.0258, 0.0215], color='grey', linestyle='-', linewidt
 ax5h.plot([0.66, 0.66], [-0.0290, 0.0485], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Somalia
 ax5h.plot([0.73, 0.73], [-0.0278, 0.0595], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0215], color='#B91C1C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0485], color='#B91C1C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0595], color='#B91C1C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0214], color='#B91C1C', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0480], color='#B91C1C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0591], color='#B91C1C', s=10, zorder=2) # Indonesia
 
 ax5h.scatter([0.43], [0.0135], color='#EA580C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0268], color='#EA580C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0319], color='#EA580C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.66], [0.0267], color='#EA580C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0318], color='#EA580C', s=10, zorder=2) # Indonesia
 
 ax5h.scatter([0.43], [0.0032], color='#F59E0B', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0054], color='#F59E0B', s=10, zorder=2) # Somalia
+ax5h.scatter([0.66], [0.0053], color='#F59E0B', s=10, zorder=2) # Somalia
 ax5h.scatter([0.73], [0.0060], color='#F59E0B', s=10, zorder=2) # Indonesia
 
 plt.text(0.435, -0.020, "Ethiopia", rotation=270, color='dimgrey', fontsize=7)
