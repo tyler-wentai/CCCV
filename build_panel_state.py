@@ -313,3 +313,6 @@ panel = initalize_state_onset_panel(panel_start_year=1950,
 panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_pdsiNINO3_Dai.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv', index=False)
 print(panel)
+
+
+

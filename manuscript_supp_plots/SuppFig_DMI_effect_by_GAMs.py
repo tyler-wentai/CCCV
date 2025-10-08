@@ -146,7 +146,7 @@ patch_w = mpatches.Patch(alpha=0.35, color='dimgray')
 line_s = mlines.Line2D([], [], color='red')
 patch_s = mpatches.Patch(alpha=0.25, color='red')
 handles = [(line_s, patch_s), (line_w, patch_w)]
-labels  = ['IOD-conflict responsive', 'IOD-conflict unresponsive']
+labels  = ['Strongly IOD teleconnected', 'Not strongly IOD teleconnected']
 ax2.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
            loc=[0.20,0.65], fontsize=10,
@@ -222,7 +222,7 @@ patch_w = mpatches.Patch(alpha=0.35, color='dimgray')
 line_s = mlines.Line2D([], [], color='red')
 patch_s = mpatches.Patch(alpha=0.25, color='red')
 handles = [(line_s, patch_s), (line_w, patch_w)]
-labels  = ['IOD-conflict responsive', 'IOD-conflict unresponsive']
+labels  = ['Strongly IOD teleconnected', 'Not strongly IOD teleconnected']
 ax4.legend(handles=handles, labels=labels,
            handler_map={tuple: HandlerTuple(ndivide=1)},
            loc=[0.20,0.65], fontsize=10,
