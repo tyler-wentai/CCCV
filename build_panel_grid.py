@@ -575,8 +575,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # # plt.savefig('/Users/tylerbagwell/Desktop/HIST_Asia_psi_ANI_country.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
 
-    cols = [col for col in final_gdf.columns if col != 'geometry'] # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
-    final_gdf = final_gdf[cols]                                    # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
+    # cols = [col for col in final_gdf.columns if col != 'geometry'] # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
+    # final_gdf = final_gdf[cols]                                    # COMMENT OUT IF YOU WANT TO KEEP THE GEOMETRY COLUMN
 
     return final_gdf
 
@@ -585,12 +585,12 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 # stepsize=3.5
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
-                                        response_var='count',  # 'count' or 'binary'
-                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_pdsiNINO3.nc',
+                                        clim_index = 'eei',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
+                                        response_var='binary',  # 'count' or 'binary'
+                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_EEI_type2.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
 # panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMI_NOENSOtype2_square4.csv', index=False)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_pdsiNINO3_Dai_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_EEItype2_square4_wGeometry.csv', index=False)
 
 
