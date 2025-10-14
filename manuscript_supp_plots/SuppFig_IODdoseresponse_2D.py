@@ -23,8 +23,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # read csv
-# df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_90ci_mod.f.csv")
-df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_strongLaNina_NINO3_90ci_mod.d.csv")
+df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_90ci_mod.f.csv")
 
 # ensure numeric
 for c in ["pop_avg_psi","cindex","estimate","conf.low","conf.high"]:
@@ -33,13 +32,13 @@ for c in ["pop_avg_psi","cindex","estimate","conf.low","conf.high"]:
 df["estimate"] *= 100
 df[["conf.low","conf.high"]] *= 100
 
-# mask = df["cindex"] < 0
+mask = df["cindex"] < 0
 
-# # flip estimate
-# df.loc[mask, "estimate"] *= -1
+# flip estimate
+df.loc[mask, "estimate"] *= -1
 
 # flip and swap CI so low <= high
-# df.loc[mask, ["conf.low","conf.high"]] = -df.loc[mask, ["conf.high","conf.low"]].to_numpy()
+df.loc[mask, ["conf.low","conf.high"]] = -df.loc[mask, ["conf.high","conf.low"]].to_numpy()
 
 # continue as before (pivot, heatmap, contours, etc.)
 mat_est = (df.pivot_table(index="pop_avg_psi", columns="cindex",
@@ -74,6 +73,6 @@ plt.colorbar(cf, label="Change in probability (p.p.)")
 
 
 plt.tight_layout()
-# plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.png', dpi=300, pad_inches=0.01)
-# plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
