@@ -12,8 +12,6 @@ import warnings
 print('\n\nSTART ---------------------\n')
 # COMPUTES CUMULATIVE CORRELATIONS FOR A SINGLE GRIDDED VARIABLE AND A SINGLE CLIMATE INDEX USING THE CAI ET AL. 2024 METHOD
 
-import xarray as xr
-
 clim_index = 'NINO3'
 
 start_year  = 1950
