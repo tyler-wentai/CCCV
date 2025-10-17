@@ -23,7 +23,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # read csv
-df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_90ci_mod.f.csv")
+df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_DMIlag1yminus0d80_90ci_mod.g.csv")
 
 # ensure numeric
 for c in ["pop_avg_psi","cindex","estimate","conf.low","conf.high"]:
@@ -73,6 +73,6 @@ plt.colorbar(cf, label="Change in probability (p.p.)")
 
 
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.png', dpi=300, pad_inches=0.01)
-plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
+# plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.png', dpi=300, pad_inches=0.01)
+# plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODdoseresponse_2D.pdf', dpi=300, format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
