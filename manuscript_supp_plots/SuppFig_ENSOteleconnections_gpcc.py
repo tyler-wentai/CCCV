@@ -26,7 +26,7 @@ gdf_onset = gpd.GeoDataFrame(
 )
 
 # teleA
-pathA = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_GPCC_wGeometry.csv'
+pathA = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_GPCC_wGeometry.csv'
 dfA = pd.read_csv(pathA)
 dfA['geometry'] = dfA['geometry'].apply(wkt.loads)
 gdfA = gpd.GeoDataFrame(dfA, geometry='geometry')
@@ -47,7 +47,7 @@ gdf_aggA = gpd.GeoDataFrame(gdf_aggA, geometry='geometry')
 gdf_aggA.set_crs(gdfA.crs, inplace=True)
 
 # teleB
-pathB = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_GPCC_square4_wGeometry.csv'
+pathB = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3type2_GPCC_square4_wGeometry.csv'
 dfB = pd.read_csv(pathB)
 dfB['geometry'] = dfB['geometry'].apply(wkt.loads)
 gdfB = gpd.GeoDataFrame(dfB, geometry='geometry')
@@ -457,7 +457,7 @@ def draw_map(ax, var, label, cindex, tele_gdf, spatial_agg_type, cmap, nbin, thr
         ))
 
     if var=='teleconnection':
-        title_str = 'DMI Teleconnection, ' + spatial_agg_type
+        title_str = 'NINO3 Teleconnection, ' + spatial_agg_type
     else:
         title_str = 'Soil Moisture and DMI, ' + spatial_agg_type
     ax.set_title(title_str, fontsize=12)
@@ -476,7 +476,7 @@ axes = axes.flatten()
 for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in zip(axes,
                                      ['teleconnection','teleconnection'], 
                                      ['a','b'], 
-                                     ['DMI', 'DMI'],
+                                     ['NINO3', 'NINO3'],
                                      [gdf_aggA, gdf_aggB, gdf_aggA, gdf_aggB],
                                      ['State', 'Grid Cell'],
                                      ['PuRd', 'PuRd'], #PuOr
@@ -484,8 +484,8 @@ for ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold in z
                                      [0.42, 0.55]):
     draw_map(ax, var, lab, cindex, tele_gdf, spatial_agg_type, cmap, nbin, threshold)
 
-plt.suptitle("IOD teleconnection strength using the GPCC precipitation product")
+plt.suptitle("ENSO teleconnection strength using the GPCC precipitation product")
 plt.tight_layout()
-plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODteleconnections_gpcc.png', dpi=300, pad_inches=0.01)
-plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_IODteleconnections_gpcc.pdf', format='pdf', bbox_inches='tight', pad_inches=0.1)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_ENSOteleconnections_gpcc.png', dpi=300, pad_inches=0.01)
+plt.savefig('/Users/tylerbagwell/Desktop/SuppFig_ENSOteleconnections_gpcc.pdf', format='pdf', bbox_inches='tight', pad_inches=0.1)
 plt.show()
