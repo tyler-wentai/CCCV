@@ -44,19 +44,19 @@ for ax, p in zip(axes, params):
     
     if p == "C0":
         ax.set_ylim([-0.5, 0.7])
-        ax.set_ylabel(r"$\alpha_1^{(0)}$ (DMI)", fontsize=12)
+        ax.set_ylabel(r"$\alpha_1^{(0)}$ (DMI$_t$)", fontsize=12)
         ax.axhline(0.09, color='r', linestyle='--', alpha=0.7)
     if p == "C0_2":
         ax.set_ylim([-1.3, 0.7])
-        ax.set_ylabel(r"$\alpha_2^{(0)}$ (DMI$^2$)", fontsize=12)
+        ax.set_ylabel(r"$\alpha_2^{(0)}$ (DMI$_t^2$)", fontsize=12)
         ax.axhline(-0.34, color='r', linestyle='--', alpha=0.7)
     elif p == "C0xPsi":
         ax.set_ylim([-2.0, 2.0])
-        ax.set_ylabel(r"$\beta_1^{(0)}$ (DMI$\times\Psi$)", fontsize=12)
+        ax.set_ylabel(r"$\beta_1^{(0)}$ (DMI$_t\times\Psi$)", fontsize=12)
         ax.axhline(0.04, color='r', linestyle='--', alpha=0.7)
     elif p == "C0_2xPsi":
         ax.set_ylim([-0.7, 5.7])
-        ax.set_ylabel(r"$\beta_2^{(0)}$ (DMI$^2\times\Psi$)", fontsize=12)
+        ax.set_ylabel(r"$\beta_2^{(0)}$ (DMI$_t^2\times\Psi$)", fontsize=12)
         ax.axhline(2.52, color='r', linestyle='--', alpha=0.7)
 
     ax.set_xlabel("Year left out")
