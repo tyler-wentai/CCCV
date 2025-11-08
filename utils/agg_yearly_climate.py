@@ -11,15 +11,16 @@ print('\n\nSTART ---------------------\n')
 start_date  = '1950-01-01'
 end_date    = '2023-12-31'
 
-file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/mrsos_ERA5_mon_194001-202212.nc' 
-var1str = 'mrsos' 
+file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_tp_raw.nc' 
+var1str = 'tp' 
 
 ds1 = xr.open_dataset(file_path_VAR1)
-ds1 = ds1.assign_coords(valid_time=ds1.time.dt.floor('D'))
-# ds1 = ds1.assign_coords(valid_time=ds1.valid_time.dt.floor('D'))
+# ds1 = ds1.assign_coords(valid_time=ds1.time.dt.floor('D'))
+ds1 = ds1.assign_coords(valid_time=ds1.valid_time.dt.floor('D'))
+ds1 = ds1.rename({'valid_time': 'time'})
 
 # Access longitude and latitude coordinates
-ds1 = ds1.rename({'lon': 'longitude', 'lat':'latitude'})
+# ds1 = ds1.rename({'lon': 'longitude', 'lat':'latitude'})
 lon1 = ds1['longitude']
 lat1 = ds1['latitude']
 
@@ -51,16 +52,9 @@ ds_sliced = ds1.sel(time=slice(start_date, end_date))
 # ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(1,13))) # keep months jan-dec
 ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(5,13))) # keep months may-dec
 
-lon1 = ds_sliced['longitude']
-lat1 = ds_sliced['latitude']
 
 
-## -- tp -- ##
-# annual_sum = ds_sliced.groupby("time.year").sum(dim="time") # tp
-# annual_sum.to_netcdf("/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/ERA5_tp_YearlySumJanDec_0d50_19502023.nc")
-# print(annual_sum)
-
-## -- t2m -- ##
+## -- soil moisture annual average -- ##
 annual_mean = ds_sliced.groupby("time.year").mean(dim="time") # tp
 annual_mean.to_netcdf("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/ERA5_mrsos_YearlyMeanMayDec_0d50_19502023.nc")
 print(annual_mean)
