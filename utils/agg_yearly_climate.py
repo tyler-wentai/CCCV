@@ -53,8 +53,12 @@ ds_sliced = ds1.sel(time=slice(start_date, end_date))
 ds_sliced = ds_sliced.sel(time=ds_sliced.time.dt.month.isin(range(5,13))) # keep months may-dec
 
 
+## -- tp -- ##
+# annual_sum = ds_sliced.groupby("time.year").sum(dim="time") # tp
+# annual_sum.to_netcdf("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/ERA5_tp_YearlySumMayDec_0d50_19502023.nc")
+# print(annual_sum)
 
-## -- soil moisture annual average -- ##
+## -- soil moisture  -- ##
 annual_mean = ds_sliced.groupby("time.year").mean(dim="time") # tp
 annual_mean.to_netcdf("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/ERA5_mrsos_YearlyMeanMayDec_0d50_19502023.nc")
 print(annual_mean)

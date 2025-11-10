@@ -11,14 +11,14 @@ from scipy.signal import detrend
 
 print('\n\nSTART ---------------------\n')
 
-dat = pd.read_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_mrsos_NINO3type2_Global_square4_19502023.csv')
-# dat = pd.read_csv("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_tp_mrsosNINO3_Global_square4_19502023.csv")
+# dat = pd.read_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_mrsos_NINO3type2_Global_square4_19502023.csv')
+dat = pd.read_csv("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_tp_mrsosNINO3_Global_square4_19502023.csv")
 # dat.rename(columns={'tp_total': 'tp_anom'}, inplace=True)
 print(dat)
 
 dat = dat.dropna()
 
-threshold = 0.01
+threshold = 0.5
 
 stddev = np.std(dat['cindex_lag0y'])
 print(stddev)
@@ -28,22 +28,22 @@ mask_no = dat['conflict_binary'] == 0.0
 
 #pos_nina
 pos_nina = dat.loc[mask]
-mask_help = (pos_nina['psi_tp_directional'] < -threshold) #& (pos_nina['cindex_lag0y'] < -1.0)
+mask_help = (pos_nina['psi_tp_directional'] > +threshold) & (pos_nina['cindex_lag0y'] > 0.5)
 pos_nina = pos_nina.loc[mask_help]
 
 #pos_neut
 pos_neut = dat.loc[mask]
-mask_help = (pos_neut['psi_tp_directional'] > +threshold) & ((pos_neut['cindex_lag0y'] > +1.00))# & (pos_neut['cindex_lag0y'] < 0.00))
+mask_help = (pos_neut['psi_tp_directional'] > +threshold) & ((pos_neut['cindex_lag0y'] > +0.50))# & (pos_neut['cindex_lag0y'] < 0.00))
 pos_neut = pos_neut.loc[mask_help]
 
 #neg_nino
 neg_nino = dat.loc[mask]
-mask_help = (neg_nino['psi_tp_directional'] < -threshold) & (neg_nino['cindex_lag0y'] > +2.0)
+mask_help = (neg_nino['psi_tp_directional'] < -threshold) & (neg_nino['cindex_lag0y'] > +0.5)
 neg_nino = neg_nino.loc[mask_help]
 
 #neg_neut
 neg_neut = dat.loc[mask]
-mask_help = (neg_neut['psi_tp_directional'] < -threshold) & ((neg_neut['cindex_lag0y'] < -1.00))# & (neg_neut['cindex_lag0y'] > 0.00))
+mask_help = (neg_neut['psi_tp_directional'] < -threshold) & ((neg_neut['cindex_lag0y'] < -0.50))# & (neg_neut['cindex_lag0y'] > 0.00))
 neg_neut = neg_neut.loc[mask_help]
 
 

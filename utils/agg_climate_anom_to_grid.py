@@ -23,7 +23,7 @@ var1_yr = xr.open_dataset(path_var1_yr)
 varname = 'mrsos'
 
 ###
-path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_mrsosNINO34_square4_wGeometry.csv'
+path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv'
 df = pd.read_csv(path)
 df['geometry'] = df['geometry'].apply(wkt.loads)
 
@@ -35,7 +35,7 @@ gdf = gdf[cols]
 gdf = gdf.reset_index()
 
 ### compute spatially averaged differential teleconnection strength
-path_psi = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_mrsosNINO34.nc'
+path_psi = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_mrsosDMI.nc'
 
 psi = xr.open_dataarray(path_psi)
 df_psi = psi.to_dataframe(name='psi').reset_index()
@@ -135,4 +135,4 @@ merged = gdf.merge(
 )
 
 merged = merged.drop(columns="geometry")
-merged.to_csv("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_mrsos_mrsosNINO34_Global_square4_19502023.csv", index=False)
+merged.to_csv("/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/misc/YearlyAnom_mrsos_DMItype2_Global_square4_19502023.csv", index=False)
