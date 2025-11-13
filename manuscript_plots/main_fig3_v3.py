@@ -35,9 +35,9 @@ path_psi_eff_pos_weak = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d40.csv
 path_psi_eff_pos = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d80.csv"
 path_psi_eff_pos_strong = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d97.csv"
 
-path_psi_eff_neg_weak = "/Users/tylerbagwell/Desktop/margeffect_psi_negiod_0d40.csv"
-path_psi_eff_neg_moderate = "/Users/tylerbagwell/Desktop/margeffect_psi_negiod_0d80.csv"
-path_psi_eff_neg_strong = "/Users/tylerbagwell/Desktop/margeffect_psi_negiod_0d97.csv"
+path_psi_eff_neg_weak = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d40.csv"
+path_psi_eff_neg_moderate = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d80.csv"
+path_psi_eff_neg_strong = "/Users/tylerbagwell/Desktop/avgcomp_psi_posiod_0d97.csv"
 
 psi = pd.read_csv(path_psi)
 psi_eff_pos_weak = pd.read_csv(path_psi_eff_pos_weak)
@@ -350,21 +350,21 @@ ax5h.yaxis.set_major_formatter(mtick.FuncFormatter(lambda y, _: f"{y*100:.0f}"))
 ax5h.axhline(0.0, color='k', linestyle="--", zorder=0)
 
 
-ax5h.plot([0.43, 0.43], [-0.0258, 0.0215], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Ethiopia
-ax5h.plot([0.66, 0.66], [-0.0290, 0.0485], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Somalia
-ax5h.plot([0.73, 0.73], [-0.0278, 0.0595], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Indonesia
+ax5h.plot([0.43, 0.43], [-0.0258, 0.0221], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Ethiopia
+ax5h.plot([0.66, 0.66], [-0.0290, 0.0500], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Somalia
+ax5h.plot([0.73, 0.73], [-0.0278, 0.0620], color='grey', linestyle='-', linewidth=0.8, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0214], color='#B91C1C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0480], color='#B91C1C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0591], color='#B91C1C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0225], color='#B91C1C', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0505], color='#B91C1C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0620], color='#B91C1C', s=10, zorder=2) # Indonesia
 
-ax5h.scatter([0.43], [0.0135], color='#EA580C', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0267], color='#EA580C', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0318], color='#EA580C', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.43], [0.0140], color='#EA580C', s=10, zorder=2) # Ethiopia
+ax5h.scatter([0.66], [0.0279], color='#EA580C', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0332], color='#EA580C', s=10, zorder=2) # Indonesia
 
 ax5h.scatter([0.43], [0.0032], color='#F59E0B', s=10, zorder=2) # Ethiopia
-ax5h.scatter([0.66], [0.0053], color='#F59E0B', s=10, zorder=2) # Somalia
-ax5h.scatter([0.73], [0.0060], color='#F59E0B', s=10, zorder=2) # Indonesia
+ax5h.scatter([0.66], [0.0054], color='#F59E0B', s=10, zorder=2) # Somalia
+ax5h.scatter([0.73], [0.0062], color='#F59E0B', s=10, zorder=2) # Indonesia
 
 plt.text(0.435, -0.020, "Ethiopia", rotation=270, color='dimgrey', fontsize=7)
 plt.text(0.665, -0.020, "Somalia", rotation=270, color='dimgrey', fontsize=7)
@@ -560,10 +560,10 @@ ax4.set_xlim(-1.25, +1.25)
 ax4.set_ylim(-0.5, +1)
 ax4.axhline(0.0, linestyle="-", color="k", linewidth=1.0)
 
-ax4.scatter(0.50, 0.539, color='peru', s=13)                                                # Drier, NINO3
-ax4.plot([0.50, 0.50], [0.188, 0.897], color='peru', linewidth=1.00)                        # Drier, NINO3
-ax4.scatter(-0.50, 0.220, color='green', s=13)                                              # Wetter, NINO3
-ax4.plot([-0.50, -0.50], [-0.293, 0.735], color='green', linewidth=1.00)                    # Wetter, NINO3
+ax4.scatter(0.50, 0.63, color='peru', s=13)                                                # Drier, NINO3
+ax4.plot([0.50, 0.50], [0.29, 0.99], color='peru', linewidth=1.00)                        # Drier, NINO3
+ax4.scatter(-0.50, 0.35, color='green', s=13)                                              # Wetter, NINO3
+ax4.plot([-0.50, -0.50], [-0.13, 0.83], color='green', linewidth=1.00)                    # Wetter, NINO3
 
 # ax4.scatter(0.30, 0.436, color='peru', s=13)                                                # Drier, NINO34
 # ax4.plot([0.30, 0.30], [0.078, 0.791], color='peru', linestyle="--", linewidth=1.00)        # Drier, NINO34
