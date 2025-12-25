@@ -21,6 +21,7 @@ def prepare_NINO3(file_path, start_date, end_date):
 
     start_ts_l = np.where(df_nino3.index == start_date)[0]
     end_ts_l = np.where(df_nino3.index == end_date)[0]
+
     # Test if index list is empty, i.e., start_date or end_date are outside time series range
     if not start_ts_l:
         raise ValueError("start_ts_l is empty, start_date is outside range of NINO3 index time series.")
@@ -31,7 +32,7 @@ def prepare_NINO3(file_path, start_date, end_date):
     end_ts_ind = int(int(end_ts_l[0])+1)
 
     df_nino3 = df_nino3.iloc[start_ts_ind:end_ts_ind]
-
+    
     return df_nino3
 
 #

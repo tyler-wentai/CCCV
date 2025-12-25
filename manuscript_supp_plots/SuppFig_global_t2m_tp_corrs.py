@@ -20,10 +20,13 @@ print('\n\nSTART ---------------------\n')
 ####################################
 
 # Load your two DataArrays
-path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_v3.nc'
-path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_v3_type2_GPCC.nc'
-ds1 = xr.open_dataarray(path1)
-ds2 = xr.open_dataarray(path2)
+path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/t2m_tp_monthly_corrs.nc'
+da1 = xr.open_dataarray(path1)
+
+month_dim = "month" if "month" in da1.dims else "time"  # adjust if your file uses something else
+abs_month_nanmed = np.abs(da1).median(dim=month_dim, skipna=True)
+abs_month_nanmax = np.abs(da1).max(dim=month_dim, skipna=True)
+
 
 # Define the index box once
 index_box1 = mpatches.Rectangle(
@@ -91,7 +94,7 @@ fig, (ax1, ax2) = plt.subplots(
 # PLOT 1
 gl1 = ax1.gridlines(
     crs=ccrs.PlateCarree(), draw_labels=True,
-    linewidth=0.4, color='dimgray'
+    linewidth=0.5, color='black'
 )
 gl1.xlocator = mticker.FixedLocator(range(-180, 181, 60))
 gl1.ylocator = mticker.FixedLocator(range(-60, 91, 30))
@@ -103,19 +106,17 @@ gl1.top_labels = False
 
 ax1.set_global()
 ax1.coastlines()
-im1 = ds1.plot(
+im1 = abs_month_nanmed.plot(
     ax=ax1,
     transform=ccrs.PlateCarree(),
-    cmap='PuRd',
+    cmap='rainbow',
+    vmin=0.0, vmax=1.0,
     add_colorbar=True,
     cbar_kwargs={'shrink': 0.6, 'pad': 0.02}
 )
-# ax1.add_patch(index_box1)
-ax1.add_patch(index_box4)
-ax1.add_patch(index_box5)
-ax1.set_title('DMI Teleconnection', fontsize=11)
+ax1.set_title('Corr. of ERA5 t2m and tp anomalies', fontsize=11)
 cax1 = im1.colorbar.ax
-cax1.set_title("Teleconnection\nstrength", fontsize=8)
+cax1.set_title("Median absolute\nmonthly corr.", fontsize=8)
 ax1.text(0.05, 0.98, 'a', transform=ax1.transAxes, fontsize=14, bbox=dict(
             boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',         # box fill color
@@ -126,7 +127,7 @@ ax1.text(0.05, 0.98, 'a', transform=ax1.transAxes, fontsize=14, bbox=dict(
 # PLOT 2
 gl2 = ax2.gridlines(
     crs=ccrs.PlateCarree(), draw_labels=True,
-    linewidth=0.4, color='dimgray'
+    linewidth=0.5, color='black'
 )
 gl2.xlocator = mticker.FixedLocator(range(-180, 181, 60))
 gl2.ylocator = mticker.FixedLocator(range(-60, 91, 30))
@@ -138,18 +139,17 @@ gl2.top_labels = False
 
 ax2.set_global()
 ax2.coastlines()
-im2 = ds2.plot(
+im2 = abs_month_nanmax.plot(
     ax=ax2,
     transform=ccrs.PlateCarree(),
-    cmap='PuRd',
+    cmap='rainbow',
+    vmin=0.0, vmax=1.0,
     add_colorbar=True,
     cbar_kwargs={'shrink': 0.6, 'pad': 0.02}
 )
-ax2.add_patch(index_box2)
-ax2.add_patch(index_box3)
-ax2.set_title('EA-DMI Teleconnection', fontsize=11)
+ax2.set_title('Corr. of ERA5 t2m and tp anomalies', fontsize=11)
 cax2 = im2.colorbar.ax
-cax2.set_title("Teleconnection\nstrength", fontsize=8)
+cax2.set_title("Max absolute\nmonthly corr.", fontsize=8)
 ax2.text(0.05, 0.98, 'b', transform=ax2.transAxes, fontsize=14, bbox=dict(
             boxstyle='square,pad=0.3',  # try 'square', 'round', 'larrow', etc.
             facecolor='white',         # box fill color

@@ -82,8 +82,8 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     ######## D. COMPUTE CONFLICT ONSET COUNT-YEAR
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
-    # conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED_instrastateONLY.csv'
+    # conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+    conflictdata_path = '/Users/tylerbagwell/Documents/GitHub/cccv_whiplash/data/conflict_data/GeoArmedConflictOnset_v2_CLEANED.csv'
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -256,8 +256,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     ######## PLOTTING
     if (plot_telecon==True):
 
-        onset_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
-        # onset_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED_instrastateONLY.csv'
+        onset_path = conflictdata_path
         df = pd.read_csv(onset_path)    
         gdf = gpd.GeoDataFrame(
             df, 
@@ -305,14 +304,13 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
-                                    panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_pdsiNINO3.nc',
+                                    panel_end_year=2024,
+                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_v3.nc',
                                     pop_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
-                                    clim_index='nino3',
+                                    clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-# panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2.csv', index=False)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_pdsiNINO3.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_v3_newonsetdata.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv', index=False)
 print(panel)
 

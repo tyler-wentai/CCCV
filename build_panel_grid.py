@@ -587,10 +587,10 @@ panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', s
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'dmi',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
                                         response_var='count',  # 'count' or 'binary'
-                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type1.nc',
+                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_ensoremoved.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype1_square4.csv', index=False)
-# panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype1_square4_wGeometry.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_ensoremoved_square4.csv', index=False)
+# panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv', index=False)
 
 

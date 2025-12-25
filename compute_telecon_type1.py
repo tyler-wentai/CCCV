@@ -326,8 +326,8 @@ for i in range(n_lat):
                 # corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str) # partial corr
                 # corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str) # partial corr
 
-                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str) # marginal corr
-                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str) # marginal corr
+                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str) # full corr
+                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str) # full corr
 
                 corrs_array_1[int(k-1),i,j] = corr_1['r'].values[0]
                 corrs_array_2[int(k-1),i,j] = corr_2['r'].values[0]

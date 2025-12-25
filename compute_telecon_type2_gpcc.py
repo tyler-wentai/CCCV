@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 print('\n\nSTART ---------------------\n')
 # COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
 
-clim_index = 'NINO3'
+clim_index = 'DMI'
 
 start_year  = 1950
 end_year    = 2023
@@ -81,9 +81,9 @@ ds2 = ds2.assign_coords(
 
 
 # load index data
-clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
-                        start_date=datetime(start_year, 1, 1, 0, 0, 0),
-                        end_date=datetime(end_year, 12, 1, 0, 0, 0))
+# clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
+#                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+#                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_NINO34(file_path='data/NOAA_NINO34_data.txt',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -93,9 +93,9 @@ clim_ind = prepare_NINO3(file_path='data/NOAA_NINO3_data.txt',
 # clim_ind = prepare_Cindex(file_path='data/CE_index.csv',
 #                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
-# clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
-#                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
-#                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
+clim_ind = prepare_DMI(file_path = 'data/NOAA_DMI_data.txt',
+                         start_date=datetime(start_year, 1, 1, 0, 0, 0),
+                         end_date=datetime(end_year, 12, 1, 0, 0, 0))
 # clim_ind = prepare_ANI(file_path='data/Atlantic_NINO.csv',
 #                          start_date=datetime(start_year, 1, 1, 0, 0, 0),
 #                          end_date=datetime(end_year, 12, 1, 0, 0, 0))
@@ -229,19 +229,19 @@ clim_ind_common['year'] = clim_ind_common.index.year
 clim_ind_common['month'] = clim_ind_common.index.month
 
 ## --- NINO3, NINO34
-jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
-jan_df['year'] = jan_df['year'] - 1  # Shift back a year
-jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
+# jan_df = clim_ind_common[clim_ind_common['month'] == 1].copy() # prepare January data from following year
+# jan_df['year'] = jan_df['year'] - 1  # Shift back a year
+# jan_df = jan_df[['year', 'ANOM']].rename(columns={'ANOM': 'JAN_ANOM'})
 
-nov_dec_df = clim_ind_common[clim_ind_common['month'].isin([11, 12])].copy() # prepare November and December data for current year
-nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
-dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
+# nov_dec_df = clim_ind_common[clim_ind_common['month'].isin([11, 12])].copy() # prepare November and December data for current year
+# nov     = nov_dec_df[nov_dec_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+# dec     = nov_dec_df[nov_dec_df['month'] == 12][['year', 'ANOM']].rename(columns={'ANOM': 'DEC_ANOM'})
 
-yearly = pd.merge(jan_df, nov, on='year', how='inner') # merge November_t, January_t+1 data
-yearly = pd.merge(yearly, dec, on='year', how='inner') # merge November_t, December_t, January_t+1 data
+# yearly = pd.merge(jan_df, nov, on='year', how='inner') # merge November_t, January_t+1 data
+# yearly = pd.merge(yearly, dec, on='year', how='inner') # merge November_t, December_t, January_t+1 data
 
-yearly['avg_ANOM'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
-index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+# yearly['avg_ANOM'] = yearly[['NOV_ANOM', 'DEC_ANOM', 'JAN_ANOM']].mean(axis=1) # Calculate the average NDJ ANOM value
+# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
 # print(index_AVG)
 
@@ -250,18 +250,18 @@ index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=Tr
 # index_AVG = index_AVG.rename(columns={'ANOM': 'avg_ANOM'}) # DELETE !!!!!!!!!!!!!!!!!!!!!!!!
 
 ## --- DMI
-# sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
-# sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
-# oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
-# nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
+sep_oct_nov_df = clim_ind_common[clim_ind_common['month'].isin([9, 10, 11])].copy() # prepare January and February data for current year
+sep     = sep_oct_nov_df[sep_oct_nov_df['month'] == 9][['year', 'ANOM']].rename(columns={'ANOM': 'SEP_ANOM'})
+oct     = sep_oct_nov_df[sep_oct_nov_df['month'] == 10][['year', 'ANOM']].rename(columns={'ANOM': 'OCT_ANOM'})
+nov     = sep_oct_nov_df[sep_oct_nov_df['month'] == 11][['year', 'ANOM']].rename(columns={'ANOM': 'NOV_ANOM'})
 
-# yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
-# yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
+yearly = pd.merge(sep, oct, on='year', how='inner') # merge December, January, and February data
+yearly = pd.merge(yearly, nov, on='year', how='inner') # merge December, January, and February data
 
-# yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
-# index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
+yearly['avg_ANOM'] = yearly[['SEP_ANOM', 'OCT_ANOM', 'NOV_ANOM']].mean(axis=1) # Calculate the average DJF ANOM value
+index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=True)
 
-# print(index_AVG)
+print(index_AVG)
 
 ## --- ANI
 # jun_jul_aug_df = clim_ind_common[clim_ind_common['month'].isin([6, 7, 8])].copy() # prepare June, July, August (JJA) data for current year
@@ -278,8 +278,8 @@ index_AVG = yearly[['year', 'avg_ANOM']].sort_values('year').reset_index(drop=Tr
 # print(index_AVG)
 
 ####
-n_months = 12 # NINO3
-# n_months = 8 # DMI
+# n_months = 12 # NINO3
+n_months = 8 # DMI
 # n_months = 8 # ANI 
 
 corrs_array_1   = np.empty((n_months,n_lat,n_long))
@@ -307,18 +307,18 @@ for i in range(n_lat):
 
         # iterate through the months
         ### NINO3 / NINO34
-        for k in range(1,int(n_months+1),1):
-            # may-dec of year t
-            if (k<=8):
-                var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
-            else:
-                var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
-                var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
-
-        ### DMI
         # for k in range(1,int(n_months+1),1):
         #     # may-dec of year t
-        #     var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+        #     if (k<=8):
+        #         var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
+        #     else:
+        #         var_ts = current_vars[current_vars['month'] == int(k-8)].copy()
+        #         var_ts['year'] = var_ts['year'] - 1  # Shift to previous year
+
+        ### DMI
+        for k in range(1,int(n_months+1),1):
+            # may-dec of year t
+            var_ts = current_vars[current_vars['month'] == int(k+4)].copy()
 
         ### ANI
         # for k in range(1,int(n_months+1),1):
@@ -331,8 +331,10 @@ for i in range(n_lat):
 
             has_nan = var_ts[[var1str, var2str, 'avg_ANOM']].isna().any().any()
             if not has_nan:
-                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)    # partial corr
-                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)    # partial corr
+                corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str)    # full corr
+                corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str)    # full corr
+                # corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, covar=var2str)    # partial corr
+                # corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, covar=var1str)    # partial corr
                 # corr_1 = partial_corr(data=var_ts, x='avg_ANOM', y=var1str, y_covar=var2str)    # semi-partial corr
                 # corr_2 = partial_corr(data=var_ts, x='avg_ANOM', y=var2str, y_covar=var1str)    # semi-partial corr
 
@@ -372,7 +374,8 @@ for i in range(n_lat):
             psi2_rolling_avg = windows2.mean(axis=1)
             psi2 = np.max(psi2_rolling_avg)
 
-            psi[i,j] = psi1 + psi2
+            psi[i,j] = psi1 + psi2                  #v3
+            # psi[i,j] = np.sqrt(psi1**2 + psi2**2) #v2
 
         else:
             psi[i,j] = np.nan
@@ -384,14 +387,14 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) using partial correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and GPCC precip.",
+                            description="Teleconnection strength (Psi) using full correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and GPCC precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
                             resolution = resolution)
                         )
 
-pathA_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_' + clim_index +'_type2_GPCC.nc'
+pathA_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_' + clim_index +'_type2_v3_GPCC.nc'
 psi_array.to_netcdf(pathA_str)
 
 psiMonthly_array = xr.DataArray(data = monthly_psi,
@@ -402,14 +405,14 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly raw teleconnection strength (Psi_m) using partial correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and GPCC precip.",
+                            description="Monthly raw teleconnection strength (Psi_m) using full correlations inspired by Callahan and Mankin 2023 method using ERA5 t2m and GPCC precip.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
                             resolution = resolution)
                         )
 
-pathB_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psiMonthly_' + clim_index +'_type2_GPCC.nc'
+pathB_str = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psiMonthly_' + clim_index +'_type2_v3_GPCC.nc'
 psiMonthly_array.to_netcdf(pathB_str)
 
 
