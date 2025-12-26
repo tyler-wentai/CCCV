@@ -8,9 +8,9 @@
 
 library(brms)
 library(dplyr)
-
-path <- '/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_wGeometry.csv'
-dat <- read.csv(path)
+panel_data_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/'
+#
+dat <- read.csv(file.path(panel_data_path, 'Onset_Binary_GlobalState_NINO3type2_v3_newonsetdata.csv')) # <-- PANEL DATA PATH, ALL STATE PANELS HAVE BINARY RESPONSE
 #View(dat)
 
 unique_psi <- dat %>%
@@ -40,14 +40,52 @@ post <- as_draws_df(fit_mix, variable=c('Intercept_mu1', 'Intercept_mu2',
                                         'sigma1', 'sigma2',
                                         'theta1', 'theta2'))
 
-find_threshold <- function(w1, mu1, sd1, w2, mu2, sd2) {
+find_threshold_safe <- function(w1, mu1, sd1, w2, mu2, sd2,
+                                lower = 0, upper = 2, grid_n = 401) {
+  
+  # relabel per draw so mu1 <= mu2 (reduces label-switching headaches)
+  if (is.finite(mu1) && is.finite(mu2) && mu1 > mu2) {
+    tmp <- w1; w1 <- w2; w2 <- tmp
+    tmp <- mu1; mu1 <- mu2; mu2 <- tmp
+    tmp <- sd1; sd1 <- sd2; sd2 <- tmp
+  }
+  
+  # guards
+  if (any(!is.finite(c(w1, mu1, sd1, w2, mu2, sd2))) || any(c(sd1, sd2) <= 0) ||
+      any(c(w1, w2) <= 0)) return(NA_real_)
+  
   f <- function(x) w1*dnorm(x, mu1, sd1) - w2*dnorm(x, mu2, sd2)
-  uniroot(f, lower=0.0, upper=2.0)$root
+  
+  xs <- seq(lower, upper, length.out = grid_n)
+  ys <- f(xs)
+  
+  # remove non-finite
+  ok <- is.finite(ys)
+  xs <- xs[ok]; ys <- ys[ok]
+  if (length(xs) < 2) return(NA_real_)
+  
+  s <- sign(ys)
+  # indices where sign changes (or hits 0)
+  idx <- which(s[-1] * s[-length(s)] <= 0)
+  
+  if (length(idx) == 0) return(NA_real_)  # no root in [lower, upper]
+  
+  # choose a sign-change interval; often you'd want the one between means:
+  mid <- (mu1 + mu2) / 2
+  a_candidates <- xs[idx]
+  b_candidates <- xs[idx + 1]
+  mids <- (a_candidates + b_candidates) / 2
+  j <- which.min(abs(mids - mid))  # pick closest to midpoint between means
+  
+  a <- a_candidates[j]; b <- b_candidates[j]
+  out <- tryCatch(uniroot(f, lower = a, upper = b)$root, error = function(e) NA_real_)
+  out
 }
 
-thresholds <- mapply(find_threshold,
+thresholds <- mapply(find_threshold_safe,
                      post$theta1, post$Intercept_mu1, post$sigma1,
                      post$theta2, post$Intercept_mu2, post$sigma2)
+
 
 mean_thr <- mean(thresholds)
 ci_thr   <- quantile(thresholds, c(0.025, 0.975))

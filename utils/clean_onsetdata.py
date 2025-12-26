@@ -9,7 +9,7 @@ print('\n\nSTART ---------------------\n')
 # Dataset: GeoArmedConflictOnset_v1.csv
 
 
-conflict_data_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1.csv'
+conflict_data_path = 'data/conflict_data/GeoArmedConflictOnset_v2.csv'
 df = pd.read_csv(conflict_data_path)
 
 # 1. REMOVE CONFLICT-YEARS WHERE THERE IS AN OBSERVATION BEFORE 1950
@@ -33,5 +33,5 @@ print("Total removed:", nrow0 - nrow1)
 print("Percent removed:", round(((nrow0 - nrow1) / nrow0) * 100, 3), "%")
 
 # 4. SAVE THE CLEANED DATA
-# df_cleaned.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED_instrastateONLY.csv', index=False)
+df_cleaned.to_csv('data/conflict_data/GeoArmedConflictOnset_v2_CLEANED_instrastateONLY.csv', index=False)
 

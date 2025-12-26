@@ -300,7 +300,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+    conflictdata_path = 'data/conflict_data/GeoArmedConflictOnset_v2_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+    # conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -478,7 +479,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         total_aggregate = final_gdf.groupby(['loc_id'])['psi'].mean().reset_index()
         total_aggregate = polygons_gdf.merge(total_aggregate, left_on=['loc_id'], right_on=['loc_id'])
 
-        onset_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+        onset_path = conflictdata_path
         df = pd.read_csv(onset_path)    
         gdf = gpd.GeoDataFrame(
             df, 
@@ -585,12 +586,12 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 # stepsize=3.5
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'dmi',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
-                                        response_var='count',  # 'count' or 'binary'
-                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_ensoremoved.nc',
+                                        clim_index = 'nino3',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
+                                        response_var='binary',  # 'count' or 'binary'
+                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_NINO3_type2_v3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_ensoremoved_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3type2_v3_newonsetdata_square4.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv', index=False)
 
 
