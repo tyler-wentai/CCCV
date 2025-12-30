@@ -102,7 +102,7 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
     ######## B. COMPUTE COUNTRY-YEAR TELECONNECTION STRENGTH (POPUlATION WEIGHTED)
     print('...Computing gdf for psi...')
-    psi = xr.open_dataarray(telecon_path)
+    psi = xr.open_dataarray(telecon_path)#.sel(var="psi_pos")
     pop = xr.open_dataarray(pop_path)
     pop2000 = pop.sel(raster=1) #raster 1 corresponds to the year 2000
 
@@ -305,12 +305,12 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2024,
-                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_NINO3_type2_v3.nc',
+                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_NINO3_type1.nc',
                                     pop_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='nino3',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type2_v3_newonsetdata.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_NINO3type1_newonsetdata.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv', index=False)
 print(panel)
 

@@ -23,7 +23,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # read csv
-df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_DMIlag1yminus0d80_90ci_mod.g.csv")
+df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralENSO_NINO3lag0y_90ci_mod.f.csv")
 
 # ensure numeric
 for c in ["pop_avg_psi","cindex","estimate","conf.low","conf.high"]:
@@ -60,7 +60,7 @@ cf = plt.contourf(Xg, Yg, Z, levels=11, cmap="Reds")   # do not set cmap unless 
 cs = plt.contour(Xg, Yg, Z, levels=11, colors='k', linewidths=0.6)
 plt.clabel(cs, inline=True, fontsize=8)
 
-cs0 = plt.contour(Xg, Yg, Zlow, levels=[0.0], linewidths=1.0, linestyles=":", linecolor='green', alpha=1.0)
+cs0 = plt.contour(Xg, Yg, Zlow, levels=[0.0], linewidths=1.5, linestyles=":", linecolor='blue', alpha=1.0)
 cs0.collections[0].set_label("conf.low = 0")
 
 plt.xticks(fontsize=11)

@@ -13,25 +13,31 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import xarray as xr
+import cmocean
 
 print('\n\nSTART ---------------------\n')
 
 ####################################
 ####################################
 
-path = '/Users/tylerbagwell/Desktop/cccv_data/processed_teleconnections/psi_DMI_type2.nc'
+path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_mrsos_neg-NINO3.nc'
 df = xr.open_dataarray(path)
 
+print(df)
+df = df.sel(var="psi_neg")
+
+# print(df.sel(var="psi_pos"))
+# sys.exit()
 # df = df.sum(dim="month") 
 
 
-onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
-df_onset = pd.read_csv(onset_path)    
-gdf_onset = gpd.GeoDataFrame(
-    df_onset, 
-    geometry=gpd.points_from_xy(df_onset.onset_lon, df_onset.onset_lat),
-    crs="EPSG:4326"
-)
+# onset_path = '/Users/tylerbagwell/Desktop/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv'
+# df_onset = pd.read_csv(onset_path)    
+# gdf_onset = gpd.GeoDataFrame(
+#     df_onset, 
+#     geometry=gpd.points_from_xy(df_onset.onset_lon, df_onset.onset_lat),
+#     crs="EPSG:4326"
+# )
 
 
 # Define a polygon with lat/lon coordinates
@@ -52,7 +58,7 @@ bounds = [df.min(), df.max()] #psi_quants
 
 
 
-cmap = 'Reds'#'PRGn', 'PuOr'
+cmap = 'cmo.curl_r'#'PRGn', 'PuOr'
 
 index_box = mpatches.Rectangle((-150, -5), 60, 10, 
                         fill=True, facecolor='gray', edgecolor=None, linewidth=1.5, alpha=0.30,

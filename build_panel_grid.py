@@ -317,7 +317,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     filtered_gdf = joined_gdf[joined_gdf['year'].isin(desired_years)]
 
     start_year  = np.min(desired_years)-nlag_cindex-1 #need the -1 because DEC(t-1)
-    end_year    = np.max(desired_years) #+ 1
+    if clim_index=='nino3' or clim_index=='nino34':
+        end_year    = np.max(desired_years) + 1
+    else:
+        end_year    = np.max(desired_years)
 
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
     # annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
@@ -366,7 +369,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
             return ds
 
         print('Computing gdf for psi...')
-        psi = xr.open_dataarray(telecon_path)
+        psi = xr.open_dataarray(telecon_path)#.sel(var="psi_pos")
 
         # Ensure that the DataArray has 'lat' and 'lon' coordinates
         if 'lat' not in psi.coords or 'lon' not in psi.coords:
@@ -503,7 +506,7 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         # create a custom colormap
         import matplotlib.colors as mcolors
         import matplotlib.patches as mpatches
-        bounds = [np.min(total_aggregate['psi']), 0.470716178, np.max(total_aggregate['psi'])] #psi_quants
+        bounds = [-1, 0.0, +1] #psi_quants
         cmap = mcolors.ListedColormap(["gainsboro", "blue"])
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
@@ -587,11 +590,11 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=3, nlag_conflict=0,
                                         clim_index = 'nino3',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
-                                        response_var='binary',  # 'count' or 'binary'
+                                        response_var='count',  # 'count' or 'binary'
                                         telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_NINO3_type2_v3.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_NINO3type2_v3_newonsetdata_square4.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_v3_square4_newonsetdata.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv', index=False)
 
 
