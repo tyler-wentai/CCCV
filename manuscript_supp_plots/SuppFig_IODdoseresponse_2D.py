@@ -23,7 +23,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # read csv
-df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_DMIlag0y_type1_90ci_mod.f.csv")
+df = pd.read_csv("/Users/tylerbagwell/Desktop/avgcomp_from_neutralIOD_DMIlag0y_type2_ensoremoved_90ci_mod.f.csv")
 
 # ensure numeric
 for c in ["pop_avg_psi","cindex","estimate","conf.low","conf.high"]:
