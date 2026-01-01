@@ -283,14 +283,11 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
 
 
 #
-def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, nlag_conflict, clim_index, response_var='count', telecon_path=None, add_weather_controls=False, show_grid=False, show_gridded_aggregate=False):
+def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, nlag_conflict, clim_index, telecon_path=None, show_grid=False, show_gridded_aggregate=False):
     """
     Create a panel data set where each unit of analysis is an areal unit gridbox initialized 
     via the create_grid() function.
     """
-    allowed_responses = ['binary', 'count']
-    if response_var not in allowed_responses:
-        raise ValueError(f"Invalid response var '{response_var}'. Allowed colors are: {allowed_responses}.")
 
     # create polygon grid
     polygons_gdf = create_grid(grid_polygon, localities=localities, stepsize=stepsize, show_grid=show_grid)
@@ -420,10 +417,9 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     final_gdf = final_gdf.dropna(subset=['psi']) # remove all locations that do not have a psi value
 
     ###### --- TRANSFORM TO DESIRED RESPONSE VARIABLE: BINARY or COUNT
-    if (response_var=='binary'):        # NEED TO MAKE THIS DYNAMIC FOR THE LAGGED TERMS!!!!
-        final_gdf['conflict_count'] = (final_gdf['conflict_count'] > 0).astype(int)
-        # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
-        final_gdf.rename(columns={'conflict_count': 'conflict_binary', 'conflict_count_lag1y': 'conflict_binary_lag1y'}, inplace=True)
+    final_gdf['conflict_binary'] = (final_gdf['conflict_count'] > 0).astype(int)
+    # final_gdf['conflict_count_lag1y'] = (final_gdf['conflict_count_lag1y'] > 0).astype(int)
+
 
     # plot
     if (show_gridded_aggregate==True):
@@ -588,13 +584,13 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 # 3.7225
 # stepsize=3.5
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
-                                        nlag_cindex=3, nlag_conflict=0,
-                                        clim_index = 'nino3',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
+                                        nlag_cindex=2, nlag_conflict=0,
+                                        clim_index = 'dmi',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
                                         response_var='count',  # 'count' or 'binary'
-                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_NINO3_type2_v3.nc',
+                                        telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type1_ensoremoved.nc',
                                         add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_NINO3type2_v3_square4_newonsetdata.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Global_DMItype1_ensoremoved_square4_newonsetdata.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv', index=False)
 
 
