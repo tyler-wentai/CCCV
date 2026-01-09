@@ -18,6 +18,27 @@ from shapely.geometry import Polygon
 print('\n\nSTART ---------------------\n')
 # COMPUTES A GRID CELL PANEL OF CONFLICT ONSET DATA (BINARY OR COUNT) FOR A GIVEN CLIMATE INDEX AND TELECONNECTION STRENGTH FIELD
 
+iob_grid_cells = ['loc_736', 'loc_737', 'loc_766', 'loc_767', 'loc_796', 'loc_797', 'loc_768', 'loc_824', 'loc_825', # ONLY FOR SQUARE SIZE 4x4 !!!!
+                  'loc_798', 'loc_826', 'loc_799', 'loc_851', 'loc_852', 'loc_827', 'loc_853', 'loc_828', 'loc_878',
+                  'loc_903', 'loc_926', 'loc_877', 'loc_902', 'loc_925', 'loc_876', 'loc_901', 'loc_924', 'loc_946',
+                  'loc_966', 'loc_875', 'loc_900', 'loc_945', 'loc_874', 'loc_899', 'loc_854', 'loc_829', 'loc_879',
+                  'loc_855', 'loc_830', 'loc_947', 'loc_904', 'loc_880', 'loc_856', 'loc_905', 'loc_881', 'loc_927',
+                  'loc_906', 'loc_882', 'loc_948', 'loc_928', 'loc_907', 'loc_883', 'loc_859', 'loc_949', 'loc_929',
+                  'loc_908', 'loc_884', 'loc_967', 'loc_950', 'loc_968', 'loc_951', 'loc_969', 'loc_983', 'loc_984', 'loc_952',
+                  'loc_999', 'loc_1000', 'loc_1001', 'loc_1023', 'loc_1022', 'loc_1041', 'loc_1021', 'loc_1040', 'loc_1059',
+                  'loc_1078', 'loc_1020', 'loc_1039', 'loc_1058', 'loc_1019', 'loc_1038', 'loc_1057', 'loc_1077', 'loc_1018',
+                  'loc_1056', 'loc_1076', 'loc_1060', 'loc_1094', 'loc_1079', 'loc_1080', 'loc_1095', 'loc_1109', 'loc_1110',
+                  'loc_1111', 'loc_1112', 'loc_1113', 'loc_1129', 'loc_1130', 'loc_1131', 'loc_1132', 'loc_1133', 'loc_1134',
+                  'loc_1128', 'loc_1149', 'loc_1150', 'loc_1151', 'loc_1152', 'loc_1154', 'loc_1155', 'loc_1177', 'loc_1153',
+                  'loc_1176', 'loc_1175', 'loc_1174', 'loc_1173', 'loc_1172', 'loc_1171', 'loc_1194', 'loc_1195', 'loc_1196',
+                  'loc_1219', 'loc_1220', 'loc_1244', 'loc_1245', 'loc_1246', 'loc_1270', 'loc_1271', 'loc_1298', 'loc_1299',
+                  'loc_1325', 'loc_1326', 'loc_1350', 'loc_1351', 'loc_1349', 'loc_1348', 'loc_1324', 'loc_1323', 'loc_1297',
+                  'loc_1296', 'loc_1295', 'loc_1269', 'loc_1268', 'loc_1243', 'loc_1242', 'loc_1218', 'loc_1217', 'loc_1241',
+                  'loc_1267', 'loc_1240', 'loc_1266', 'loc_1239', 'loc_1265', 'loc_1292', 'loc_1293', 'loc_1294', 'loc_1320',
+                  'loc_1321', 'loc_1345', 'loc_1346', 'loc_1367', 'loc_1368', 'loc_1369', 'loc_1390', 'loc_1391', 'loc_1392',
+                  'loc_1413', 'loc_1414', 'loc_1415', 'loc_1437', 'loc_1438', 'loc_1439', 'loc_1017', 'loc_850', 'loc_923',
+                  'loc_997', 'loc_998', 'loc_1014', 'loc_1015', 'loc_1016', 'loc_1036', 'loc_1037', 'loc_930']
+
 #
 def calculate_hexagon_vertices(center_x, center_y, maximal_radius):
     """
@@ -210,6 +231,7 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
     countries_unique_to_list1 = set(gdf_countries['SOVEREIGNT']) - set(grid_with_country['SOVEREIGNT'])
 
     gdf_final = grid_with_country.copy()
+    gdf_final["iob_flag"] = gdf_final["loc_id"].isin(iob_grid_cells)
     print(gdf_final.crs)
 
     # pring out results of country-cell matching
@@ -266,7 +288,7 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
         gl.top_labels       = False 
         ax.set_global()
         gdf_plot = gdf_final.plot(
-            ax=ax, column='SOVEREIGNT', cmap=categorical_cmap,
+            ax=ax, column='SOVEREIGNT', cmap=categorical_cmap, #SOVEREIGNT, iob_flag
             edgecolor='black',
             linewidth=0.75,
             zorder=1,
@@ -274,6 +296,28 @@ def create_grid(grid_polygon, localities, stepsize=1.0, show_grid=False):
         ax.add_geometries(gdf_final['geometry'], crs=ccrs.PlateCarree(), facecolor='none', edgecolor='dimgrey', linewidth=0.5)
         ax.coastlines()
         ax.add_feature(cfeature.BORDERS, linestyle='-', edgecolor='black')
+
+        import matplotlib.patheffects as pe
+        if gdf_final.crs is None:
+            gdf_final = gdf_final.set_crs("EPSG:4326")
+        else:
+            gdf_final = gdf_final.to_crs("EPSG:4326")
+
+        # # Point guaranteed to fall inside each polygon (better than centroid for weird shapes)
+        # label_pts = gdf_final.geometry.representative_point()
+        # gdf_final["_lon"] = label_pts.x
+        # gdf_final["_lat"] = label_pts.y
+
+        # for lon, lat, lab in zip(gdf_final["_lon"], gdf_final["_lat"], gdf_final["loc_id"]):
+        #     ax.text(
+        #         lon, lat, lab,
+        #         transform=ccrs.PlateCarree(),
+        #         ha="center", va="center",
+        #         fontsize=4,  # adjust
+        #         zorder=5,
+        #         path_effects=[pe.withStroke(linewidth=1.5, foreground="white")]  # legible over fills
+        #     )
+
         plt.title(r'$4^{\circ} \times 4^{\circ}$ gridding', fontsize=11)
         plt.tight_layout()
         # plt.savefig('/Users/tylerbagwell/Desktop/RobMAP_global_square4.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
@@ -297,8 +341,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         polygons_gdf = polygons_gdf.to_crs(epsg=4326)
 
     # load conflict events dataset and convert to GeoDataFrame
-    conflictdata_path = 'data/conflict_data/GeoArmedConflictOnset_v2_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
-    # conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+    # conflictdata_path = 'data/conflict_data/GeoArmedConflictOnset_v2_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
+    conflictdata_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/conflict_datasets/GeoArmedConflictOnset_v1_CLEANED.csv' # <--- ONSET DATA SET HERE!!!
     conflict_df = pd.read_csv(conflictdata_path)
     conflict_gdf = gpd.GeoDataFrame(
         conflict_df,
@@ -323,6 +367,10 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     # annual_index['cindex'] = annual_index['cindex'] / annual_index['cindex'].std()
     print(annual_index)
 
+    if clim_index=='dmi':
+        enso_index = compute_annualized_index('nino3', start_year, end_year+1)
+        enso_index.rename(columns={'cindex': 'nino3_lag0y'}, inplace=True)
+
     # group by polygon (loc_id) and year and then count number of conflicts for each grouping
     count_df = filtered_gdf.groupby(['loc_id', 'year']).size().reset_index(name='conflict_count')
 
@@ -333,8 +381,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
     count_complete_df = count_df.set_index(['loc_id', 'year']).reindex(complete_index, fill_value=0).reset_index()
 
     # merge conflict counts back to polygons to retain geometry
-    final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT']].merge(count_complete_df, on='loc_id', how='right')
-    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry']]
+    final_gdf = polygons_gdf[['loc_id', 'geometry', 'SOVEREIGNT', 'iob_flag']].merge(count_complete_df, on='loc_id', how='right')
+    final_gdf = final_gdf[['loc_id', 'year', 'conflict_count', 'SOVEREIGNT', 'geometry', 'iob_flag']]
 
     ###### --- ADD OBSERVED ANNUALIZED CLIMATE INDEX VALUES TO PANEL
     for i in range(nlag_cindex+1):
@@ -342,6 +390,9 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
         annual_index[lag_string] = annual_index['cindex'].shift(i)
     #annual_index['cindex_lagF1y'] = annual_index['cindex'].shift(-1) # Include one forward, i.e., future lag to test for spurious results
     annual_index.drop('cindex', axis=1, inplace=True)
+
+    if clim_index=='dmi': # add ENSO index values as well
+        annual_index = annual_index.merge(enso_index, on='year', how='left')
 
     final_gdf = final_gdf.merge(annual_index, on='year', how='left')
     final_gdf = final_gdf.sort_values(['loc_id', 'year']) # ensure the shift operation aligns counts correctly for each loc_id in chronological order
@@ -586,11 +637,8 @@ def prepare_gridded_panel_data(grid_polygon, localities, stepsize, nlag_cindex, 
 panel = prepare_gridded_panel_data(grid_polygon='square', localities='Global', stepsize=4.0,
                                         nlag_cindex=2, nlag_conflict=0,
                                         clim_index = 'dmi',  # 'nino3', 'nino34', 'dmi', 'dmi_noenso'
-                                        response_var='count',  # 'count' or 'binary'
                                         telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type1_ensoremoved.nc',
-                                        add_weather_controls=False,
                                         show_grid=True, show_gridded_aggregate=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Global_DMItype1_ensoremoved_square4_newonsetdata.csv', index=False)
-# panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Binary_Global_DMItype2_square4_wGeometry.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Global_DMItype1_ensoremoved_square4_oldonsetdata.csv', index=False)
 
 

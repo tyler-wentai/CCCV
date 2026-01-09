@@ -10,12 +10,12 @@ from pathlib import Path
 from numpy.lib.stride_tricks import sliding_window_view
 
 print('\n\nSTART ---------------------\n')
-# COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD
+# COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CALLAHAN AND MANKIN 2023 METHOD BUT WITH ENSO REMOVED VIA PARTIAL CORRELATIONS
 
 clim_index = 'DMI'
 
 start_year  = 1950
-end_year    = 2023
+end_year    = 2024
 
 file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
 file_path_VAR2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_tp_raw.nc'  # total precipitation
@@ -178,8 +178,8 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
-anom_file2 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy')
+anom_file2 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -207,8 +207,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy', var1_std)
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy', var2_std)
 
 
 # var2_monthly_array = xr.DataArray(data = var2_std,

@@ -9,12 +9,12 @@ from utils.calc_annual_index import *
 from pathlib import Path
 
 print('\n\nSTART ---------------------\n')
-# COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CAI ET AL. 2024 METHOD
+# COMPUTES THE TELECONNECTION STRENGTH (PSI) USING THE CAI ET AL. 2024 METHOD WITH ENSO REMOVED VIA PARTIAL CORRELATIONS
 
 clim_index = 'DMI'
 
 start_year  = 1950
-end_year    = 2023
+end_year    = 2024
 
 file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
 file_path_VAR2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_tp_raw.nc'  # total precipitation
@@ -175,8 +175,8 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_19502023_FINAL.npy')
-anom_file2 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_19502023_FINAL.npy')
+anom_file1 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy')
+anom_file2 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -204,9 +204,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/t2m_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
-    np.save('/Users/tylerbagwell/Desktop/cccv_data/processed_climate_data/tp_anom_ERA5_0d5_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
-
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy', var1_std)
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_ERA5_0d5_{start_year}{end_year}_FINAL.npy', var2_std)
 
 # Compute the annualized index value:
 clim_ind_common.index = pd.to_datetime(clim_ind_common.index)     # Ensure 'date' to datetime and extract year & month
@@ -371,7 +370,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 t2m and tp, ENSO removed.",
+                            description="Teleconnection strength (Psi) inspired by Cai et al. 2024 method using ERA5 t2m and tp, ENSO removed via partial correlations.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -389,7 +388,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 t2m and tp, ENSO removed.",
+                            description="Monthly teleconnection strength (Psi_m) inspired by Cai et al. 2024 method using ERA5 t2m and tp, ENSO removed via partial correlations.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,

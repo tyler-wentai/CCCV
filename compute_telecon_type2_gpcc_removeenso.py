@@ -15,7 +15,7 @@ print('\n\nSTART ---------------------\n')
 clim_index = 'DMI'
 
 start_year  = 1950
-end_year    = 2023
+end_year    = 2024
 resolution  = 0.5
 
 file_path_VAR1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/raw_climate_data/ERA5_t2m_raw.nc' # air temperature 2 meter
@@ -177,8 +177,8 @@ def detrend_then_standardize_monthly(data, israin: bool = False):
     return standardized.tolist()
 
 
-anom_file1 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_forGPCC_19502023_FINAL.npy')
-anom_file2 = Path('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/precip_anom_GPCC_19502023_FINAL.npy')
+anom_file1 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_forGPCC_{start_year}{end_year}_FINAL.npy')
+anom_file2 = Path(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_GPCC_{start_year}{end_year}_FINAL.npy')
 
 if anom_file1.exists() and anom_file2.exists():
     print("Both anomaly field files exist. Skipping processing.")
@@ -206,8 +206,8 @@ else:
             else: 
                 var2_std[:, i, j] = var2_common[:, i, j]
 
-    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/t2m_anom_ERA5_forGPCC_' + str(start_year) + str(end_year) + '_FINAL.npy', var1_std)
-    np.save('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/precip_anom_GPCC_' + str(start_year) + str(end_year) + '_FINAL.npy', var2_std)
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var1str}_anom_ERA5_forGPCC_{start_year}{end_year}_FINAL.npy', var1_std)
+    np.save(f'/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_climate_data/{var2str}_anom_GPCC_{start_year}{end_year}_FINAL.npy', var2_std)
 
 
 # var2_monthly_array = xr.DataArray(data = var2_std,
@@ -388,7 +388,7 @@ psi_array = xr.DataArray(data = psi,
                         },
                         dims = ["lat", "lon"],
                         attrs=dict(
-                            description="Teleconnection strength (Psi) using partial correlations to remove ENSO influence inspired by Callahan and Mankin, and Cai et al.",
+                            description="Teleconnection strength (Psi) using partial correlations to remove ENSO influence inspired by Callahan and Mankin, and Cai et al, using GPCC precip data.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,
@@ -406,7 +406,7 @@ psiMonthly_array = xr.DataArray(data = monthly_psi,
                         },
                         dims = ["month", "lat", "lon"],
                         attrs=dict(
-                            description="Monthly raw teleconnection strength (Psi_m) using partial correlations to remove ENSO influence inspired by Callahan and Mankin, and Cai et al.",
+                            description="Monthly raw teleconnection strength (Psi_m) using partial correlations to remove ENSO influence inspired by Callahan and Mankin, and Cai et al, using GPCC precip data.",
                             psi_calc_start_date = str(datetime(start_year, 1, 1, 0, 0, 0)),
                             psi_calc_end_date = str(datetime(end_year, 12, 1, 0, 0, 0)),
                             climate_index_used = clim_index,

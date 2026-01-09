@@ -16,16 +16,16 @@ import cmocean
 from scipy.stats import pearsonr, spearmanr
 
 print('\n\nSTART ---------------------\n')
-pathA1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_v3_newonsetdata.csv'
+pathA1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_ensoremoved.csv'
 dfA1 = pd.read_csv(pathA1)
 
-pathA2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype1_newonsetdata.csv'
+pathA2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype1_ensoremoved.csv'
 dfA2 = pd.read_csv(pathA2)
 
 psiA1 = dfA1.groupby("loc_id")["psi"].first()
 psiA2 = dfA2.groupby("loc_id")["psi"].first()
 
-# q66 = np.nanquantile(psiA1, 0.90)          # handles NaNs
+# q66 = np.nanquantile(psiA1, 0.80)          # handles NaNs
 # mask = psiA1 > q66
 # psiA1 = psiA1[mask]
 # psiA2 = psiA2[mask]
@@ -50,16 +50,16 @@ outA = pd.Series(
 print(outA)
 
 #
-pathB1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype2_v3_square4_newonsetdata.csv'
+pathB1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Global_DMItype2_ensoremoved_square4.csv'
 dfB1 = pd.read_csv(pathB1)
 psiB1 = dfB1.groupby("loc_id")["psi"].first()
 
-pathB2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Count_Global_DMItype1_square4_newonsetdata.csv'
+pathB2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_grid/Onset_Global_DMItype1_ensoremoved_square4.csv'
 dfB2 = pd.read_csv(pathB2)
 psiB2 = dfB2.groupby("loc_id")["psi"].first()
 
-q66 = np.nanquantile(psiB1, 0.75)          # handles NaNs
-print(f"90th percentile of psiB1: {q66}")
+# q66 = np.nanquantile(psiB1, 0.75)          # handles NaNs
+# print(f"90th percentile of psiB1: {q66}")
 # mask = psiB1 > q66
 # psiB1 = psiB1[mask]
 # psiB2 = psiB2[mask]
@@ -107,8 +107,8 @@ def add_percentile_xaxis(ax, x, offset=36, label="x percentile"):
     secax = ax.secondary_xaxis("bottom", functions=(x_to_pct, pct_to_x))
     secax.spines["bottom"].set_position(("outward", offset))
     secax.set_xlabel(label)
-    secax.set_xticks([0, 50, 75, 90, 100])
-    secax.set_xticklabels(["0%", "50%", "75%", "90%", "100%"])
+    secax.set_xticks([0, 75, 90, 100])
+    secax.set_xticklabels(["0%", "75%", "90%", "100%"])
     
     return secax
 
