@@ -234,11 +234,18 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
     if clim_index=='nino3' or clim_index=='nino34' or clim_index=='eei' or clim_index=='eci': end_year += 1 # Needed since annualized NINO3/NINO34/EEI in computed with values from t+1 year
     annual_index = compute_annualized_index(clim_index, start_year, end_year)
 
+    if clim_index=='dmi':
+        enso_index = compute_annualized_index('nino3', start_year, end_year+1)
+        enso_index.rename(columns={'cindex': 'nino3_lag0y'}, inplace=True)
+
     annual_index['cindex']
     annual_index['cindex_lag1y'] = annual_index['cindex'].shift(+1)
     annual_index['cindex_lag2y'] = annual_index['cindex'].shift(+2)
     annual_index['cindex_lag3y'] = annual_index['cindex'].shift(+3)
     annual_index = annual_index.rename(columns={'cindex': 'cindex_lag0y'})
+
+    if clim_index=='dmi': # add ENSO index values as well
+        annual_index = annual_index.merge(enso_index, on='year', how='left')
 
     panel_gdf = panel_gdf.merge(annual_index, on='year', how='left')
 
@@ -305,12 +312,12 @@ def initalize_state_onset_panel(panel_start_year, panel_end_year, telecon_path, 
 
 panel = initalize_state_onset_panel(panel_start_year=1950,
                                     panel_end_year=2023,
-                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_ensoremoved.nc',
+                                    telecon_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_signed_DMI_type1_ensoremoved.nc',
                                     pop_path = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/gpw-v4-population-count-rev11_totpop_15_min_nc/gpw_v4_population_count_rev11_15_min.nc',
                                     clim_index='dmi',
                                     response_var = 'binary',
                                     plot_telecon=True)
-panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_DMItype2_ensoremoved_oldonsetdata.csv', index=False)
+panel.to_csv('/Users/tylerbagwell/Documents/Rice_University/CCCV/data/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsos_DMItype1_ensoremoved_oldonsetdata.csv', index=False)
 # panel.to_csv('/Users/tylerbagwell/Desktop/panel_datasets/onset_datasets_state/Onset_Binary_GlobalState_mrsosNINO3_wGeometry.csv', index=False)
 print(panel)
 

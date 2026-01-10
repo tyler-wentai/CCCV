@@ -13,6 +13,7 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import xarray as xr
+import cmocean
 
 print('\n\nSTART ---------------------\n')
 
@@ -20,7 +21,7 @@ print('\n\nSTART ---------------------\n')
 ####################################
 
 # Load your two DataArrays
-path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type2_ensoremoved.nc'
+path1 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_signed_DMI_type1_ensoremoved.nc'
 path2 = '/Users/tylerbagwell/Documents/Rice_University/CCCV/data/cccv_data/processed_teleconnections/psi_DMI_type1_ensoremoved.nc'
 ds1 = xr.open_dataarray(path1)
 ds2 = xr.open_dataarray(path2)
@@ -106,7 +107,8 @@ ax1.coastlines()
 im1 = ds1.plot(
     ax=ax1,
     transform=ccrs.PlateCarree(),
-    cmap='PuRd',
+    cmap='cmo.curl_r',
+    vmin=-3, vmax=3,
     add_colorbar=True,
     cbar_kwargs={'shrink': 0.6, 'pad': 0.02}
 )
